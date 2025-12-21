@@ -50,33 +50,22 @@ interface Barrage {
 
 import VueDanmaku from 'vue3-danmaku'
 import { nextTick, onMounted, ref } from 'vue'
+import { listMessage } from '@/apis/message'
 
 const show = ref(false)
 const messageContent = ref('')
 const danmakuRef = ref<InstanceType<typeof VueDanmaku> | null>(null)
 const isReady = ref(false)
-const barrageList = ref<Barrage[]>([
-  {
-    avatar: 'https://gravatar.loli.net/avatar/1?d=mp',
-    nickname: '访客',
-    messageContent: '欢迎来到留言板~',
-  },
-  {
-    avatar: 'https://gravatar.loli.net/avatar/2?d=mp',
-    nickname: '阿圣',
-    messageContent: 'Vue3 弹幕已迁移',
-  },
-  {
-    avatar: 'https://gravatar.loli.net/avatar/3?d=mp',
-    nickname: '游客',
-    messageContent: '这个博客真不错!',
-  },
-])
+const barrageList = ref<Barrage[]>([])
 const cover = ref(
   'background: url(https://blog-1307541812.cos.ap-shanghai.myqcloud.com/37e6f80a-a325-4afc-a564-00e163e1b473.jpg) center center / cover no-repeat rgb(73, 177, 245)',
 )
 
 onMounted(() => {
+  // 获取弹幕
+  listMessage().then((res) => {
+    barrageList.value = res.data
+  })
   nextTick(() => {
     isReady.value = true
   })
@@ -156,7 +145,7 @@ onMounted(() => {
   top: 60px;
   left: 0;
   right: 0;
-  bottom: 60px;
+  bottom: 0;
   width: 100%;
   overflow: hidden;
 }

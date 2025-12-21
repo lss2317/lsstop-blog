@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.MessageMapper">
+
+    <resultMap id="MessageResultMap" type="com.lsstop.domain.entity.Message">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="ipAddress" column="ip_address" jdbcType="VARCHAR"/>
+        <result property="ipSource" column="ip_source" jdbcType="VARCHAR"/>
+        <result property="nickname" column="nickname" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="messageContent" column="message_content" jdbcType="VARCHAR"/>
+        <result property="review" column="review" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+
+    <select id="blogListMessage" resultMap="MessageResultMap">
+        SELECT m.id,
+               m.nickname,
+               m.avatar,
+               m.message_content
+        FROM blog_message AS m
+        WHERE review = 0
+    </select>
+
+</mapper>
