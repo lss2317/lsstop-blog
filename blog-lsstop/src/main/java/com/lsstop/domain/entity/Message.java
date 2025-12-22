@@ -57,7 +57,7 @@ public class Message implements BaseData {
     private String messageContent;
 
     /**
-     * 是否要审核 1、否 0、是
+     * 是否要审核(0：否、1：是)
      */
     private Integer review;
 

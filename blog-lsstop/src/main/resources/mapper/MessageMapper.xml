@@ -16,12 +16,19 @@
 
 
     <select id="blogListMessage" resultMap="MessageResultMap">
-        SELECT m.id,
+        select m.id,
                m.nickname,
                m.avatar,
                m.message_content
-        FROM blog_message AS m
-        WHERE review = 0
+        from blog_message as m
+        where review = 0
     </select>
+
+    <insert id="insertMessage" parameterType="com.lsstop.domain.entity.Message">
+        insert into blog_message (ip_address, ip_source, nickname, avatar,
+                                  message_content, review, create_time, update_time)
+        values (#{ipAddress}, #{ipSource}, #{nickname}, #{avatar},
+                #{messageContent}, #{review}, NOW(), NOW())
+    </insert>
 
 </mapper>

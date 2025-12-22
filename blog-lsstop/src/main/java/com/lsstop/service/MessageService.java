@@ -7,6 +7,8 @@ import com.lsstop.domain.vo.MessageVo;
 import java.util.List;
 
 /**
+ * 留言服务接口
+ *
  * @author lishusheng
  * @date 2025/12/21
  */
@@ -14,6 +16,15 @@ public interface MessageService extends IService<Message> {
 
     /**
      * 前台获取留言数据
+     *
+     * @return 留言VO列表
      */
     List<MessageVo> blogListMessage();
+
+    /**
+     * 新增留言
+     *
+     * @param message 留言实体
+     */
+    void insertMessage(Message message);
 }

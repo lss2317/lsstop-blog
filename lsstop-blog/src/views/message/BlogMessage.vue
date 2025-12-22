@@ -5,9 +5,14 @@
       <!-- 弹幕输入框 -->
       <div class="message-container">
         <h1 class="message-title">留言板</h1>
-        <div class="animate__animated animate__fadeInUp message-input-wrapper">
-          <input v-model="messageContent" @click="show = true" placeholder="说点什么吧" />
-          <button class="ml-3 animate__animated animate__bounceInLeft" v-show="show">发送</button>
+        <div ref="inputWrapperRef" class="animate__animated animate__fadeInUp message-input-wrapper">
+          <input v-model="messageContent" @focus="show = true" placeholder="说点什么吧" />
+          <transition
+            enter-active-class="animate__animated animate__bounceInLeft"
+            leave-active-class="animate__animated animate__bounceOutRight"
+          >
+            <button class="ml-3" @click="addBlogMessage" v-show="show">发送</button>
+          </transition>
         </div>
       </div>
       <!-- 弹幕列表 -->
@@ -38,38 +43,100 @@
         </vue-danmaku>
       </div>
     </div>
+    <!-- 消息提示 -->
+    <v-snackbar v-model="snackbar" :color="snackbarColor" :timeout="2000" location="top" style="z-index: 9999">
+      {{ snackbarText }}
+    </v-snackbar>
   </div>
 </template>
 
 <script setup lang="ts">
+import VueDanmaku from 'vue3-danmaku'
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { listMessage, addMessage } from '@/apis/message'
+import useUserInfoStore from '@/stores/modules/userInfo'
+
 interface Barrage {
   avatar: string
   nickname: string
   messageContent: string
 }
 
-import VueDanmaku from 'vue3-danmaku'
-import { nextTick, onMounted, ref } from 'vue'
-import { listMessage } from '@/apis/message'
+// 默认配置
+const DEFAULT_AVATAR = 'https://blog-1307541812.cos.ap-shanghai.myqcloud.com/8a31b54f-2be5-4c6a-91fe-a55731bdad65.png'
+const DEFAULT_NICKNAME = '游客'
 
+const userInfoStore = useUserInfoStore()
+
+// 状态
 const show = ref(false)
 const messageContent = ref('')
+const inputWrapperRef = ref<HTMLElement | null>(null)
 const danmakuRef = ref<InstanceType<typeof VueDanmaku> | null>(null)
 const isReady = ref(false)
 const barrageList = ref<Barrage[]>([])
 const cover = ref(
-  'background: url(https://blog-1307541812.cos.ap-shanghai.myqcloud.com/37e6f80a-a325-4afc-a564-00e163e1b473.jpg) center center / cover no-repeat rgb(73, 177, 245)',
+  'background: url(https://blog-1307541812.cos.ap-shanghai.myqcloud.com/37e6f80a-a325-4afc-a564-00e163e1b473.jpg) center center / cover no-repeat rgb(73, 177, 245)'
 )
 
+// 消息提示
+const snackbar = ref(false)
+const snackbarText = ref('')
+const snackbarColor = ref('error')
+
+function showMessage(text: string, color: 'success' | 'error' | 'warning' = 'error') {
+  snackbarText.value = text
+  snackbarColor.value = color
+  snackbar.value = true
+}
+
+// 发送留言
+function addBlogMessage() {
+  if (messageContent.value.trim() === '') {
+    showMessage('留言不能为空')
+    return
+  }
+
+  const message: Barrage = {
+    avatar: userInfoStore.userInfo.avatar ?? DEFAULT_AVATAR,
+    nickname: userInfoStore.userInfo.nickname ?? DEFAULT_NICKNAME,
+    messageContent: messageContent.value,
+  }
+
+  addMessage(message).then(() => {
+    // 添加到弹幕列表
+    danmakuRef.value?.add(message)
+    // 清空输入框
+    messageContent.value = ''
+    show.value = false
+    // 提示成功
+    showMessage('留言成功', 'success')
+  }).catch(() => {
+    showMessage('留言失败，请稍后重试')
+  })
+}
+
 onMounted(() => {
-  // 获取弹幕
   listMessage().then((res) => {
     barrageList.value = res.data
   })
   nextTick(() => {
     isReady.value = true
   })
+  // 监听点击事件，点击输入框外部时隐藏发送按钮
+  document.addEventListener('click', handleClickOutside)
 })
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
+// 点击外部隐藏发送按钮
+function handleClickOutside(event: MouseEvent) {
+  if (inputWrapperRef.value && !inputWrapperRef.value.contains(event.target as Node)) {
+    show.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -138,6 +205,7 @@ onMounted(() => {
   height: 100%;
   padding: 0 1.25rem;
   border: #fff 1px solid;
+  flex-shrink: 0;
 }
 
 .barrage-container {
