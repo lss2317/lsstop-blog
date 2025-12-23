@@ -1,9 +1,11 @@
 package com.lsstop.controller;
 
+import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
 import com.lsstop.domain.dto.MessageDto;
 import com.lsstop.domain.vo.MessageVo;
 import com.lsstop.service.MessageService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -32,12 +34,22 @@ public class MessageController {
      *
      * @return 留言数据
      */
+    @AccessLimit(seconds = 60, maxCount = 30)
+    @Operation(summary = "前台获取留言列表")
     @GetMapping("/message/blogListMessage")
     public Result<List<MessageVo>> blogListMessage() {
         return Result.success(messageService.blogListMessage());
     }
 
-    @PostMapping("message/addMessage")
+    /**
+     * 前台新增留言
+     *
+     * @param messageDto 留言数据
+     * @return 响应结果
+     */
+    @AccessLimit(seconds = 60, maxCount = 30)
+    @Operation(summary = "前台新增留言")
+    @PostMapping("/message/addMessage")
     public Result<Void> addMessage(@RequestBody @Validated MessageDto messageDto) {
         System.out.println(messageDto);
         return Result.success();

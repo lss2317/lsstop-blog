@@ -5,7 +5,10 @@
       <!-- 弹幕输入框 -->
       <div class="message-container">
         <h1 class="message-title">留言板</h1>
-        <div ref="inputWrapperRef" class="animate__animated animate__fadeInUp message-input-wrapper">
+        <div
+          ref="inputWrapperRef"
+          class="animate__animated animate__fadeInUp message-input-wrapper"
+        >
           <input v-model="messageContent" @focus="show = true" placeholder="说点什么吧" />
           <transition
             enter-active-class="animate__animated animate__bounceInLeft"
@@ -44,7 +47,13 @@
       </div>
     </div>
     <!-- 消息提示 -->
-    <v-snackbar v-model="snackbar" :color="snackbarColor" :timeout="2000" location="top" style="z-index: 9999">
+    <v-snackbar
+      v-model="snackbar"
+      :color="snackbarColor"
+      :timeout="2000"
+      location="top"
+      style="z-index: 9999"
+    >
       {{ snackbarText }}
     </v-snackbar>
   </div>
@@ -63,7 +72,8 @@ interface Barrage {
 }
 
 // 默认配置
-const DEFAULT_AVATAR = 'https://blog-1307541812.cos.ap-shanghai.myqcloud.com/8a31b54f-2be5-4c6a-91fe-a55731bdad65.png'
+const DEFAULT_AVATAR =
+  'https://blog-1307541812.cos.ap-shanghai.myqcloud.com/8a31b54f-2be5-4c6a-91fe-a55731bdad65.png'
 const DEFAULT_NICKNAME = '游客'
 
 const userInfoStore = useUserInfoStore()
@@ -76,7 +86,7 @@ const danmakuRef = ref<InstanceType<typeof VueDanmaku> | null>(null)
 const isReady = ref(false)
 const barrageList = ref<Barrage[]>([])
 const cover = ref(
-  'background: url(https://blog-1307541812.cos.ap-shanghai.myqcloud.com/37e6f80a-a325-4afc-a564-00e163e1b473.jpg) center center / cover no-repeat rgb(73, 177, 245)'
+  'background: url(https://blog-1307541812.cos.ap-shanghai.myqcloud.com/37e6f80a-a325-4afc-a564-00e163e1b473.jpg) center center / cover no-repeat rgb(73, 177, 245)',
 )
 
 // 消息提示
@@ -103,17 +113,20 @@ function addBlogMessage() {
     messageContent: messageContent.value,
   }
 
-  addMessage(message).then(() => {
-    // 添加到弹幕列表
-    danmakuRef.value?.add(message)
-    // 清空输入框
-    messageContent.value = ''
-    show.value = false
-    // 提示成功
-    showMessage('留言成功', 'success')
-  }).catch(() => {
-    showMessage('留言失败，请稍后重试')
-  })
+  addMessage(message)
+    .then(() => {
+      // 添加到弹幕列表
+      danmakuRef.value?.add(message)
+      // 清空输入框
+      messageContent.value = ''
+      show.value = false
+      // 提示成功
+      showMessage('留言成功', 'success')
+    })
+    .catch((error) => {
+      const msg = error.response?.data?.msg || '留言失败，请稍后重试'
+      showMessage(msg)
+    })
 }
 
 onMounted(() => {
@@ -206,6 +219,7 @@ function handleClickOutside(event: MouseEvent) {
   padding: 0 1.25rem;
   border: #fff 1px solid;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .barrage-container {

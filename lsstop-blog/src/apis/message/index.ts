@@ -12,7 +12,7 @@ export function listMessage() {
 export const addMessage = (data: object) => {
   return http.request({
     url: '/message/addMessage',
-    method: "post",
-    data
-  });
+    method: 'post',
+    data,
+  })
 }
