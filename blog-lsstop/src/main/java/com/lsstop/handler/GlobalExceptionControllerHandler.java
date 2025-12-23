@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * @author lishusheng
  * @date 2025/12/22
  */
-//@RestControllerAdvice
+@RestControllerAdvice
 @Slf4j
 public class GlobalExceptionControllerHandler {
 

@@ -5,8 +5,6 @@ import com.lsstop.common.Result;
 import com.lsstop.domain.dto.MessageDto;
 import com.lsstop.domain.vo.MessageVo;
 import com.lsstop.service.MessageService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +21,6 @@ import java.util.List;
  * @date 2025/12/21
  */
 @RestController
-@Tag(name = "留言相关接口")
 public class MessageController {
 
     @Resource
@@ -35,7 +32,6 @@ public class MessageController {
      * @return 留言数据
      */
     @AccessLimit(seconds = 60, maxCount = 30)
-    @Operation(summary = "前台获取留言列表")
     @GetMapping("/message/blogListMessage")
     public Result<List<MessageVo>> blogListMessage() {
         return Result.success(messageService.blogListMessage());
@@ -48,7 +44,6 @@ public class MessageController {
      * @return 响应结果
      */
     @AccessLimit(seconds = 60, maxCount = 30)
-    @Operation(summary = "前台新增留言")
     @PostMapping("/message/addMessage")
     public Result<Void> addMessage(@RequestBody @Validated MessageDto messageDto) {
         System.out.println(messageDto);
