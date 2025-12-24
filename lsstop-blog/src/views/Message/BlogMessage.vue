@@ -46,16 +46,6 @@
         </vue-danmaku>
       </div>
     </div>
-    <!-- 消息提示 -->
-    <v-snackbar
-      v-model="snackbar"
-      :color="snackbarColor"
-      :timeout="2000"
-      location="top"
-      style="z-index: 9999"
-    >
-      {{ snackbarText }}
-    </v-snackbar>
   </div>
 </template>
 
@@ -64,6 +54,7 @@ import VueDanmaku from 'vue3-danmaku'
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { listMessage, addMessage } from '@/apis/message'
 import useUserInfoStore from '@/stores/modules/userInfo'
+import { useSnackbarStore } from '@/stores/modules/snackbar'
 
 interface Barrage {
   avatar: string
@@ -77,6 +68,7 @@ const DEFAULT_AVATAR =
 const DEFAULT_NICKNAME = '游客'
 
 const userInfoStore = useUserInfoStore()
+const snackbarStore = useSnackbarStore()
 
 // 状态
 const show = ref(false)
@@ -89,21 +81,10 @@ const cover = ref(
   'background: url(https://blog-1307541812.cos.ap-shanghai.myqcloud.com/37e6f80a-a325-4afc-a564-00e163e1b473.jpg) center center / cover no-repeat rgb(73, 177, 245)',
 )
 
-// 消息提示
-const snackbar = ref(false)
-const snackbarText = ref('')
-const snackbarColor = ref('error')
-
-function showMessage(text: string, color: 'success' | 'error' | 'warning' = 'error') {
-  snackbarText.value = text
-  snackbarColor.value = color
-  snackbar.value = true
-}
-
 // 发送留言
 function addBlogMessage() {
   if (messageContent.value.trim() === '') {
-    showMessage('留言不能为空')
+    snackbarStore.error('留言不能为空')
     return
   }
 
@@ -121,11 +102,11 @@ function addBlogMessage() {
       messageContent.value = ''
       show.value = false
       // 提示成功
-      showMessage('留言成功', 'success')
+      snackbarStore.success('留言成功')
     })
     .catch((error) => {
       const msg = error.response?.data?.msg || '留言失败，请稍后重试'
-      showMessage(msg)
+      snackbarStore.error(msg)
     })
 }
 

@@ -2,7 +2,6 @@ package com.lsstop.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lsstop.domain.entity.Message;
-import com.lsstop.domain.vo.MessageVo;
 import com.lsstop.mapper.MessageMapper;
 import com.lsstop.service.MessageService;
 import jakarta.annotation.Resource;
@@ -25,12 +24,11 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     /**
      * 前台获取留言数据
      *
-     * @return 留言VO列表
+     * @return 留言列表
      */
     @Override
-    public List<MessageVo> blogListMessage() {
-        List<Message> messageList = messageMapper.blogListMessage();
-        return messageList.stream().map(message -> message.asViewObject(MessageVo.class)).toList();
+    public List<Message> blogListMessage() {
+        return messageMapper.blogListMessage();
     }
 
     /**

@@ -8,7 +8,6 @@ import vuetify from './plugins/vuetify.ts'
 import 'animate.css'
 import './assets/css/index.css'
 import './assets/css/markdown.css'
-import './assets/css/vue-social-share/client.css'
 import './assets/css/icon/iconfont.css'
 import 'highlight.js/styles/atom-one-dark.css'
 

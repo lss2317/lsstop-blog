@@ -31,7 +31,7 @@ public class Result<T> {
     private String msg;
 
     /**
-     * 查询到的结果数据，
+     * 查询到的结果数据
      */
     private T data;
 

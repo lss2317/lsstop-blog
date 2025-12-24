@@ -7,10 +7,7 @@ import com.lsstop.domain.vo.MessageVo;
 import com.lsstop.service.MessageService;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,6 +18,7 @@ import java.util.List;
  * @date 2025/12/21
  */
 @RestController
+@RequestMapping("/message")
 public class MessageController {
 
     @Resource
@@ -32,9 +30,12 @@ public class MessageController {
      * @return 留言数据
      */
     @AccessLimit(seconds = 60, maxCount = 30)
-    @GetMapping("/message/blogListMessage")
+    @GetMapping("/blogListMessage")
     public Result<List<MessageVo>> blogListMessage() {
-        return Result.success(messageService.blogListMessage());
+        List<MessageVo> messageVoList = messageService.blogListMessage().stream()
+                .map(message -> message.asViewObject(MessageVo.class))
+                .toList();
+        return Result.success(messageVoList);
     }
 
     /**
@@ -44,7 +45,7 @@ public class MessageController {
      * @return 响应结果
      */
     @AccessLimit(seconds = 60, maxCount = 30)
-    @PostMapping("/message/addMessage")
+    @PostMapping("/addMessage")
     public Result<Void> addMessage(@RequestBody @Validated MessageDto messageDto) {
         System.out.println(messageDto);
         return Result.success();

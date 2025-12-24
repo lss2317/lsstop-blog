@@ -23,7 +23,7 @@ public enum StatusEnum {
     /**
      * 用户名或密码错误
      */
-    USERNAME_OR_PASSWORD_ERROR(401, "用户名或密码错误"),
+    USERNAME_OR_PASSWORD_ERROR(400, "用户名或密码错误"),
     /**
      * 未登录提示
      */
@@ -59,11 +59,11 @@ public enum StatusEnum {
     /**
      * 未删除子菜单
      */
-    NO_DELETE_CHILD_MENU(400, "请先删除子菜单"),
+    NO_DELETE_CHILD_MENU(409, "请先删除子菜单"),
     /**
      * 文件上传错误
      */
-    FILE_UPLOAD_ERROR(400, "文件上传错误"),
+    FILE_UPLOAD_ERROR(500, "文件上传错误"),
     /**
      * 账号被封禁
      */

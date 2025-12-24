@@ -2,7 +2,6 @@ package com.lsstop.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lsstop.domain.entity.Message;
-import com.lsstop.domain.vo.MessageVo;
 
 import java.util.List;
 
@@ -17,9 +16,9 @@ public interface MessageService extends IService<Message> {
     /**
      * 前台获取留言数据
      *
-     * @return 留言VO列表
+     * @return 留言列表
      */
-    List<MessageVo> blogListMessage();
+    List<Message> blogListMessage();
 
     /**
      * 新增留言

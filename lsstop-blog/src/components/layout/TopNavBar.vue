@@ -130,6 +130,15 @@ ul {
   list-style: none;
 }
 
+:deep(.v-toolbar__content) {
+  overflow: visible !important;
+}
+
+.nav,
+.nav-fixed {
+  overflow: visible !important;
+}
+
 .nav {
   background: rgba(0, 0, 0, 0) !important;
 }
@@ -241,6 +250,7 @@ ul {
   background-color: #fff;
   animation: submenu 0.3s 0.1s ease both;
   border-radius: 10px;
+  z-index: 1000;
 }
 
 .menus-submenu:before {

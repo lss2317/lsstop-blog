@@ -2,14 +2,14 @@ export const constantRouter = [
   {
     path: '/about',
     name: 'About',
-    component: () => import('../views/about/BlogAbout.vue'),
+    component: () => import('@/views/About/BlogAbout.vue'),
     meta: {
       title: '关于我',
     },
   },
   {
     path: '/message',
-    component: () => import('../views/message/BlogMessage.vue'),
+    component: () => import('@/views/Message/BlogMessage.vue'),
     name: 'Message',
     meta: {
       title: '留言板',

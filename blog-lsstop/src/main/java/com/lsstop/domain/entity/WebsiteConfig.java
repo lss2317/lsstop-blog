@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
  * @date 2025/12/23
  */
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("blog_website_config")
@@ -128,6 +130,11 @@ public class WebsiteConfig {
      * websocket地址
      */
     private String websocketUrl;
+
+    /**
+     * 关于我信息
+     */
+    private String about;
 
     /**
      * 创建时间

@@ -3,15 +3,15 @@
 <mapper namespace="com.lsstop.mapper.MessageMapper">
 
     <resultMap id="MessageResultMap" type="com.lsstop.domain.entity.Message">
-        <id property="id" column="id" jdbcType="INTEGER"/>
-        <result property="ipAddress" column="ip_address" jdbcType="VARCHAR"/>
-        <result property="ipSource" column="ip_source" jdbcType="VARCHAR"/>
-        <result property="nickname" column="nickname" jdbcType="VARCHAR"/>
-        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
-        <result property="messageContent" column="message_content" jdbcType="VARCHAR"/>
-        <result property="review" column="review" jdbcType="INTEGER"/>
-        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
-        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="ipAddress" column="ip_address" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="ipSource" column="ip_source" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="nickname" column="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="messageContent" column="message_content" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="review" column="review" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
     </resultMap>
 
 
@@ -21,7 +21,7 @@
                m.avatar,
                m.message_content
         from blog_message as m
-        where review = 0
+        where review = 0 and is_deleted = 0
     </select>
 
     <insert id="insertMessage" parameterType="com.lsstop.domain.entity.Message">
