@@ -1,6 +1,6 @@
 package com.lsstop.mapper;
 
-import com.lsstop.domain.entity.PageManagement;
+import com.lsstop.domain.entity.PageInfo;
 
 import java.util.List;
 
@@ -10,12 +10,12 @@ import java.util.List;
  * @author lishusheng
  * @date 2025/12/24
  */
-public interface PageManagementMapper {
+public interface PageInfoMapper {
 
     /**
      * 获取所有页面列表
      *
      * @return 页面信息列表
      */
-    List<PageManagement> listAllPageManagement();
+    List<PageInfo> listAllPageInfo();
 }

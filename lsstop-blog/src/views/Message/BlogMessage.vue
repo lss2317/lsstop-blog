@@ -52,9 +52,11 @@
 <script setup lang="ts">
 import VueDanmaku from 'vue3-danmaku'
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import { listMessage, addMessage } from '@/apis/message'
 import useUserInfoStore from '@/stores/modules/userInfo'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
+import usePageInfoStore from '@/stores/modules/pageInfo.ts'
 
 interface Barrage {
   avatar: string
@@ -69,6 +71,8 @@ const DEFAULT_NICKNAME = '游客'
 
 const userInfoStore = useUserInfoStore()
 const snackbarStore = useSnackbarStore()
+const pageInfoStore = usePageInfoStore()
+const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 
 // 状态
 const show = ref(false)
@@ -77,9 +81,6 @@ const inputWrapperRef = ref<HTMLElement | null>(null)
 const danmakuRef = ref<InstanceType<typeof VueDanmaku> | null>(null)
 const isReady = ref(false)
 const barrageList = ref<Barrage[]>([])
-const cover = ref(
-  'background: url(https://blog-1307541812.cos.ap-shanghai.myqcloud.com/37e6f80a-a325-4afc-a564-00e163e1b473.jpg) center center / cover no-repeat rgb(73, 177, 245)',
-)
 
 // 发送留言
 function addBlogMessage() {
@@ -111,6 +112,7 @@ function addBlogMessage() {
 }
 
 onMounted(() => {
+  pageInfoStore.fetchPageList()
   listMessage().then((res) => {
     barrageList.value = res.data
   })

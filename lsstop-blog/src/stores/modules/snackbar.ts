@@ -14,7 +14,7 @@ export const useSnackbarStore = defineStore('snackbar', () => {
       error: 'mdi-alert-circle',
       success: 'mdi-check-circle',
       warning: 'mdi-alert',
-      info: 'mdi-information'
+      info: 'mdi-information',
     }
     return icons[type.value]
   })
@@ -52,6 +52,6 @@ export const useSnackbarStore = defineStore('snackbar', () => {
     success,
     error,
     warning,
-    info
+    info,
   }
 })

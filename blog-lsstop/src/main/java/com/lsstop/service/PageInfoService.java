@@ -1,6 +1,6 @@
 package com.lsstop.service;
 
-import com.lsstop.domain.entity.PageManagement;
+import com.lsstop.domain.entity.PageInfo;
 
 import java.util.List;
 
@@ -10,12 +10,12 @@ import java.util.List;
  * @author lishusheng
  * @date 2025/12/24
  */
-public interface PageManagementService {
+public interface PageInfoService {
 
     /**
      * 获取页面列表
      *
      * @return 页面信息列表
      */
-    List<PageManagement> listAllPageManagement();
+    List<PageInfo> listAllPageInfo();
 }

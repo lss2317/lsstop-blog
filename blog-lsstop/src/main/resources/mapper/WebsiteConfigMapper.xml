@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.WebsiteConfigMapper">
+
+    <resultMap id="websiteConfigResult" type="com.lsstop.domain.entity.WebsiteConfig">
+        <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="website_avatar" property="websiteAvatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="website_name" property="websiteName" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="website_author" property="websiteAuthor" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="website_intro" property="websiteIntro" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="website_notice" property="websiteNotice" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="website_create_time" property="websiteCreateTime" jdbcType="TIMESTAMP"
+                javaType="java.time.LocalDateTime"/>
+        <result column="website_record_no" property="websiteRecordNo" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="qq" property="qq" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="github" property="github" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="gitee" property="gitee" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="tourist_avatar" property="touristAvatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="user_avatar" property="userAvatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="comment_review" property="commentReview" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="email_notice" property="emailNotice" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="reward" property="reward" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="weixin_qrcode" property="weixinQrcode" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="alipayQrcode" property="alipayQrcode" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="chat_room" property="chatRoom" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="music_player" property="musicPlayer" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="websocket_url" property="websocketUrl" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="about" property="about" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <select id="getWebsiteConfig" resultMap="websiteConfigResult">
+        select id,
+               website_avatar,
+               website_name,
+               website_author,
+               website_intro,
+               website_notice,
+               website_create_time,
+               website_record_no,
+               qq,
+               github,
+               gitee,
+               tourist_avatar,
+               user_avatar,
+               comment_review,
+               email_notice,
+               reward,
+               weixin_qrcode,
+               alipayQrcode,
+               chat_room,
+               music_player,
+               websocket_url,
+               about,
+               create_time,
+               update_time
+        from blog_website_config
+        limit 1
+    </select>
+
+
+</mapper>

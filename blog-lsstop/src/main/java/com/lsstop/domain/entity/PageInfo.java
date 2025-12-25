@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("blog_page_management")
-public class PageManagement implements BaseData {
+@TableName("blog_page_info")
+public class PageInfo implements BaseData {
 
     /**
      * id

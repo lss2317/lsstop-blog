@@ -9,7 +9,7 @@ import lombok.Data;
  * @date 2025/12/24
  */
 @Data
-public class PageManagementVo {
+public class PageInfoVo {
 
     /**
      * 页面名称

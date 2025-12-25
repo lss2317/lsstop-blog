@@ -1,34 +1,17 @@
-package com.lsstop.domain.entity;
+package com.lsstop.domain.vo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.lsstop.domain.BaseData;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 /**
- * 网站配置信息实体类
+ * 网站配置VO
  *
  * @author lishusheng
- * @date 2025/12/23
+ * @date 2025/12/25
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@TableName("blog_website_config")
-public class WebsiteConfig implements BaseData {
-
-    /**
-     * id
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
+public class WebsiteConfigVo {
 
     /**
      * 网站头像
@@ -135,13 +118,4 @@ public class WebsiteConfig implements BaseData {
      */
     private String about;
 
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
 }

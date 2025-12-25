@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lsstop.mapper.PageManagementMapper">
+<mapper namespace="com.lsstop.mapper.PageInfoMapper">
 
-    <resultMap id="listAllPageManagementResult" type="com.lsstop.domain.entity.PageManagement">
+    <resultMap id="pageInfoResult" type="com.lsstop.domain.entity.PageInfo">
         <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result column="page_name" property="pageName" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result column="page_label" property="pageLabel" jdbcType="VARCHAR" javaType="java.lang.String"/>
@@ -11,14 +11,14 @@
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
     </resultMap>
 
-    <select id="listAllPageManagement" resultMap="listAllPageManagementResult">
+    <select id="listAllPageInfo" resultMap="pageInfoResult">
         select id,
                page_name,
                page_label,
                page_cover,
                create_time,
                update_time
-        from blog_page_management
+        from blog_page_info
         where is_deleted = 0
     </select>
 
