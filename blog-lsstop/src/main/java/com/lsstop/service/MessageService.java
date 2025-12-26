@@ -1,6 +1,5 @@
 package com.lsstop.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.lsstop.domain.entity.Message;
 
 import java.util.List;
@@ -11,7 +10,7 @@ import java.util.List;
  * @author lishusheng
  * @date 2025/12/21
  */
-public interface MessageService extends IService<Message> {
+public interface MessageService {
 
     /**
      * 前台获取留言数据

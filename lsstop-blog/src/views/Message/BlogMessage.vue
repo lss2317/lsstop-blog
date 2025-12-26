@@ -57,21 +57,22 @@ import { listMessage, addMessage } from '@/apis/message'
 import useUserInfoStore from '@/stores/modules/userInfo'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
+import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
 
 interface Barrage {
   avatar: string
   nickname: string
   messageContent: string
+  review: number
 }
 
 // 默认配置
-const DEFAULT_AVATAR =
-  'https://blog-1307541812.cos.ap-shanghai.myqcloud.com/8a31b54f-2be5-4c6a-91fe-a55731bdad65.png'
 const DEFAULT_NICKNAME = '游客'
 
 const userInfoStore = useUserInfoStore()
 const snackbarStore = useSnackbarStore()
 const pageInfoStore = usePageInfoStore()
+const websiteConfigStore = useWebsiteConfigStore()
 const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 
 // 状态
@@ -90,9 +91,10 @@ function addBlogMessage() {
   }
 
   const message: Barrage = {
-    avatar: userInfoStore.userInfo.avatar ?? DEFAULT_AVATAR,
+    avatar: userInfoStore.userInfo.avatar ?? websiteConfigStore.config.touristAvatar,
     nickname: userInfoStore.userInfo.nickname ?? DEFAULT_NICKNAME,
     messageContent: messageContent.value,
+    review: websiteConfigStore.config.commentReview ?? 0,
   }
 
   addMessage(message)
@@ -112,7 +114,6 @@ function addBlogMessage() {
 }
 
 onMounted(() => {
-  pageInfoStore.fetchPageList()
   listMessage().then((res) => {
     barrageList.value = res.data
   })

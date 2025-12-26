@@ -1,6 +1,5 @@
 package com.lsstop.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lsstop.domain.entity.Message;
 import com.lsstop.mapper.MessageMapper;
 import com.lsstop.service.MessageService;
@@ -16,7 +15,7 @@ import java.util.List;
  * @date 2025/12/21
  */
 @Service
-public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> implements MessageService {
+public class MessageServiceImpl implements MessageService {
 
     @Resource
     private MessageMapper messageMapper;

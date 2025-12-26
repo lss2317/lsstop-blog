@@ -28,14 +28,18 @@
 
 <script setup lang="ts">
 import { dateFormat } from '@/utils/date'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
+import { storeToRefs } from 'pinia'
 
 const route = useRoute()
+const websiteConfigStore = useWebsiteConfigStore()
+const { config } = storeToRefs(websiteConfigStore)
 
-const websiteCreateTime = ref('2018')
+const websiteCreateTime = computed(() => config.value.websiteCreateTime)
 const isMessage = computed(() => route.path === '/message')
-const websiteAuthor = ref('')
+const websiteAuthor = computed(() => config.value.websiteAuthor)
 </script>
 
 <style scoped>

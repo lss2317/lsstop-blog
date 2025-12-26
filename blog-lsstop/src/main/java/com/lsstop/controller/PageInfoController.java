@@ -1,5 +1,6 @@
 package com.lsstop.controller;
 
+import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
 import com.lsstop.domain.vo.PageInfoVo;
 import com.lsstop.service.PageInfoService;
@@ -29,6 +30,7 @@ public class PageInfoController {
      * @return 页面信息列表
      */
     @GetMapping("/listPageInfo")
+    @AccessLimit(seconds = 60, maxCount = 60)
     public Result<List<PageInfoVo>> listAllPageInfo() {
         List<PageInfoVo> pageManagementVoList = pageInfoService.listAllPageInfo().stream()
                 .map(pageManagement -> pageManagement.asViewObject(PageInfoVo.class))

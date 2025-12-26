@@ -54,7 +54,7 @@ public class GlobalExceptionControllerHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result<Void> handleRuntimeException(RuntimeException e) {
         log.error("运行时异常: ", e);
-        return Result.failure(e.getMessage());
+        return Result.failure("运行时异常，请稍后重试");
     }
 
     /**

@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import usePageInfoStore from '@/stores/modules/pageInfo'
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
@@ -33,11 +33,6 @@ const { config } = storeToRefs(websiteConfigStore)
 const avatar = computed(() => config.value.websiteAvatar)
 const aboutContent = computed(() => {
   return config.value.about ? markdownToHtml(config.value.about) : ''
-})
-
-onMounted(() => {
-  pageInfoStore.fetchPageList()
-  websiteConfigStore.fetchWebsiteConfig()
 })
 </script>
 
