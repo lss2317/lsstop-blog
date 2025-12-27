@@ -1,11 +1,10 @@
 <template>
   <v-navigation-drawer
-    app
     v-model="drawer"
     width="250"
-    disable-resize-watcher
-    right
-    overlay-opacity="0.8"
+    temporary
+    location="end"
+    :style="{ top: '0', height: '100%', zIndex: 1010 }"
   >
     <!-- 博主介绍 -->
     <div class="blogger-info">
@@ -62,7 +61,7 @@
         <router-link to="/tags"> <i class="iconfont iconbiaoqian" /> 标签 </router-link>
       </div>
       <div class="menus-item">
-        <router-link to="/links"> <i class="iconfont iconlianjie" /> 友链 </router-link>
+        <router-link to="/friendLink"> <i class="iconfont iconlianjie" /> 友链 </router-link>
       </div>
       <div class="menus-item">
         <router-link to="/about"> <i class="iconfont iconzhifeiji" /> 关于 </router-link>
@@ -87,9 +86,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useDrawerStore } from '@/stores/modules/drawer'
+
+const drawerStore = useDrawerStore()
+const { drawer } = storeToRefs(drawerStore)
 
 const avatar = ref('1112')
-const drawer = ref(false)
 </script>
 
 <style scoped>

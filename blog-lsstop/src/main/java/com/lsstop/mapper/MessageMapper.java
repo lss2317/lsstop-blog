@@ -17,7 +17,7 @@ public interface MessageMapper {
      *
      * @return 留言List集合
      */
-    List<Message> blogListMessage();
+    List<Message> getMessageList();
 
     /**
      * 新增留言

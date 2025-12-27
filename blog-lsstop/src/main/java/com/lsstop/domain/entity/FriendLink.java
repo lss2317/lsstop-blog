@@ -9,16 +9,16 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 页面信息实体类
+ * 友链实体类
  *
  * @author lishusheng
- * @date 2025/12/24
+ * @date 2025/12/27
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PageInfo implements BaseData {
+public class FriendLink implements BaseData {
 
     /**
      * id
@@ -26,24 +26,29 @@ public class PageInfo implements BaseData {
     private Integer id;
 
     /**
-     * 页面名称
+     * 链接名
      */
-    private String pageName;
+    private String linkName;
 
     /**
-     * 页面标签
+     * 链接头像
      */
-    private String pageLabel;
+    private String linkAvatar;
 
     /**
-     * 页面封面
+     * 链接地址
      */
-    private String pageCover;
+    private String linkAddress;
+
+    /**
+     * 介绍
+     */
+    private String linkIntro;
 
     /**
      * 是否删除
      */
-    private Boolean isDelete;
+    private Integer isDelete;
 
     /**
      * 创建时间
@@ -54,5 +59,4 @@ public class PageInfo implements BaseData {
      * 修改时间
      */
     private LocalDateTime updateTime;
-
 }

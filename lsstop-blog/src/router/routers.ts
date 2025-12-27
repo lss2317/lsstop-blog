@@ -1,4 +1,14 @@
 export const constantRouter = [
+
+  {
+    path: '/friendLink',
+    name: 'FriendLink',
+    component: () => import('@/views/FriendLink/FriendLink.vue'),
+    meta: {
+      title: '友链列表',
+      pageLabel: 'friendLink',
+    },
+  },
   {
     path: '/about',
     name: 'About',

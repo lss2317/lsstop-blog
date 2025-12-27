@@ -9,16 +9,16 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 页面信息实体类
+ * 相册实体类
  *
  * @author lishusheng
- * @date 2025/12/24
+ * @date 2025/12/27
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PageInfo implements BaseData {
+public class PhotoAlbum implements BaseData {
 
     /**
      * id
@@ -26,24 +26,29 @@ public class PageInfo implements BaseData {
     private Integer id;
 
     /**
-     * 页面名称
+     * 相册名
      */
-    private String pageName;
+    private String photoAlbumName;
 
     /**
-     * 页面标签
+     * 相册描述
      */
-    private String pageLabel;
+    private String photoAlbumDesc;
 
     /**
-     * 页面封面
+     * 相册封面
      */
-    private String pageCover;
+    private String photoAlbumCover;
+
+    /**
+     * 状态值 1公开 2私密
+     */
+    private Integer status;
 
     /**
      * 是否删除
      */
-    private Boolean isDelete;
+    private Integer isDelete;
 
     /**
      * 创建时间
@@ -54,5 +59,4 @@ public class PageInfo implements BaseData {
      * 修改时间
      */
     private LocalDateTime updateTime;
-
 }

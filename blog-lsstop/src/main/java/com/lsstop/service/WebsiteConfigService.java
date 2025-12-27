@@ -3,7 +3,7 @@ package com.lsstop.service;
 import com.lsstop.domain.entity.WebsiteConfig;
 
 /**
- * 网站配置业务接口
+ * 网站配置服务
  *
  * @author lishusheng
  * @date 2025/12/25

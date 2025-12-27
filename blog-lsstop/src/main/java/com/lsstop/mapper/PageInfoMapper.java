@@ -17,5 +17,5 @@ public interface PageInfoMapper {
      *
      * @return 页面信息列表
      */
-    List<PageInfo> listAllPageInfo();
+    List<PageInfo> getPageInfoList();
 }

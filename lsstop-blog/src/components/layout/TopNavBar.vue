@@ -3,11 +3,11 @@
     <!-- 手机端导航栏 -->
     <div class="d-md-none nav-mobile-container">
       <div style="font-size: 18px; font-weight: bold">
-        <router-link to="/"> 阿圣</router-link>
+        <router-link to="/">阿圣</router-link>
       </div>
       <div style="margin-left: auto">
         <a><i class="iconfont iconsousuo" /></a>
-        <a style="margin-left: 10px; font-size: 20px">
+        <a style="margin-left: 10px; font-size: 20px" @click="openDrawer">
           <i class="iconfont iconhanbao" />
         </a>
       </div>
@@ -58,7 +58,7 @@
           </ul>
         </div>
         <div class="menus-item">
-          <router-link class="menu-btn" to="/links">
+          <router-link class="menu-btn" to="/friendLink">
             <i class="iconfont iconlianjie" /> 友链
           </router-link>
         </div>
@@ -94,6 +94,10 @@
 </template>
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useDrawerStore } from '@/stores/modules/drawer'
+
+const drawerStore = useDrawerStore()
+const { openDrawer } = drawerStore
 
 const avatar = ref('')
 const navClass = ref<'nav' | 'nav-fixed'>('nav')

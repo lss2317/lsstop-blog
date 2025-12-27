@@ -26,7 +26,7 @@ public class PageInfoServiceImpl implements PageInfoService {
      * @return 页面信息列表
      */
     @Override
-    public List<PageInfo> listAllPageInfo() {
-        return pageManagementMapper.listAllPageInfo();
+    public List<PageInfo> getPageInfoList() {
+        return pageManagementMapper.getPageInfoList();
     }
 }

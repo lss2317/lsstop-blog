@@ -26,8 +26,8 @@ public class MessageServiceImpl implements MessageService {
      * @return 留言列表
      */
     @Override
-    public List<Message> blogListMessage() {
-        return messageMapper.blogListMessage();
+    public List<Message> getMessageList() {
+        return messageMapper.getMessageList();
     }
 
     /**

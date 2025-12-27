@@ -48,10 +48,10 @@ public class MessageController {
      *
      * @return 留言数据
      */
-    @GetMapping("/blogListMessage")
+    @GetMapping("/listMessage")
     @AccessLimit(seconds = 60, maxCount = 60)
-    public Result<List<MessageVo>> blogListMessage() {
-        List<MessageVo> messageVoList = messageService.blogListMessage().stream()
+    public Result<List<MessageVo>> getMessageList() {
+        List<MessageVo> messageVoList = messageService.getMessageList().stream()
                 .map(message -> message.asViewObject(MessageVo.class))
                 .toList();
         return Result.success(messageVoList);

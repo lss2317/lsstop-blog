@@ -3,7 +3,7 @@ import http from '@/utils/http.ts'
 // 查询留言板列表
 export function listMessage() {
   return http({
-    url: '/message/blogListMessage',
+    url: '/message/listMessage',
     method: 'get',
   })
 }

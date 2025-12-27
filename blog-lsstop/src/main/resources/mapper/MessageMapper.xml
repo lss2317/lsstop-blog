@@ -15,7 +15,7 @@
     </resultMap>
 
 
-    <select id="blogListMessage" resultMap="MessageResultMap">
+    <select id="getMessageList" resultMap="MessageResultMap">
         select m.id,
                m.nickname,
                m.avatar,

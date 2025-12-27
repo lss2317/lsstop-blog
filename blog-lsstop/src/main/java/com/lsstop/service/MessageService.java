@@ -5,7 +5,7 @@ import com.lsstop.domain.entity.Message;
 import java.util.List;
 
 /**
- * 留言服务接口
+ * 留言服务
  *
  * @author lishusheng
  * @date 2025/12/21
@@ -17,7 +17,7 @@ public interface MessageService {
      *
      * @return 留言列表
      */
-    List<Message> blogListMessage();
+    List<Message> getMessageList();
 
     /**
      * 新增留言

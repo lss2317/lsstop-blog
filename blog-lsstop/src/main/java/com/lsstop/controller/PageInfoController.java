@@ -31,8 +31,8 @@ public class PageInfoController {
      */
     @GetMapping("/listPageInfo")
     @AccessLimit(seconds = 60, maxCount = 60)
-    public Result<List<PageInfoVo>> listAllPageInfo() {
-        List<PageInfoVo> pageManagementVoList = pageInfoService.listAllPageInfo().stream()
+    public Result<List<PageInfoVo>> getPageInfoList() {
+        List<PageInfoVo> pageManagementVoList = pageInfoService.getPageInfoList().stream()
                 .map(pageManagement -> pageManagement.asViewObject(PageInfoVo.class))
                 .toList();
         return Result.success(pageManagementVoList);

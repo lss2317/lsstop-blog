@@ -1,8 +1,5 @@
 package com.lsstop.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,13 +18,11 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("blog_message")
 public class Message implements BaseData {
 
     /**
      * 主键id
      */
-    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
     /**

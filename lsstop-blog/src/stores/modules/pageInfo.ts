@@ -23,7 +23,7 @@ const usePageInfoStore = defineStore('pageInfo', () => {
   function getCoverStyle(pageLabel: string): string {
     const page = pageList.value.find((item) => item.pageLabel === pageLabel)
     const cover = page?.pageCover || ''
-    return `background: #49b1f5 url(${cover}) center center / cover no-repeat`
+    return `background: #49b1f5 url(${cover}) center 30% / cover no-repeat`
   }
 
   // 自动根据当前路由获取 cover 样式

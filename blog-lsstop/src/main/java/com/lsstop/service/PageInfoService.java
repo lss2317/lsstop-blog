@@ -5,7 +5,7 @@ import com.lsstop.domain.entity.PageInfo;
 import java.util.List;
 
 /**
- * 页面信息服务接口
+ * 页面信息服务
  *
  * @author lishusheng
  * @date 2025/12/24
@@ -17,5 +17,5 @@ public interface PageInfoService {
      *
      * @return 页面信息列表
      */
-    List<PageInfo> listAllPageInfo();
+    List<PageInfo> getPageInfoList();
 }

@@ -11,7 +11,7 @@
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
     </resultMap>
 
-    <select id="listAllPageInfo" resultMap="pageInfoResult">
+    <select id="getPageInfoList" resultMap="pageInfoResult">
         select id,
                page_name,
                page_label,

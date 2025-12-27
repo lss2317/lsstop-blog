@@ -7,7 +7,7 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 /**
- * 网站配置业务实现类
+ * 网站配置服务实现类
  *
  * @author lishusheng
  * @date 2025/12/25
