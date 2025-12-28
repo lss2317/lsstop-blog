@@ -48,12 +48,13 @@
         友链信息展示需要，你的信息格式要包含：名称、介绍、链接、头像
       </blockquote>
       <!-- 评论 -->
-      <!--      <Comment ref="comment" :type="commentType"></Comment>-->
+      <Comment></Comment>
     </v-card>
   </div>
 </template>
 
 <script setup lang="ts">
+import Comment from '@/components/Comment/BlogComment.vue'
 import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { listFriendLinkList } from '@/apis/friendLink'

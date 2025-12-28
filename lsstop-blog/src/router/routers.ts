@@ -1,5 +1,4 @@
 export const constantRouter = [
-
   {
     path: '/friendLink',
     name: 'FriendLink',

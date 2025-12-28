@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { shallowRef } from 'vue'
 
 const useLoadingStore = defineStore('loading', () => {
   const isLoading = shallowRef<boolean>(false)

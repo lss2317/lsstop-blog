@@ -213,6 +213,7 @@ ul {
 
 .menus-item a {
   transition: all 0.2s;
+  cursor: pointer;
 }
 
 .nav-fixed .menu-btn:hover {
