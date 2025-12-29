@@ -284,6 +284,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import CommentEmoji from '@/components/Emoji/CommentEmoji.vue'
+import { formatTime } from '@/utils/date'
 
 // 回复类型
 interface Reply {
@@ -348,23 +349,6 @@ const formatCount = (num: number): string => {
     return (num / 1000).toFixed(1) + 'K'
   }
   return num.toString()
-}
-
-// 格式化时间显示
-const formatTime = (time: string): string => {
-  if (!time) return ''
-  const date = new Date(time)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const hours = Math.floor(diff / (1000 * 60 * 60))
-
-  if (hours < 1) return '刚刚'
-  if (hours < 24) return `${hours} 小时前`
-
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}.${month}.${day}`
 }
 
 // 提交评论
@@ -454,11 +438,16 @@ const selectSort = (type: 'hot' | 'new') => {
   // TODO: 根据排序方式重新加载评论
 }
 
-// 点击外部关闭下拉菜单
+// 点击外部关闭下拉菜单和表情框
 const handleClickOutside = (event: MouseEvent) => {
   const target = event.target as HTMLElement
+  // 关闭排序菜单
   if (!target.closest('.lc-sort-dropdown-wrapper')) {
     showSortMenu.value = false
+  }
+  // 关闭表情框（点击表情按钮或表情面板内部不关闭）
+  if (!target.closest('.lc-emoji-panel') && !target.closest('.lc-tool-icon')) {
+    showEmoji.value = false
   }
 }
 
@@ -472,7 +461,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 力扣风格评论组件 */
+
 .lc-comment-container {
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -489,8 +478,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0;
-  border-bottom: 1px solid #ebebeb;
+  padding-top: 16px;
 }
 
 .lc-header-left {
@@ -1050,7 +1038,7 @@ onUnmounted(() => {
 
 /* 空状态 */
 .lc-empty {
-  padding: 60px 0;
+  padding: 80px 0;
   text-align: center;
   color: #8c8c8c;
   font-size: 14px;

@@ -16,3 +16,16 @@ export const dateFormat = {
   //   return dayjs(value).format('HH:mm:ss')
   // }
 }
+
+// 格式化时间显示（用于评论等场景）
+export const formatTime = (time: DateValue): string => {
+  if (!time) return ''
+  const date = dayjs(time)
+  const now = dayjs()
+  const diffHours = now.diff(date, 'hour')
+
+  if (diffHours < 1) return '刚刚'
+  if (diffHours < 24) return `${diffHours} 小时前`
+
+  return date.format('YYYY.MM.DD')
+}
