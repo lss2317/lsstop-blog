@@ -1,12 +1,21 @@
 export const constantRouter = [
   {
+    path: '/talk',
+    name: 'Talk',
+    component: () => import('@/views/Talk/BlogTalk.vue'),
+    meta: {
+      title: '说说',
+      pageLabel: 'talk'
+    }
+  },
+  {
     path: '/friendLink',
     name: 'FriendLink',
     component: () => import('@/views/FriendLink/FriendLink.vue'),
     meta: {
       title: '友链列表',
-      pageLabel: 'friendLink',
-    },
+      pageLabel: 'friendLink'
+    }
   },
   {
     path: '/about',
@@ -14,8 +23,8 @@ export const constantRouter = [
     component: () => import('@/views/About/BlogAbout.vue'),
     meta: {
       title: '关于我',
-      pageLabel: 'about',
-    },
+      pageLabel: 'about'
+    }
   },
   {
     path: '/message',
@@ -23,9 +32,9 @@ export const constantRouter = [
     name: 'Message',
     meta: {
       title: '留言板',
-      pageLabel: 'message',
-    },
-  },
+      pageLabel: 'message'
+    }
+  }
   // 访问其他任何不存在的路由，重定向到首页
   // {
   //   path: '/:pathMatch(.*)*',

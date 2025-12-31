@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.TalkMapper">
+
+    <resultMap id="talkResultMap" type="com.lsstop.domain.entity.Talk">
+        <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="content" property="content" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="is_top" property="isTop" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="status" property="status" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="is_delete" property="isDelete" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <select id="listTalk" resultMap="talkResultMap">
+        select bt.id,
+               bt.user_id,
+               bt.content,
+               bt.is_top,
+               bt.status,
+               bt.is_delete,
+               bt.create_time,
+               bt.update_time
+        from blog_talk bt
+        where bt.is_delete = 0
+          and bt.status = 1
+        order by bt.create_time desc
+    </select>
+
+</mapper>

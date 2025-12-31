@@ -52,7 +52,7 @@
         <router-link to="/albums"> <i class="iconfont iconxiangce1" /> 相册 </router-link>
       </div>
       <div class="menus-item">
-        <router-link to="/talks"> <i class="iconfont iconpinglun" /> 说说 </router-link>
+        <router-link to="/talk"> <i class="iconfont iconpinglun" /> 说说 </router-link>
       </div>
       <div class="menus-item">
         <router-link to="/classification"> <i class="iconfont iconfenlei" /> 分类 </router-link>

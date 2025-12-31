@@ -159,6 +159,50 @@ public class RedisUtils {
     }
 
     /**
+     * 获取 List 类型的值
+     *
+     * @param key   键
+     * @param clazz 元素类型
+     * @param <T>   泛型
+     * @return List
+     */
+    @SuppressWarnings("unchecked")
+    public <T> List<T> getList(String key, Class<T> clazz) {
+        Object value = get(key);
+        return value == null ? null : (List<T>) value;
+    }
+
+    /**
+     * 获取 Set 类型的值
+     *
+     * @param key   键
+     * @param clazz 元素类型
+     * @param <T>   泛型
+     * @return Set
+     */
+    @SuppressWarnings("unchecked")
+    public <T> Set<T> getSet(String key, Class<T> clazz) {
+        Object value = get(key);
+        return value == null ? null : (Set<T>) value;
+    }
+
+    /**
+     * 获取 Map 类型的值
+     *
+     * @param key        键
+     * @param keyClass   Map 键类型
+     * @param valueClass Map 值类型
+     * @param <K>        键泛型
+     * @param <V>        值泛型
+     * @return Map
+     */
+    @SuppressWarnings("unchecked")
+    public <K, V> Map<K, V> getMap(String key, Class<K> keyClass, Class<V> valueClass) {
+        Object value = get(key);
+        return value == null ? null : (Map<K, V>) value;
+    }
+
+    /**
      * 如果不存在则设置值
      *
      * @param key   键

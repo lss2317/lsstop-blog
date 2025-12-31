@@ -9,12 +9,9 @@ export const dateFormat = {
   year(value: DateValue): string {
     return dayjs(value).format('YYYY')
   },
-  // date(value: DateValue): string {
-  //   return dayjs(value).format('YYYY-MM-DD')
-  // },
-  // time(value: DateValue): string {
-  //   return dayjs(value).format('HH:mm:ss')
-  // }
+  datetime(value: DateValue): string {
+    return dayjs(value).format('YYYY-MM-DD HH:mm:ss')
+  }
 }
 
 // 格式化时间显示（用于评论等场景）

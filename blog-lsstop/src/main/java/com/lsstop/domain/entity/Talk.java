@@ -1,5 +1,6 @@
 package com.lsstop.domain.entity;
 
+import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Talk {
+public class Talk implements BaseData {
 
     /**
      * id
@@ -28,7 +29,6 @@ public class Talk {
      * 用户id
      */
     private Integer userId;
-
 
     /**
      * 说说内容
