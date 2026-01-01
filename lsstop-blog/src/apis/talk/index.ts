@@ -7,3 +7,12 @@ export function listTalk() {
     method: 'get',
   })
 }
+
+// 获取说说详细信息
+export function getTalk(talkId: number) {
+  return http({
+    url: '/talk/getTalk',
+    method: 'get',
+    params: { talkId },
+  })
+}

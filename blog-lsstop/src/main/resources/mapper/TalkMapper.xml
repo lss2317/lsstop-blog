@@ -13,19 +13,50 @@
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
     </resultMap>
 
-    <select id="listTalk" resultMap="talkResultMap">
+    <!-- 继承基础Map，只需添加额外字段 -->
+    <resultMap id="talkVoResultMap" type="com.lsstop.domain.vo.TalkVo">
+        <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="avatar" property="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="nickname" property="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="content" property="content" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="is_top" property="isTop" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <collection property="imgList" ofType="java.lang.String">
+            <result column="image_url" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        </collection>
+    </resultMap>
+
+    <select id="listTalk" resultMap="talkVoResultMap">
         select bt.id,
-               bt.user_id,
+               bup.avatar,
+               bup.nickname,
                bt.content,
                bt.is_top,
-               bt.status,
-               bt.is_delete,
                bt.create_time,
-               bt.update_time
+               bti.image_url
         from blog_talk bt
+                 left join blog_user_profile bup on bt.user_id = bup.user_id and bup.is_delete = 0
+                 left join blog_talk_image bti on bt.id = bti.talk_id and bti.is_delete = 0
         where bt.is_delete = 0
           and bt.status = 1
-        order by bt.create_time desc
+        order by bt.is_top desc, bt.create_time desc, bti.sort
+    </select>
+
+    <select id="getTalkById" resultMap="talkVoResultMap">
+        select bt.id,
+               bup.avatar,
+               bup.nickname,
+               bt.content,
+               bt.is_top,
+               bt.create_time,
+               bti.image_url
+        from blog_talk bt
+                 left join blog_user_profile bup on bt.user_id = bup.user_id and bup.is_delete = 0
+                 left join blog_talk_image bti on bt.id = bti.talk_id and bti.is_delete = 0
+        where bt.is_delete = 0
+          and bt.status = 1
+          and bt.id = #{id}
+        order by bti.sort
     </select>
 
 </mapper>

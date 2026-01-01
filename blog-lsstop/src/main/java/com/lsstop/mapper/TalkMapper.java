@@ -1,6 +1,6 @@
 package com.lsstop.mapper;
 
-import com.lsstop.domain.entity.Talk;
+import com.lsstop.domain.vo.TalkVo;
 
 import java.util.List;
 
@@ -17,6 +17,14 @@ public interface TalkMapper {
      *
      * @return 说说列表
      */
-    List<Talk> listTalk();
+    List<TalkVo> listTalk();
+
+    /**
+     * 根据id查询说说
+     *
+     * @param id 说说id
+     * @return 说说
+     */
+    TalkVo getTalkById(Integer id);
 
 }

@@ -45,6 +45,11 @@ public class TalkVo {
     private Integer likeCount;
 
     /**
+     * 图片列表
+     */
+    private List<String> imgList;
+
+    /**
      * 评论量
      */
     private Integer commentCount;
@@ -53,9 +58,4 @@ public class TalkVo {
      * 创建时间
      */
     private LocalDateTime createTime;
-
-    /**
-     * 图片列表
-     */
-    private List<String> imgList;
 }

@@ -7,38 +7,35 @@
     <!-- 说说内容 -->
     <v-card class="blog-container">
       <!-- 空状态 -->
-      <div v-if="talkList.length === 0 && !loading" class="empty-state">
+      <div v-if="!talk && !loading" class="empty-state">
         <v-icon size="48" color="grey">mdi-message-text-outline</v-icon>
-        <p>暂无说说</p>
+        <p>说说不存在</p>
       </div>
-      <!-- 说说列表 -->
-      <div v-for="item of talkList" :key="item.id" class="talk-item">
+      <!-- 说说详情 -->
+      <div v-if="talk" class="talk-item">
         <!-- 用户信息 -->
         <div class="user-info-wrapper">
-          <v-avatar size="36" class="user-avatar" :class="{ deactivated: isUserDeactivated(item) }">
-            <v-img :src="getUserAvatar(item)" width="36" height="36" cover />
+          <v-avatar size="36" class="user-avatar" :class="{ deactivated: isUserDeactivated(talk) }">
+            <v-img :src="getUserAvatar(talk)" width="36" height="36" cover />
           </v-avatar>
           <div class="user-detail-wrapper">
-            <div class="user-nickname" :class="{ deactivated: isUserDeactivated(item) }">
-              {{ getUserNickname(item) }}
-              <v-icon v-if="!isUserDeactivated(item)" class="user-sign" size="20" color="#ffa51e">
+            <div class="user-nickname" :class="{ deactivated: isUserDeactivated(talk) }">
+              {{ getUserNickname(talk) }}
+              <v-icon v-if="!isUserDeactivated(talk)" class="user-sign" size="20" color="#ffa51e">
                 mdi-check-decagram
               </v-icon>
             </div>
             <!-- 发表时间 -->
             <div class="time">
-              {{ dateFormat.datetime(item.createTime) }}
-              <span class="top" v-if="item.isTop === 1">
-                <v-icon size="14" color="#ff7242">mdi-pin</v-icon> 置顶
-              </span>
+              {{ dateFormat.datetime(talk.createTime) }}
             </div>
             <!-- 说说信息 -->
-            <div class="talk-content" v-html="item.content" />
+            <div class="talk-content" v-html="talk.content" />
             <!-- 图片列表 -->
-            <div class="talk-images" v-if="item.imgList">
+            <div class="talk-images" v-if="talk.imgList">
               <div
                 class="image-wrapper"
-                v-for="(img, index) of item.imgList"
+                v-for="(img, index) of talk.imgList"
                 :key="index"
                 @click.stop="previewImg(img)"
               >
@@ -48,36 +45,35 @@
             <!-- 说说操作 -->
             <div
               class="talk-operation"
-              :class="{ 'no-images': !item.imgList || item.imgList.length === 0 }"
+              :class="{ 'no-images': !talk.imgList || talk.imgList.length === 0 }"
             >
               <div
-                :class="[
-                  'talk-operation-item',
-                  'like-item',
-                  likedTalkSet.has(item.id) ? 'liked' : '',
-                ]"
-                @click="like(item)"
+                :class="['talk-operation-item', 'like-item', isLiked ? 'liked' : '']"
+                @click="like"
               >
                 <v-icon size="16" class="like-btn">
-                  {{ likedTalkSet.has(item.id) ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
+                  {{ isLiked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
                 </v-icon>
                 <span class="operation-count">
-                  {{ item.likeCount == null ? 0 : item.likeCount }}
+                  {{ talk.likeCount == null ? 0 : talk.likeCount }}
                 </span>
               </div>
-              <router-link :to="'/talk/' + item.id" class="talk-operation-item comment-btn">
-                <v-icon size="16">mdi-chat-outline</v-icon>
-                <span class="operation-count">
-                  {{ item.commentCount == null ? 0 : item.commentCount }}
-                </span>
-              </router-link>
-              <div class="talk-operation-item share-btn" @click="share(item)">
+              <div class="talk-operation-item share-btn" @click="share">
                 <v-icon size="16">mdi-share-variant-outline</v-icon>
                 <span class="operation-count">分享</span>
               </div>
             </div>
           </div>
         </div>
+      </div>
+      <!-- 评论分隔线 -->
+      <div class="comment-divider" v-if="talk">
+        <v-icon size="18" color="#8a919f">mdi-chat-processing-outline</v-icon>
+        <span>评论区</span>
+      </div>
+      <!-- 评论 -->
+      <div class="comment-wrapper" v-if="talk">
+        <Comment></Comment>
       </div>
     </v-card>
 
@@ -115,11 +111,17 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
-import { listTalk } from '@/apis/talk'
+import { getTalk } from '@/apis/talk'
 import { dateFormat } from '@/utils/date'
 import { type TalkItem, isUserDeactivated, getUserAvatar, getUserNickname } from '@/utils/talk'
+import Comment from '@/components/Comment/BlogComment.vue'
+
+// 获取路由参数
+const route = useRoute()
+const talkId = Number(route.params.talkId)
 
 // 获取封面样式
 const pageInfoStore = usePageInfoStore()
@@ -128,11 +130,11 @@ const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 // 加载状态
 const loading = ref(true)
 
-// 说说列表数据
-const talkList = ref<TalkItem[]>([])
+// 说说详情数据
+const talk = ref<TalkItem | null>(null)
 
-// 用户点赞的说说ID集合
-const likedTalkSet = ref<Set<number>>(new Set())
+// 是否已点赞
+const isLiked = ref(false)
 
 // 图片灯箱
 const lightboxVisible = ref(false)
@@ -144,13 +146,14 @@ const shareUrl = ref('')
 const shareTitle = ref('')
 
 // 点赞操作
-function like(item: TalkItem) {
-  if (likedTalkSet.value.has(item.id)) {
-    likedTalkSet.value.delete(item.id)
-    item.likeCount = (item.likeCount || 1) - 1
+function like() {
+  if (!talk.value) return
+  if (isLiked.value) {
+    isLiked.value = false
+    talk.value.likeCount = (talk.value.likeCount || 1) - 1
   } else {
-    likedTalkSet.value.add(item.id)
-    item.likeCount = (item.likeCount || 0) + 1
+    isLiked.value = true
+    talk.value.likeCount = (talk.value.likeCount || 0) + 1
   }
 }
 
@@ -161,9 +164,10 @@ function previewImg(img: string) {
 }
 
 // 分享功能
-function share(item: TalkItem) {
-  shareUrl.value = `${window.location.origin}/talk/${item.id}`
-  shareTitle.value = item.content.replace(/<[^>]+>/g, '').substring(0, 50)
+function share() {
+  if (!talk.value) return
+  shareUrl.value = `${window.location.origin}/talks/${talk.value.id}`
+  shareTitle.value = talk.value.content.replace(/<[^>]+>/g, '').substring(0, 50)
   shareDialogVisible.value = true
 }
 
@@ -189,12 +193,12 @@ function shareToQzone() {
   shareDialogVisible.value = false
 }
 
-// 加载说说列表
-function listTalks() {
+// 加载说说详情
+function loadTalkInfo() {
   loading.value = true
-  listTalk()
+  getTalk(talkId)
     .then((res) => {
-      talkList.value = res.data
+      talk.value = res.data
     })
     .finally(() => {
       loading.value = false
@@ -202,7 +206,7 @@ function listTalks() {
 }
 
 onMounted(() => {
-  listTalks()
+  loadTalkInfo()
 })
 </script>
 
@@ -210,10 +214,6 @@ onMounted(() => {
 /* 精简列宽样式 */
 .talk-images :deep([class*='v-col']) {
   padding: 2px !important;
-}
-
-.talk-item:not(:first-child) {
-  margin-bottom: 20px;
 }
 
 .talk-item {
@@ -276,11 +276,6 @@ onMounted(() => {
   color: #999;
   margin-top: 2px;
   font-size: 12px;
-}
-
-.top {
-  color: #ff7242;
-  margin-left: 10px;
 }
 
 .talk-content {
@@ -390,21 +385,6 @@ onMounted(() => {
   color: #eb5055 !important;
 }
 
-.comment-btn,
-.comment-btn .operation-count {
-  text-decoration: none;
-  color: #8a919f !important;
-}
-
-.comment-btn:hover {
-  color: #1e80ff;
-}
-
-.comment-btn:hover :deep(.v-icon) {
-  color: #1e80ff !important;
-  transform: scale(1.2);
-}
-
 .share-btn:hover {
   color: #07c160;
 }
@@ -496,5 +476,40 @@ onMounted(() => {
   margin-top: 8px;
   font-size: 12px;
   color: #666;
+}
+
+/* 评论区分隔线 */
+.comment-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 30px 0 10px;
+  padding: 16px 0;
+  position: relative;
+  color: #8a919f;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.comment-divider::before,
+.comment-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e4e6eb, transparent);
+}
+
+.comment-divider::before {
+  background: linear-gradient(to left, #e4e6eb, transparent);
+}
+
+.comment-divider::after {
+  background: linear-gradient(to right, #e4e6eb, transparent);
+}
+
+/* 评论区包装器 */
+.comment-wrapper {
+  padding-top: 10px;
 }
 </style>

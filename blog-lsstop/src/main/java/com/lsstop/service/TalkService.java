@@ -19,4 +19,12 @@ public interface TalkService {
      */
     List<TalkVo> listTalk();
 
+    /**
+     * 根据id获取说说
+     *
+     * @param id 说说id
+     * @return 说说视图对象
+     */
+    TalkVo getTalkById(int id);
+
 }

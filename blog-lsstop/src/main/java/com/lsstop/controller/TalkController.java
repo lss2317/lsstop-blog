@@ -5,7 +5,9 @@ import com.lsstop.common.Result;
 import com.lsstop.domain.vo.TalkVo;
 import com.lsstop.service.TalkService;
 import jakarta.annotation.Resource;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -32,5 +34,17 @@ public class TalkController {
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<List<TalkVo>> listTalk() {
         return Result.success(talkService.listTalk());
+    }
+
+    /**
+     * 根据id获取说说详情
+     *
+     * @param talkId 说说id
+     * @return 说说详情
+     */
+    @GetMapping("/getTalk")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<TalkVo> getTalk(@RequestParam Integer talkId) {
+        return Result.success(talkService.getTalkById(talkId));
     }
 }
