@@ -8,10 +8,19 @@
     <v-card class="blog-container">
       <!-- 博主头像 -->
       <div class="my-wrapper">
-        <v-avatar size="110">
+        <v-avatar size="110" @click="showAvatar = true" class="avatar-clickable">
           <v-img class="author-avatar" :src="avatar" width="110" height="110" cover />
         </v-avatar>
       </div>
+      <!-- 头像放大弹窗 -->
+      <v-dialog v-model="showAvatar" max-width="90vw" content-class="lightbox-dialog">
+        <div class="lightbox" @click.self="showAvatar = false">
+          <img :src="avatar" alt="头像预览" @click.stop />
+          <v-btn icon class="lightbox-close" size="small" @click="showAvatar = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </div>
+      </v-dialog>
       <!-- 介绍 -->
       <div class="about-content markdown-body" v-html="aboutContent" />
     </v-card>
@@ -19,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import usePageInfoStore from '@/stores/modules/pageInfo'
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
@@ -31,6 +40,7 @@ const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 const { config } = storeToRefs(websiteConfigStore)
 
 const avatar = computed(() => config.value.websiteAvatar)
+const showAvatar = ref(false)
 const aboutContent = computed(() => {
   return config.value.about ? markdownToHtml(config.value.about) : ''
 })
@@ -51,11 +61,60 @@ const aboutContent = computed(() => {
 }
 
 .author-avatar {
-  transition: all 0.5s;
+  transition: all 0.3s;
 }
 
-.author-avatar:hover {
-  transform: rotate(360deg);
+.avatar-clickable {
+  cursor: pointer !important;
+}
+
+.avatar-clickable :deep(*) {
+  cursor: pointer !important;
+}
+
+.avatar-clickable:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.avatar-preview {
+  border-radius: 8px;
+}
+
+/* 灯箱样式 */
+:global(.lightbox-dialog) {
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.lightbox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  min-height: 200px;
+}
+
+.lightbox img {
+  max-width: 90vw;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  color: #fff !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+.lightbox-close:hover {
+  background: rgba(0, 0, 0, 0.7) !important;
 }
 </style>
 

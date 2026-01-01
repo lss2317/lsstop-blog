@@ -15,7 +15,12 @@
       <div v-if="talk" class="talk-item">
         <!-- 用户信息 -->
         <div class="user-info-wrapper">
-          <v-avatar size="36" class="user-avatar" :class="{ deactivated: isUserDeactivated(talk) }">
+          <v-avatar
+            size="36"
+            class="user-avatar"
+            :class="{ deactivated: isUserDeactivated(talk) }"
+            @click="previewAvatar"
+          >
             <v-img :src="getUserAvatar(talk)" width="36" height="36" cover />
           </v-avatar>
           <div class="user-detail-wrapper">
@@ -87,7 +92,7 @@
       </div>
     </v-dialog>
     <!-- 分享弹窗 -->
-    <v-dialog v-model="shareDialogVisible" max-width="320">
+    <v-dialog v-model="shareDialogVisible" max-width="320" transition="dialog-bottom-transition">
       <v-card class="share-dialog">
         <v-card-title class="share-title">分享到</v-card-title>
         <v-card-text class="share-options">
@@ -99,10 +104,40 @@
             <v-icon size="32" color="#e6162d">mdi-sina-weibo</v-icon>
             <span>微博</span>
           </div>
-          <div class="share-item" @click="shareToQzone">
-            <v-icon size="32" color="#efbe1b">mdi-qqchat</v-icon>
-            <span>QQ空间</span>
+          <div class="share-item" @click="shareToWeixin">
+            <v-icon size="32" color="#07c160">mdi-wechat</v-icon>
+            <span>微信</span>
           </div>
+          <div class="share-item" @click="shareToQQ">
+            <v-icon size="32" color="#12b7f5">mdi-qqchat</v-icon>
+            <span>QQ</span>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    <!-- 微信二维码弹窗 -->
+    <v-dialog v-model="weixinQrcodeVisible" max-width="300" transition="dialog-bottom-transition">
+      <v-card class="qrcode-dialog">
+        <v-card-title class="qrcode-title">微信扫一扫：分享</v-card-title>
+        <v-card-text class="qrcode-content">
+          <div class="qrcode-wrapper">
+            <v-progress-circular v-if="!weixinQrcodeUrl" indeterminate color="#07c160" size="40" />
+            <img v-else :src="weixinQrcodeUrl" alt="微信分享二维码" class="qrcode-img" />
+          </div>
+          <p class="qrcode-tip">微信里点“发现”，扫一下<br />二维码即可在手机上打开。</p>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    <!-- QQ二维码弹窗 -->
+    <v-dialog v-model="qqQrcodeVisible" max-width="300" transition="dialog-bottom-transition">
+      <v-card class="qrcode-dialog">
+        <v-card-title class="qrcode-title">QQ扫一扫：分享</v-card-title>
+        <v-card-text class="qrcode-content">
+          <div class="qrcode-wrapper">
+            <v-progress-circular v-if="!qqQrcodeUrl" indeterminate color="#12b7f5" size="40" />
+            <img v-else :src="qqQrcodeUrl" alt="QQ分享二维码" class="qrcode-img" />
+          </div>
+          <p class="qrcode-tip">打开手机QQ，扫一下<br />二维码即可在手机上打开。</p>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -116,7 +151,13 @@ import { storeToRefs } from 'pinia'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
 import { getTalk } from '@/apis/talk'
 import { dateFormat } from '@/utils/date'
-import { type TalkItem, isUserDeactivated, getUserAvatar, getUserNickname } from '@/utils/talk'
+import {
+  type TalkItem,
+  isUserDeactivated,
+  getUserAvatar,
+  getUserNickname,
+  useShare,
+} from '@/utils/talk'
 import Comment from '@/components/Comment/BlogComment.vue'
 
 // 获取路由参数
@@ -140,10 +181,19 @@ const isLiked = ref(false)
 const lightboxVisible = ref(false)
 const lightboxImg = ref('')
 
-// 分享弹窗
-const shareDialogVisible = ref(false)
-const shareUrl = ref('')
-const shareTitle = ref('')
+// 分享功能
+const {
+  shareDialogVisible,
+  weixinQrcodeVisible,
+  weixinQrcodeUrl,
+  qqQrcodeVisible,
+  qqQrcodeUrl,
+  openShareDialog,
+  copyLink,
+  shareToWeibo,
+  shareToWeixin,
+  shareToQQ,
+} = useShare()
 
 // 点赞操作
 function like() {
@@ -163,34 +213,18 @@ function previewImg(img: string) {
   lightboxVisible.value = true
 }
 
+// 预览头像
+function previewAvatar() {
+  if (!talk.value) return
+  previewImg(getUserAvatar(talk.value))
+}
+
 // 分享功能
 function share() {
   if (!talk.value) return
-  shareUrl.value = `${window.location.origin}/talks/${talk.value.id}`
-  shareTitle.value = talk.value.content.replace(/<[^>]+>/g, '').substring(0, 50)
-  shareDialogVisible.value = true
-}
-
-// 复制链接
-function copyLink() {
-  navigator.clipboard.writeText(shareUrl.value).then(() => {
-    alert('链接已复制到剪贴板')
-    shareDialogVisible.value = false
-  })
-}
-
-// 分享到微博
-function shareToWeibo() {
-  const url = `https://service.weibo.com/share/share.php?url=${encodeURIComponent(shareUrl.value)}&title=${encodeURIComponent(shareTitle.value)}`
-  window.open(url, '_blank')
-  shareDialogVisible.value = false
-}
-
-// 分享到QQ空间
-function shareToQzone() {
-  const url = `https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=${encodeURIComponent(shareUrl.value)}&title=${encodeURIComponent(shareTitle.value)}`
-  window.open(url, '_blank')
-  shareDialogVisible.value = false
+  const url = `${window.location.origin}/talks/${talk.value.id}`
+  const title = talk.value.content.replace(/<[^>]+>/g, '').substring(0, 50)
+  openShareDialog(url, title)
 }
 
 // 加载说说详情
@@ -239,10 +273,15 @@ onMounted(() => {
   border: 2px solid #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   transition: all 0.5s;
+  cursor: pointer !important;
+}
+
+.user-avatar :deep(*) {
+  cursor: pointer !important;
 }
 
 .user-avatar:hover {
-  transform: rotate(360deg);
+  transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
@@ -476,6 +515,62 @@ onMounted(() => {
   margin-top: 8px;
   font-size: 12px;
   color: #666;
+}
+
+/* 二维码弹窗样式 */
+.qrcode-dialog {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.qrcode-title {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+  padding: 20px 20px 8px;
+}
+
+.qrcode-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 24px 24px;
+}
+
+.qrcode-wrapper {
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qrcode-img {
+  width: 180px;
+  height: 180px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.qrcode-tip {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+  line-height: 1.8;
 }
 
 /* 评论区分隔线 */

@@ -15,66 +15,66 @@
     <!-- 博客信息 -->
     <div class="blog-info-wrapper">
       <div class="blog-info-data">
-        <router-link to="/archives">
+        <a @click="navigateTo('/archives')">
           <div style="font-size: 0.875rem">文章</div>
           <div style="font-size: 1.125rem">
             {{ avatar }}
           </div>
-        </router-link>
+        </a>
       </div>
       <div class="blog-info-data">
-        <router-link to="/categories">
+        <a @click="navigateTo('/categories')">
           <div style="font-size: 0.875rem">分类</div>
           <div style="font-size: 1.125rem">
             {{ avatar }}
           </div>
-        </router-link>
+        </a>
       </div>
       <div class="blog-info-data">
-        <router-link to="/tags">
+        <a @click="navigateTo('/tags')">
           <div style="font-size: 0.875rem">标签</div>
           <div style="font-size: 1.125rem">
             {{ avatar }}
           </div>
-        </router-link>
+        </a>
       </div>
     </div>
     <hr />
     <!-- 页面导航 -->
     <div class="menu-container">
       <div class="menus-item">
-        <router-link to="/"> <i class="iconfont iconzhuye" /> 首页 </router-link>
+        <a @click="navigateTo('/')"> <i class="iconfont iconzhuye" /> 首页 </a>
       </div>
       <div class="menus-item">
-        <router-link to="/archives"> <i class="iconfont iconguidang" /> 归档 </router-link>
+        <a @click="navigateTo('/archives')"> <i class="iconfont iconguidang" /> 归档 </a>
       </div>
       <div class="menus-item">
-        <router-link to="/albums"> <i class="iconfont iconxiangce1" /> 相册 </router-link>
+        <a @click="navigateTo('/albums')"> <i class="iconfont iconxiangce1" /> 相册 </a>
       </div>
       <div class="menus-item">
-        <router-link to="/talk"> <i class="iconfont iconpinglun" /> 说说 </router-link>
+        <a @click="navigateTo('/talk')"> <i class="iconfont iconpinglun" /> 说说 </a>
       </div>
       <div class="menus-item">
-        <router-link to="/classification"> <i class="iconfont iconfenlei" /> 分类 </router-link>
+        <a @click="navigateTo('/classification')"> <i class="iconfont iconfenlei" /> 分类 </a>
       </div>
       <div class="menus-item">
-        <router-link to="/tags"> <i class="iconfont iconbiaoqian" /> 标签 </router-link>
+        <a @click="navigateTo('/tags')"> <i class="iconfont iconbiaoqian" /> 标签 </a>
       </div>
       <div class="menus-item">
-        <router-link to="/friendLink"> <i class="iconfont iconlianjie" /> 友链 </router-link>
+        <a @click="navigateTo('/friendLink')"> <i class="iconfont iconlianjie" /> 友链 </a>
       </div>
       <div class="menus-item">
-        <router-link to="/about"> <i class="iconfont iconzhifeiji" /> 关于 </router-link>
+        <a @click="navigateTo('/about')"> <i class="iconfont iconzhifeiji" /> 关于 </a>
       </div>
       <div class="menus-item">
-        <router-link to="/message"> <i class="iconfont iconpinglunzu" /> 留言 </router-link>
+        <a @click="navigateTo('/message')"> <i class="iconfont iconpinglunzu" /> 留言 </a>
       </div>
       <div class="menus-item" v-if="!avatar">
         <a><i class="iconfont icondenglu" /> 登录 </a>
       </div>
       <div v-else>
         <div class="menus-item">
-          <router-link to="/user"> <i class="iconfont icongerenzhongxin" /> 个人中心 </router-link>
+          <a @click="navigateTo('/user')"> <i class="iconfont icongerenzhongxin" /> 个人中心 </a>
         </div>
         <div class="menus-item">
           <a><i class="iconfont icontuichu" /> 退出</a>
@@ -86,13 +86,23 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useDrawerStore } from '@/stores/modules/drawer'
 
+const router = useRouter()
 const drawerStore = useDrawerStore()
 const { drawer } = storeToRefs(drawerStore)
 
 const avatar = ref('1112')
+
+// 导航并滚动到顶部
+function navigateTo(path: string) {
+  drawer.value = false
+  router.push(path).then(() => {
+    window.scrollTo(0, 0)
+  })
+}
 </script>
 
 <style scoped>

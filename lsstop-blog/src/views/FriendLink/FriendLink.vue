@@ -22,7 +22,7 @@
             <v-avatar size="65" class="link-avatar">
               <img :src="item.linkAvatar" :alt="item.linkName" />
             </v-avatar>
-            <div style="width: 100%; z-index: 10">
+            <div class="link-text-content">
               <div class="link-name">{{ item.linkName }}</div>
               <div class="link-intro">{{ item.linkIntro }}</div>
             </div>
@@ -125,8 +125,12 @@ blockquote {
 .link-avatar {
   margin-top: 5px;
   margin-left: 10px;
-  transition: all 0.5s;
+  transition: all 0.4s ease;
   cursor: pointer;
+  flex-shrink: 0;
+  opacity: 1;
+  width: 65px;
+  overflow: hidden;
 }
 
 .link-avatar :deep(img) {
@@ -144,36 +148,65 @@ blockquote {
   font-size: 1.25rem;
   font-weight: bold;
   z-index: 1000;
+  transition: all 0.4s ease;
+}
+
+.link-wrapper:hover .link-name {
+  font-size: 1.4rem;
 }
 
 .link-intro {
   text-align: center;
-  padding: 16px 10px;
-  height: 50px;
+  padding: 8px 10px;
   font-size: 13px;
   color: #1f2d3d;
   width: 100%;
+  transition: all 0.4s ease;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
+  height: 28px;
+}
+
+.link-text-content {
+  width: 100%;
+  z-index: 10;
+  transition: all 0.4s ease;
+  transform: translateX(0);
+}
+
+.link-wrapper:hover .link-text-content {
+  transform: translateX(-30px) scale(1.05);
+}
+
+.link-wrapper:hover .link-intro {
+  -webkit-line-clamp: 2;
+  height: auto;
+  max-height: 56px;
 }
 
 .link-wrapper:hover a {
   color: #fff;
 }
 
-.link-wrapper:hover .link-intro {
-  color: #fff;
-}
-
 .link-wrapper:hover .link-avatar {
-  transform: rotate(360deg);
+  opacity: 0;
+  width: 0;
+  margin-left: 0;
 }
 
 .link-wrapper a {
   color: #333;
   text-decoration: none;
   display: flex;
-  height: 100%;
+  height: 80px;
   width: 100%;
   cursor: pointer;
+  align-items: center;
+  overflow: hidden;
 }
 
 .link-wrapper:hover {

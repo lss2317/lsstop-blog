@@ -3,7 +3,7 @@
     <!-- 手机端导航栏 -->
     <div class="d-md-none nav-mobile-container">
       <div style="font-size: 18px; font-weight: bold">
-        <router-link to="/">阿圣</router-link>
+        <a @click="navigateTo('/')">阿圣</a>
       </div>
       <div style="margin-left: auto">
         <a><i class="iconfont iconsousuo" /></a>
@@ -15,14 +15,14 @@
     <!-- 电脑导航栏 -->
     <div class="d-md-block d-none nav-container">
       <div class="float-left blog-title">
-        <router-link to="/"> 阿圣</router-link>
+        <a @click="navigateTo('/')">阿圣</a>
       </div>
       <div class="float-right nav-title">
         <div class="menus-item">
           <a class="menu-btn"> <i class="iconfont iconsousuo" /> 搜索 </a>
         </div>
         <div class="menus-item">
-          <router-link class="menu-btn" to="/"><i class="iconfont iconzhuye" /> 首页</router-link>
+          <a class="menu-btn" @click="navigateTo('/')"><i class="iconfont iconzhuye" /> 首页</a>
         </div>
         <div class="menus-item">
           <a class="menu-btn">
@@ -31,15 +31,13 @@
           </a>
           <ul class="menus-submenu">
             <li>
-              <router-link to="/archives"><i class="iconfont iconguidang" /> 归档</router-link>
+              <a @click="navigateTo('/archives')"><i class="iconfont iconguidang" /> 归档</a>
             </li>
             <li>
-              <router-link to="/classification">
-                <i class="iconfont iconfenlei" /> 分类
-              </router-link>
+              <a @click="navigateTo('/classification')"> <i class="iconfont iconfenlei" /> 分类 </a>
             </li>
             <li>
-              <router-link to="/tags"><i class="iconfont iconbiaoqian" /> 标签</router-link>
+              <a @click="navigateTo('/tags')"><i class="iconfont iconbiaoqian" /> 标签</a>
             </li>
           </ul>
         </div>
@@ -50,27 +48,27 @@
           </a>
           <ul class="menus-submenu">
             <li>
-              <router-link to="/albums"><i class="iconfont iconxiangce1" /> 相册</router-link>
+              <a @click="navigateTo('/albums')"><i class="iconfont iconxiangce1" /> 相册</a>
             </li>
             <li>
-              <router-link to="/talk"><i class="iconfont iconpinglun" /> 说说</router-link>
+              <a @click="navigateTo('/talk')"><i class="iconfont iconpinglun" /> 说说</a>
             </li>
           </ul>
         </div>
         <div class="menus-item">
-          <router-link class="menu-btn" to="/friendLink">
+          <a class="menu-btn" @click="navigateTo('/friendLink')">
             <i class="iconfont iconlianjie" /> 友链
-          </router-link>
+          </a>
         </div>
         <div class="menus-item">
-          <router-link class="menu-btn" to="/about">
+          <a class="menu-btn" @click="navigateTo('/about')">
             <i class="iconfont iconzhifeiji" /> 关于
-          </router-link>
+          </a>
         </div>
         <div class="menus-item">
-          <router-link class="menu-btn" to="/message">
+          <a class="menu-btn" @click="navigateTo('/message')">
             <i class="iconfont iconpinglunzu" /> 留言
-          </router-link>
+          </a>
         </div>
         <div class="menus-item">
           <a class="menu-btn" v-if="!avatar"> <i class="iconfont icondenglu" /> 登录 </a>
@@ -78,9 +76,9 @@
             <img class="user-avatar" :src="avatar" height="30" width="30" />
             <ul class="menus-submenu">
               <li>
-                <router-link to="/user">
+                <a @click="navigateTo('/user')">
                   <i class="iconfont icongerenzhongxin" /> 个人中心
-                </router-link>
+                </a>
               </li>
               <li>
                 <a><i class="iconfont icontuichu" /> 退出</a>
@@ -94,10 +92,19 @@
 </template>
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useDrawerStore } from '@/stores/modules/drawer'
 
+const router = useRouter()
 const drawerStore = useDrawerStore()
 const { openDrawer } = drawerStore
+
+// 导航并滚动到顶部
+function navigateTo(path: string) {
+  router.push(path).then(() => {
+    window.scrollTo(0, 0)
+  })
+}
 
 const avatar = ref('')
 const navClass = ref<'nav' | 'nav-fixed'>('nav')
