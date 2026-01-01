@@ -1,26 +1,17 @@
 package com.lsstop.utils;
 
-import com.alibaba.fastjson2.JSON;
-import eu.bitwalker.useragentutils.Browser;
-import eu.bitwalker.useragentutils.OperatingSystem;
-import eu.bitwalker.useragentutils.UserAgent;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.lionsoul.ip2region.xdb.Searcher;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * IP工具类
- * <p>
- * 提供获取客户端IP地址、IP归属地解析、访问设备信息解析等功能
- * </p>
  *
  * @author lishusheng
  * @date 2025/12/23
@@ -36,7 +27,51 @@ public class IpUtils {
             "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR", "X-Real-IP"
     };
 
-    private IpUtils() {
+    private static Searcher SEARCHER;
+
+    static {
+        try {
+            // 从classpath提取xdb文件到临时目录
+            File tempFile = extractXdbToTemp();
+            if (tempFile != null) {
+                String dbPath = tempFile.getAbsolutePath();
+                // 加载VectorIndex缓存，减少查询时的IO操作
+                byte[] vIndex = Searcher.loadVectorIndexFromFile(dbPath);
+                // 使用VectorIndex创建Searcher（推荐方式）
+                SEARCHER = Searcher.newWithVectorIndex(dbPath, vIndex);
+                log.info("ip2region数据库加载成功（VectorIndex模式）");
+            } else {
+                log.error("ip2region.xdb文件未找到");
+            }
+        } catch (Exception e) {
+            log.error("ip2region数据库加载失败", e);
+        }
+    }
+
+    /**
+     * 从classpath提取xdb文件到临时目录
+     */
+    private static File extractXdbToTemp() {
+        try (InputStream is = IpUtils.class.getResourceAsStream("/ip2region.xdb")) {
+            if (is == null) {
+                return null;
+            }
+            File tempFile = new File(System.getProperty("java.io.tmpdir"), "ip2region.xdb");
+            if (tempFile.exists() && tempFile.length() > 0) {
+                return tempFile;
+            }
+            try (OutputStream os = new FileOutputStream(tempFile)) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = is.read(buffer)) != -1) {
+                    os.write(buffer, 0, bytesRead);
+                }
+            }
+            return tempFile;
+        } catch (Exception e) {
+            log.error("提取ip2region.xdb失败", e);
+            return null;
+        }
     }
 
     /**
@@ -73,34 +108,21 @@ public class IpUtils {
     }
 
     /**
-     * 解析IP地址归属地
+     * 获取IP所在地（省份/地区）
      *
      * @param ipAddress IP地址
-     * @return IP归属地信息
+     * @return 省份/地区名称
      */
-    public static String getIpSource(String ipAddress) {
+    public static String getIpLocation(String ipAddress) {
         if (StringUtils.isBlank(ipAddress) || LOCAL_IPV4.equals(ipAddress)) {
             return "本地";
         }
+        if (SEARCHER == null) {
+            return UNKNOWN;
+        }
         try {
-            URL url = new URL("http://opendata.baidu.com/api.php?query=" + ipAddress + "&co=&resource_id=6006&oe=utf8");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setConnectTimeout(3000);
-            conn.setReadTimeout(3000);
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-                StringBuilder result = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    result.append(line);
-                }
-                Map<String, Object> map = JSON.parseObject(result.toString());
-                @SuppressWarnings("unchecked")
-                List<Map<String, String>> data = (List<Map<String, String>>) map.get("data");
-                if (data != null && !data.isEmpty()) {
-                    return data.get(0).get("location");
-                }
-            }
+            String region = SEARCHER.search(ipAddress);
+            return parseProvince(region);
         } catch (Exception e) {
             log.warn("IP地址解析失败: {}", ipAddress);
         }
@@ -108,52 +130,40 @@ public class IpUtils {
     }
 
     /**
-     * 获取用户代理信息
-     *
-     * @param request 请求对象
-     * @return UserAgent对象
+     * 从ip2region结果中提取省份/直辖市名称
+     * ip2region格式：国家|省份|城市|ISP
      */
-    public static UserAgent getUserAgent(HttpServletRequest request) {
-        return UserAgent.parseUserAgentString(request.getHeader("User-Agent"));
-    }
-
-    /**
-     * 获取浏览器名称
-     *
-     * @param request 请求对象
-     * @return 浏览器名称
-     */
-    public static String getBrowserName(HttpServletRequest request) {
-        Browser browser = getUserAgent(request).getBrowser();
-        return browser != null ? browser.getName() : UNKNOWN;
-    }
-
-    /**
-     * 获取操作系统名称
-     *
-     * @param request 请求对象
-     * @return 操作系统名称
-     */
-    public static String getOsName(HttpServletRequest request) {
-        OperatingSystem os = getUserAgent(request).getOperatingSystem();
-        return os != null ? os.getName() : UNKNOWN;
-    }
-
-    /**
-     * 获取访问设备信息（浏览器 + 操作系统）
-     *
-     * @param request 请求对象
-     * @return 设备信息，格式为 "浏览器 | 操作系统"
-     */
-    public static String getDeviceInfo(HttpServletRequest request) {
-        return getBrowserName(request) + " | " + getOsName(request);
+    private static String parseProvince(String region) {
+        if (StringUtils.isBlank(region) || "0".equals(region)) {
+            return UNKNOWN;
+        }
+        String[] parts = region.split("\\|");
+        // 国家不是中国，返回国家名
+        if (parts.length > 0 && !"0".equals(parts[0]) && !"中国".equals(parts[0])) {
+            return parts[0];
+        }
+        // 获取省份（第2个字段，index=1）
+        String province = parts.length > 1 ? parts[1] : "0";
+        if (!"0".equals(province) && StringUtils.isNotBlank(province)) {
+            // 去除"省"字
+            if (province.endsWith("省")) {
+                return province.substring(0, province.length() - 1);
+            }
+            // 直辖市去除"市"字
+            if (province.endsWith("市")) {
+                return province.substring(0, province.length() - 1);
+            }
+            return province;
+        }
+        // 省份为空时，返回国家（如：中国|0|0|移动 -> 中国）
+        if (parts.length > 0 && !"0".equals(parts[0])) {
+            return parts[0];
+        }
+        return UNKNOWN;
     }
 
     /**
      * 从多级反向代理中获得第一个非unknown IP地址
-     *
-     * @param ip 获得的IP地址
-     * @return 第一个非unknown IP地址
      */
     private static String getMultistageReverseProxyIp(String ip) {
         if (ip != null && ip.contains(",")) {

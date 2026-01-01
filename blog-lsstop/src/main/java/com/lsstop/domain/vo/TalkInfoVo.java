@@ -1,19 +1,18 @@
 package com.lsstop.domain.vo;
 
-import com.lsstop.domain.BaseData;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 前台说说视图类
+ * 前台说说详细视图类
  *
  * @author lishusheng
  * @date 2026/01/01
  */
 @Data
-public class TalkVo implements BaseData {
+public class TalkInfoVo {
 
     /**
      * id
@@ -51,12 +50,8 @@ public class TalkVo implements BaseData {
     private List<String> imgList;
 
     /**
-     * 评论量
-     */
-    private Integer commentCount;
-
-    /**
      * 创建时间
      */
     private LocalDateTime createTime;
+
 }

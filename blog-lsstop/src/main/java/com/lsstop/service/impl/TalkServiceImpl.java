@@ -1,5 +1,6 @@
 package com.lsstop.service.impl;
 
+import com.lsstop.domain.vo.TalkInfoVo;
 import com.lsstop.domain.vo.TalkVo;
 import com.lsstop.mapper.TalkMapper;
 import com.lsstop.service.TalkService;
@@ -40,18 +41,18 @@ public class TalkServiceImpl implements TalkService {
     }
 
     /**
-     * 根据id获取说说
+     * 根据id获取说说详情
      *
      * @param id 说说id
-     * @return 说说视图对象
+     * @return 说说详情
      */
     @Override
-    public TalkVo getTalkById(int id) {
+    public TalkInfoVo getTalkById(int id) {
         TalkVo talkVo = talkMapper.getTalkById(id);
         if (talkVo == null) {
             return null;
         }
         talkVo.setLikeCount(300);
-        return talkVo;
+        return talkVo.asViewObject(TalkInfoVo.class);
     }
 }

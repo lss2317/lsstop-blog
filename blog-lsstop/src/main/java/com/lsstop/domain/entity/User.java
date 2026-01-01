@@ -26,6 +26,11 @@ public class User implements BaseData {
     private Integer id;
 
     /**
+     * 用户唯一标识
+     */
+    private String userUid;
+
+    /**
      * 状态 1正常 0禁用
      */
     private Integer status;

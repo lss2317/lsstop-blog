@@ -38,7 +38,7 @@ public class MessageController {
     public Result<Void> addMessage(@RequestBody @Validated MessageDto messageDto, HttpServletRequest request) {
         Message message = messageDto.asViewObject(Message.class);
         message.setIpAddress(IpUtils.getIpAddress(request));
-        message.setIpSource(IpUtils.getIpSource(message.getIpAddress()));
+        message.setIpSource(IpUtils.getIpLocation(message.getIpAddress()));
         messageService.insertMessage(message);
         return Result.success();
     }

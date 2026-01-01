@@ -2,6 +2,7 @@ package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
+import com.lsstop.domain.vo.TalkInfoVo;
 import com.lsstop.domain.vo.TalkVo;
 import com.lsstop.service.TalkService;
 import jakarta.annotation.Resource;
@@ -44,7 +45,7 @@ public class TalkController {
      */
     @GetMapping("/getTalk")
     @AccessLimit(seconds = 60, maxCount = 60)
-    public Result<TalkVo> getTalk(@RequestParam Integer talkId) {
+    public Result<TalkInfoVo> getTalk(@RequestParam Integer talkId) {
         return Result.success(talkService.getTalkById(talkId));
     }
 }
