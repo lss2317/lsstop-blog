@@ -47,9 +47,29 @@ public class TalkStatsTask {
      */
     @PostConstruct
     public void init() {
+        // 先清理旧数据，再初始化
+        clearOldData();
         initLikeCounts();
         initCommentCounts();
         initUserLikes();
+    }
+
+    /**
+     * 清理Redis中的旧统计数据
+     */
+    private void clearOldData() {
+        log.info("开始清理Redis中的旧统计数据...");
+        // 清理点赞数
+        redisUtils.deleteByPrefix(RedisConst.TALK_LIKE_COUNT);
+        redisUtils.deleteByPrefix(RedisConst.ARTICLE_LIKE_COUNT);
+        redisUtils.deleteByPrefix(RedisConst.COMMENT_LIKE_COUNT);
+        // 清理评论数
+        redisUtils.deleteByPrefix(RedisConst.TALK_COMMENT_COUNT);
+        // 清理用户点赞记录
+        redisUtils.deleteByPrefix(RedisConst.USER_TALK_LIKE);
+        redisUtils.deleteByPrefix(RedisConst.USER_ARTICLE_LIKE);
+        redisUtils.deleteByPrefix(RedisConst.USER_COMMENT_LIKE);
+        log.info("旧统计数据清理完成");
     }
 
     /**

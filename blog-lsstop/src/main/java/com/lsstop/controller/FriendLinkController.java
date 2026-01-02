@@ -7,7 +7,6 @@ import com.lsstop.domain.vo.FriendLinkVO;
 import com.lsstop.service.FriendLinkService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -19,7 +18,6 @@ import java.util.List;
  * @date 2025/12/27
  */
 @RestController
-@RequestMapping("friendLink")
 public class FriendLinkController {
 
     @Resource
@@ -30,7 +28,7 @@ public class FriendLinkController {
      *
      * @return 友链列表
      */
-    @GetMapping("/listFriendLink")
+    @GetMapping("/front/friendLink/listFriendLink")
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<List<FriendLinkVO>> getFriendLinkList() {
         List<FriendLinkDO> friendLinkList = friendLinkService.getFriendLinkList();

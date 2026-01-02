@@ -12,7 +12,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
 /**
  * 后台认证拦截器
  *
- * @author lsstop
+ * @author lishusheng
+ * @date 2026/01/03
  */
 @Slf4j
 @Component
@@ -39,7 +40,7 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
         String source = jwtUtils.getSource(token);
         // 后台接口必须使用admin token
         if (!AuthConst.SOURCE_ADMIN.equals(source)) {
-            forbidden(response, "无权限访问后台接口");
+            forbidden(response);
             return false;
         }
 
@@ -62,9 +63,9 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
         response.getWriter().write("{\"code\":401,\"msg\":\"" + msg + "\"}");
     }
 
-    private void forbidden(HttpServletResponse response, String msg) throws Exception {
+    private void forbidden(HttpServletResponse response) throws Exception {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"code\":403,\"msg\":\"" + msg + "\"}");
+        response.getWriter().write("{\"code\":403,\"msg\":\"" + "无权限访问后台接口" + "\"}");
     }
 }

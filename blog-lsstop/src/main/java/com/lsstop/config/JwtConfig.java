@@ -7,7 +7,8 @@ import org.springframework.stereotype.Component;
 /**
  * JWT配置类
  *
- * @author lsstop
+ * @author lishusheng
+ * @date 2026/01/03
  */
 @Data
 @Component

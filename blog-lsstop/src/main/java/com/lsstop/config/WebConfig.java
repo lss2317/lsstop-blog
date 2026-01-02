@@ -10,7 +10,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 /**
  * Web配置类
  *
- * @author lsstop
+ * @author lishusheng
+ * @date 2026/01/03
  */
 @Configuration
 @RequiredArgsConstructor
@@ -21,16 +22,12 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 后台拦截器 - 拦截所有含 /admin/ 的路径
-        registry.addInterceptor(adminAuthInterceptor)
-                .addPathPatterns("/**/admin/**");
-
-        // 前台拦截器 - 只拦截需要登录的前台接口
-        registry.addInterceptor(frontAuthInterceptor)
-                .addPathPatterns(
-                        // 需要登录的前台接口在这里添加
-                        "/user/**"
-                )
-                .excludePathPatterns("/**/admin/**");
+//        // 后台拦截器 - 拦截 /admin/** 路径，必须登录且使用admin token
+//        registry.addInterceptor(adminAuthInterceptor)
+//                .addPathPatterns("/admin/**");
+//
+//        // 前台拦截器 - 拦截 /front/** 路径，必须登录且使用front token
+//        registry.addInterceptor(frontAuthInterceptor)
+//                .addPathPatterns("/front/**");
     }
 }

@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
  * @date 2026/01/02
  */
 @RestController
-@RequestMapping("/like")
 public class LikeController {
 
     @Resource
@@ -29,7 +28,7 @@ public class LikeController {
      * @param likeDTO 点赞请求参数
      * @return 点赞状态，true表示已点赞，false表示已取消
      */
-    @PostMapping("/toggle")
+    @PostMapping("/front/like/toggle")
     @AccessLimit(seconds = 1, maxCount = 5)
     public Result<Boolean> toggleLike(@RequestBody @Validated LikeDTO likeDTO) {
         LikeTypeEnum likeType = LikeTypeEnum.of(likeDTO.getType());
@@ -46,7 +45,7 @@ public class LikeController {
      * @param userId 用户id
      * @return 用户点赞信息
      */
-    @GetMapping("/userLike/{userId}")
+    @GetMapping("/front/like/userLike/{userId}")
     @AccessLimit(seconds = 10, maxCount = 10)
     public Result<UserLikeVO> getUserLikes(@PathVariable String userId) {
         UserLikeVO userLikeVO = likeService.getUserLikes(userId);

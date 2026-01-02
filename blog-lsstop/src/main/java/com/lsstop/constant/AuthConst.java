@@ -3,7 +3,8 @@ package com.lsstop.constant;
 /**
  * 认证相关常量
  *
- * @author lsstop
+ * @author lishusheng
+ * @date 2026/01/03
  */
 public class AuthConst {
 

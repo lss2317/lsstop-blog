@@ -6,7 +6,6 @@ import com.lsstop.domain.vo.PageInfoVO;
 import com.lsstop.service.PageInfoService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -18,7 +17,6 @@ import java.util.List;
  * @date 2025/12/24
  */
 @RestController
-@RequestMapping("/pageInfo")
 public class PageInfoController {
 
     @Resource
@@ -29,7 +27,7 @@ public class PageInfoController {
      *
      * @return 页面信息列表
      */
-    @GetMapping("/listPageInfo")
+    @GetMapping("/front/pageInfo/listPageInfo")
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<List<PageInfoVO>> getPageInfoList() {
         List<PageInfoVO> pageManagementVOList = pageInfoService.getPageInfoList().stream()

@@ -10,9 +10,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * 前台认证拦截器
+ * 前台认证拦截器（拦截 /front/** 路径，必须登录且使用front token）
  *
- * @author lsstop
+ * @author lishusheng
+ * @date 2026/01/03
  */
 @Slf4j
 @Component
@@ -36,8 +37,15 @@ public class FrontAuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        // 前台接口必须使用front token
+        String source = jwtUtils.getSource(token);
+        if (!AuthConst.SOURCE_FRONT.equals(source)) {
+            forbidden(response);
+            return false;
+        }
+
         request.setAttribute("userId", jwtUtils.getSubject(token));
-        request.setAttribute("source", jwtUtils.getSource(token));
+        request.setAttribute("source", source);
         return true;
     }
 
@@ -53,5 +61,11 @@ public class FrontAuthInterceptor implements HandlerInterceptor {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write("{\"code\":401,\"msg\":\"" + msg + "\"}");
+    }
+
+    private void forbidden(HttpServletResponse response) throws Exception {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"code\":403,\"msg\":\"" + "请使用前台账号访问" + "\"}");
     }
 }

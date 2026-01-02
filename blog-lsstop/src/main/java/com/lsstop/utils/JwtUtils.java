@@ -20,7 +20,8 @@ import java.util.Date;
 /**
  * JWT工具类（双Token机制）
  *
- * @author lsstop
+ * @author lishusheng
+ * @date 2026/01/03
  */
 @Slf4j
 @Component

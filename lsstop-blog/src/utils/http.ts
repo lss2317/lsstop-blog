@@ -6,7 +6,7 @@ import 'nprogress/nprogress.css'
 
 // 创建axios实例
 const http: AxiosInstance = axios.create({
-  baseURL: '/api',
+  baseURL: '/api/front',
   timeout: 60000, // 请求超时时间
   headers: {
     'Content-Type': 'application/json;charset=UTF-8',

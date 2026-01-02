@@ -21,7 +21,6 @@ import java.util.List;
  * @date 2025/12/21
  */
 @RestController
-@RequestMapping("/message")
 public class MessageController {
 
     @Resource
@@ -33,7 +32,7 @@ public class MessageController {
      * @param messageDTO 留言数据
      * @return 响应结果
      */
-    @PostMapping("/addMessage")
+    @PostMapping("/front/message/addMessage")
     @AccessLimit(seconds = 60, maxCount = 30)
     public Result<Void> addMessage(@RequestBody @Validated MessageDTO messageDTO, HttpServletRequest request) {
         MessageDO message = messageDTO.asViewObject(MessageDO.class);
@@ -48,7 +47,7 @@ public class MessageController {
      *
      * @return 留言数据
      */
-    @GetMapping("/listMessage")
+    @GetMapping("/front/message/listMessage")
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<List<MessageVO>> getMessageList() {
         List<MessageVO> messageVOList = messageService.getMessageList().stream()

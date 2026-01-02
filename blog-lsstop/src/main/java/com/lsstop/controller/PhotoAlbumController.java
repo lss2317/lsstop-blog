@@ -7,7 +7,6 @@ import com.lsstop.domain.vo.PhotoAlbumVO;
 import com.lsstop.service.PhotoAlbumService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -19,7 +18,6 @@ import java.util.List;
  * @date 2025/12/27
  */
 @RestController
-@RequestMapping("photoAlbum")
 public class PhotoAlbumController {
 
     @Resource
@@ -30,7 +28,7 @@ public class PhotoAlbumController {
      *
      * @return 相册列表
      */
-    @GetMapping("/listPhotoAlbum")
+    @GetMapping("/front/photoAlbum/listPhotoAlbum")
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<List<PhotoAlbumVO>> getPhotoAlbumList() {
         List<PhotoAlbumDO> photoAlbumList = photoAlbumService.getPhotoAlbumList();

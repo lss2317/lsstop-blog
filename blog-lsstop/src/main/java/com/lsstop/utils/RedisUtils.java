@@ -91,14 +91,12 @@ public class RedisUtils {
      * 根据前缀删除键
      *
      * @param prefix 键前缀
-     * @return 删除数量
      */
-    public Long deleteByPrefix(String prefix) {
+    public void deleteByPrefix(String prefix) {
         Set<String> keys = redisTemplate.keys(prefix + "*");
         if (keys != null && !keys.isEmpty()) {
-            return redisTemplate.delete(keys);
+            redisTemplate.delete(keys);
         }
-        return 0L;
     }
 
     /**

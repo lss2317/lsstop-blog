@@ -7,7 +7,6 @@ import com.lsstop.domain.vo.TalkVO;
 import com.lsstop.service.TalkService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,7 +19,6 @@ import java.util.List;
  * @date 2026/01/01
  */
 @RestController
-@RequestMapping("/talk")
 public class TalkController {
 
     @Resource
@@ -31,7 +29,7 @@ public class TalkController {
      *
      * @return 说说列表
      */
-    @RequestMapping("/listTalk")
+    @GetMapping("/front/talk/listTalk")
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<List<TalkVO>> listTalk() {
         return Result.success(talkService.listTalk());
@@ -43,7 +41,7 @@ public class TalkController {
      * @param talkId 说说id
      * @return 说说详情
      */
-    @GetMapping("/getTalk")
+    @GetMapping("/front/talk/getTalk")
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<TalkInfoVO> getTalk(@RequestParam Integer talkId) {
         return Result.success(talkService.getTalkById(talkId));
