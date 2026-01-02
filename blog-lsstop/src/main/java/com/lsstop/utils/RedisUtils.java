@@ -159,6 +159,40 @@ public class RedisUtils {
     }
 
     /**
+     * 批量获取值
+     *
+     * @param keys 键集合
+     * @return 值列表（顺序与 keys 一致，不存在的 key 对应位置为 null）
+     */
+    public List<Object> mGet(Collection<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return redisTemplate.opsForValue().multiGet(keys);
+    }
+
+    /**
+     * 批量获取值并转换类型
+     *
+     * @param keys  键集合
+     * @param clazz 目标类型
+     * @param <T>   泛型
+     * @return 值列表（顺序与 keys 一致，不存在的 key 对应位置为 null）
+     */
+    @SuppressWarnings("unchecked")
+    public <T> List<T> mGet(Collection<String> keys, Class<T> clazz) {
+        List<Object> values = mGet(keys);
+        if (values == null) {
+            return Collections.emptyList();
+        }
+        List<T> result = new ArrayList<>(values.size());
+        for (Object value : values) {
+            result.add(value == null ? null : (T) value);
+        }
+        return result;
+    }
+
+    /**
      * 获取 List 类型的值
      *
      * @param key   键

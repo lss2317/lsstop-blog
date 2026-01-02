@@ -13,7 +13,6 @@
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
     </resultMap>
 
-    <!-- 继承基础Map，只需添加额外字段 -->
     <resultMap id="talkVoResultMap" type="com.lsstop.domain.vo.TalkVo">
         <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result column="avatar" property="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
@@ -24,6 +23,12 @@
         <collection property="imgList" ofType="java.lang.String">
             <result column="image_url" jdbcType="VARCHAR" javaType="java.lang.String"/>
         </collection>
+    </resultMap>
+
+    <resultMap id="talkStatsResultMap" type="com.lsstop.domain.dto.TalkStatsDto">
+        <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="likeCount" property="likeCount" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="commentCount" property="commentCount" jdbcType="INTEGER" javaType="java.lang.Integer"/>
     </resultMap>
 
     <select id="listTalk" resultMap="talkVoResultMap">
@@ -57,6 +62,26 @@
           and bt.status = 1
           and bt.id = #{id}
         order by bti.sort
+    </select>
+
+    <!-- 统计所有说说的点赞数和评论数 -->
+    <select id="countTalkStats" resultMap="talkStatsResultMap">
+        select t.id,
+               coalesce(l.like_count, 0)    as likeCount,
+               coalesce(c.comment_count, 0) as commentCount
+        from blog_talk t
+                 left join (select target_id, count(*) as like_count
+                            from blog_like_record
+                            where type = 1
+                              and status = 1
+                            group by target_id) l on t.id = l.target_id
+                 left join (select target_id, count(*) as comment_count
+                            from blog_comment
+                            where target_type = 3
+                              and is_delete = 0
+                              and status = 1
+                            group by target_id) c on t.id = c.target_id
+        where t.is_delete = 0
     </select>
 
 </mapper>

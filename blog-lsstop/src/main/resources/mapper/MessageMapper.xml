@@ -5,7 +5,7 @@
     <resultMap id="MessageResultMap" type="com.lsstop.domain.entity.Message">
         <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result property="ipAddress" column="ip_address" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="ipSource" column="ip_source" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="ipRegion" column="ip_region" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="nickname" column="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="avatar" column="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="messageContent" column="message_content" jdbcType="VARCHAR" javaType="java.lang.String"/>
@@ -25,9 +25,9 @@
     </select>
 
     <insert id="insertMessage" parameterType="com.lsstop.domain.entity.Message">
-        insert into blog_message (ip_address, ip_source, nickname, avatar,
+        insert into blog_message (ip_address, ip_region, nickname, avatar,
                                   message_content, review, create_time, update_time)
-        values (#{ipAddress}, #{ipSource}, #{nickname}, #{avatar},
+        values (#{ipAddress}, #{ipRegion}, #{nickname}, #{avatar},
                 #{messageContent}, #{review}, NOW(), NOW())
     </insert>
 

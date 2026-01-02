@@ -57,15 +57,13 @@ public class IpUtils {
                 return null;
             }
             File tempFile = new File(System.getProperty("java.io.tmpdir"), "ip2region.xdb");
-            if (tempFile.exists() && tempFile.length() > 0) {
+            byte[] resourceBytes = is.readAllBytes();
+            // 判断文件是否已存在
+            if (tempFile.exists() && tempFile.length() == resourceBytes.length) {
                 return tempFile;
             }
             try (OutputStream os = new FileOutputStream(tempFile)) {
-                byte[] buffer = new byte[8192];
-                int bytesRead;
-                while ((bytesRead = is.read(buffer)) != -1) {
-                    os.write(buffer, 0, bytesRead);
-                }
+                os.write(resourceBytes);
             }
             return tempFile;
         } catch (Exception e) {

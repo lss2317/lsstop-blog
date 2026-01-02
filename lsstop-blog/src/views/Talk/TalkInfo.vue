@@ -367,7 +367,8 @@ onMounted(() => {
 
 .talk-operation {
   margin-top: 10px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 100px auto;
   align-items: center;
 }
 
@@ -376,9 +377,9 @@ onMounted(() => {
 }
 
 .talk-operation-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  margin-right: 24px;
+  width: fit-content;
   font-size: 13px;
   padding: 6px 12px;
   border-radius: 20px;

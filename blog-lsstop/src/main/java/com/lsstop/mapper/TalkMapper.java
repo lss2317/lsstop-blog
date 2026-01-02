@@ -1,5 +1,6 @@
 package com.lsstop.mapper;
 
+import com.lsstop.domain.dto.TalkStatsDto;
 import com.lsstop.domain.vo.TalkVo;
 
 import java.util.List;
@@ -26,5 +27,12 @@ public interface TalkMapper {
      * @return 说说
      */
     TalkVo getTalkById(Integer id);
+
+    /**
+     * 统计所有说说的点赞数和评论数
+     *
+     * @return 说说统计数据列表
+     */
+    List<TalkStatsDto> countTalkStats();
 
 }

@@ -31,9 +31,9 @@ public class Message implements BaseData {
     private String ipAddress;
 
     /**
-     * 用户地址
+     * IP所在地
      */
-    private String ipSource;
+    private String ipRegion;
 
     /**
      * 昵称
