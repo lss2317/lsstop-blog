@@ -7,6 +7,7 @@ import com.lsstop.domain.vo.UserLikeVO;
 import com.lsstop.enums.LikeTypeEnum;
 import com.lsstop.service.LikeService;
 import jakarta.annotation.Resource;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -30,7 +31,7 @@ public class LikeController {
      */
     @PostMapping("/toggle")
     @AccessLimit(seconds = 1, maxCount = 5)
-    public Result<Boolean> toggleLike(@RequestBody LikeDTO likeDTO) {
+    public Result<Boolean> toggleLike(@RequestBody @Validated LikeDTO likeDTO) {
         LikeTypeEnum likeType = LikeTypeEnum.of(likeDTO.getType());
         if (likeType == null) {
             return Result.failure("无效的点赞类型");

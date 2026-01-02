@@ -207,6 +207,8 @@ const {
 async function like() {
   if (!talk.value) return
   const liked = await likeStore.toggleLike(LikeTypeEnum.TALK, talk.value.id)
+  // 请求失败时不更新点赞数
+  if (liked === null) return
   if (liked) {
     talk.value.likeCount = (talk.value.likeCount || 0) + 1
   } else {

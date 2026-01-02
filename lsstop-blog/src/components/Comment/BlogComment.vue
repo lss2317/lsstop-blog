@@ -370,6 +370,8 @@ const addEmoji = (key: string) => {
 // 点赞
 const like = async (item: Comment | Reply) => {
   const isLiked = await likeStore.toggleLike(LikeTypeEnum.COMMENT, item.id)
+  // 请求失败时不更新点赞数
+  if (isLiked === null) return
   if (isLiked) {
     item.likeCount++
   } else {

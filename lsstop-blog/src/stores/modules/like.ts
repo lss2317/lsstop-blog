@@ -43,9 +43,9 @@ const useLikeStore = defineStore('like', () => {
    * 切换点赞状态（并发送API请求）
    * @param type 点赞类型
    * @param id 目标ID
-   * @returns 切换后是否为已点赞状态
+   * @returns 切换后是否为已点赞状态，失败时返回 null
    */
-  async function toggleLike(type: LikeTypeEnum, id: number | string): Promise<boolean> {
+  async function toggleLike(type: LikeTypeEnum, id: number | string): Promise<boolean | null> {
     const userInfoStore = useUserInfoStore()
     const snackbarStore = useSnackbarStore()
     const userId = userInfoStore.userInfo.userId
@@ -54,7 +54,7 @@ const useLikeStore = defineStore('like', () => {
     if (userId) {
       try {
         await toggleLikeApi({
-          userId,
+          userId: userId,
           targetId: Number(id),
           type
         })
@@ -62,8 +62,8 @@ const useLikeStore = defineStore('like', () => {
         // 请求失败，显示错误信息
         console.error(error)
         snackbarStore.error('点赞失败，请稍后重试')
-        // 请求失败时不要更新本地状态，直接返回当前状态
-        return isLiked(type, id)
+        // 请求失败时返回 null，让调用方知道失败了
+        return null
       }
     }
 
