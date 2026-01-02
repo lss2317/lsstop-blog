@@ -1,13 +1,13 @@
-package com.lsstop.domain.dto;
+package com.lsstop.domain.dataObject;
 
+import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 说说统计数据DTO
- * <p>用于Redis与数据库之间同步点赞数和评论数</p>
+ * 说说统计DO
  *
  * @author lishusheng
  * @date 2026/01/02
@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TalkStatsDto {
+public class TalkStatsDO implements BaseData {
 
     /**
      * 说说id

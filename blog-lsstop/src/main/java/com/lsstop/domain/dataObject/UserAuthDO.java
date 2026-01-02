@@ -1,4 +1,4 @@
-package com.lsstop.domain.entity;
+package com.lsstop.domain.dataObject;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,16 +9,16 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 友链实体类
+ * 用户登录认证与第三方账号绑定DO
  *
  * @author lishusheng
- * @date 2025/12/27
+ * @date 2026/01/01
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FriendLink implements BaseData {
+public class UserAuthDO implements BaseData {
 
     /**
      * id
@@ -26,27 +26,27 @@ public class FriendLink implements BaseData {
     private Integer id;
 
     /**
-     * 链接名
+     * 用户id
      */
-    private String linkName;
+    private Integer userId;
 
     /**
-     * 链接头像
+     * 登录方式：1邮箱密码 2QQ 3微博 4微信
      */
-    private String linkAvatar;
+    private Integer loginType;
 
     /**
-     * 链接地址
+     * 登录唯一标识（邮箱 / QQ openId / 微博uid / 微信openId）
      */
-    private String linkAddress;
+    private String identifier;
 
     /**
-     * 介绍
+     * 登录凭证（密码hash / access_token，第三方登录可为空）
      */
-    private String linkIntro;
+    private String credential;
 
     /**
-     * 是否删除
+     * 是否删除：0否 1是
      */
     private Integer isDelete;
 
@@ -56,7 +56,7 @@ public class FriendLink implements BaseData {
     private LocalDateTime createTime;
 
     /**
-     * 修改时间
+     * 更新时间
      */
     private LocalDateTime updateTime;
 }

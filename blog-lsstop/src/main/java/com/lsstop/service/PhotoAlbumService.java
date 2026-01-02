@@ -1,6 +1,6 @@
 package com.lsstop.service;
 
-import com.lsstop.domain.entity.PhotoAlbum;
+import com.lsstop.domain.dataObject.PhotoAlbumDO;
 
 import java.util.List;
 
@@ -18,6 +18,6 @@ public interface PhotoAlbumService {
      *
      * @return 相册列表
      */
-    List<PhotoAlbum> getPhotoAlbumList();
+    List<PhotoAlbumDO> getPhotoAlbumList();
 
 }

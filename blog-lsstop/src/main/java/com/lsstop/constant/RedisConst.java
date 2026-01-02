@@ -74,6 +74,11 @@ public class RedisConst {
     public static final String USER_COMMENT_LIKE = PREFIX + "user:comment:like:";
 
     /**
+     * 待同步点赞记录（Hash结构，field: userId:targetId，value: 1点赞/0取消）
+     */
+    public static final String LIKE_PENDING_SYNC = PREFIX + "like:pending:";
+
+    /**
      * 接口限流
      */
     public static final String RATE_LIMIT = PREFIX + "limit:";

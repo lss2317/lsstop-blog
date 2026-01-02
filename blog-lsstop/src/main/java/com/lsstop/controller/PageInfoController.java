@@ -2,7 +2,7 @@ package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
-import com.lsstop.domain.vo.PageInfoVo;
+import com.lsstop.domain.vo.PageInfoVO;
 import com.lsstop.service.PageInfoService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,10 +31,10 @@ public class PageInfoController {
      */
     @GetMapping("/listPageInfo")
     @AccessLimit(seconds = 60, maxCount = 60)
-    public Result<List<PageInfoVo>> getPageInfoList() {
-        List<PageInfoVo> pageManagementVoList = pageInfoService.getPageInfoList().stream()
-                .map(pageManagement -> pageManagement.asViewObject(PageInfoVo.class))
+    public Result<List<PageInfoVO>> getPageInfoList() {
+        List<PageInfoVO> pageManagementVOList = pageInfoService.getPageInfoList().stream()
+                .map(pageManagement -> pageManagement.asViewObject(PageInfoVO.class))
                 .toList();
-        return Result.success(pageManagementVoList);
+        return Result.success(pageManagementVOList);
     }
 }

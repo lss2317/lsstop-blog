@@ -1,4 +1,4 @@
-package com.lsstop.domain.entity;
+package com.lsstop.domain.dataObject;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 网站配置信息实体类
+ * 网站配置信息DO
  *
  * @author lishusheng
  * @date 2025/12/23
@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WebsiteConfig implements BaseData {
+public class WebsiteConfigDO implements BaseData {
 
     /**
      * id

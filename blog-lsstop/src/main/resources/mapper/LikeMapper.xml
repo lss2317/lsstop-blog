@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.LikeMapper">
+
+    <resultMap id="likeRecordResultMap" type="com.lsstop.domain.dataObject.LikeRecordDO">
+        <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="user_id" property="userId" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="target_id" property="targetId" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="type" property="type" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="status" property="status" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <resultMap id="likeCountResultMap" type="com.lsstop.domain.dataObject.LikeCountDO">
+        <result column="target_id" property="targetId" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="like_count" property="likeCount" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    </resultMap>
+
+    <!-- 查询所有有效的点赞记录 -->
+    <select id="listValidLikes" resultMap="likeRecordResultMap">
+        select id, user_id, target_id, type, status, create_time, update_time
+        from blog_like_record
+        where status = 1
+    </select>
+
+    <!-- 按类型统计各目标的点赞数 -->
+    <select id="countLikesByType" resultMap="likeCountResultMap">
+        select target_id, count(*) as like_count
+        from blog_like_record
+        where type = #{type}
+          and status = 1
+        group by target_id
+    </select>
+
+    <!-- 批量插入或更新点赞记录 -->
+    <insert id="batchInsertOrUpdate">
+        insert into blog_like_record (user_id, target_id, type, status, create_time, update_time)
+        values
+        <foreach collection="records" item="record" separator=",">
+            (#{record.userId}, #{record.targetId}, #{record.type}, #{record.status}, now(), now())
+        </foreach>
+        on duplicate key update
+        status = values(status),
+        update_time = now()
+    </insert>
+
+</mapper>

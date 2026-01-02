@@ -1,6 +1,6 @@
 package com.lsstop.mapper;
 
-import com.lsstop.domain.entity.WebsiteConfig;
+import com.lsstop.domain.dataObject.WebsiteConfigDO;
 
 /**
  * 网站配置数据访问层
@@ -15,5 +15,5 @@ public interface WebsiteConfigMapper {
      *
      * @return 网站配置实体对象
      */
-    WebsiteConfig getWebsiteConfig();
+    WebsiteConfigDO getWebsiteConfig();
 }

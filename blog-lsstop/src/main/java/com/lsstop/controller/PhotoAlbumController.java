@@ -2,8 +2,8 @@ package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
-import com.lsstop.domain.entity.PhotoAlbum;
-import com.lsstop.domain.vo.PhotoAlbumVo;
+import com.lsstop.domain.dataObject.PhotoAlbumDO;
+import com.lsstop.domain.vo.PhotoAlbumVO;
 import com.lsstop.service.PhotoAlbumService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,9 +32,9 @@ public class PhotoAlbumController {
      */
     @GetMapping("/listPhotoAlbum")
     @AccessLimit(seconds = 60, maxCount = 60)
-    public Result<List<PhotoAlbumVo>> getPhotoAlbumList() {
-        List<PhotoAlbum> photoAlbumList = photoAlbumService.getPhotoAlbumList();
-        List<PhotoAlbumVo> list = photoAlbumList.stream().map(photoAlbum -> photoAlbum.asViewObject(PhotoAlbumVo.class)).toList();
+    public Result<List<PhotoAlbumVO>> getPhotoAlbumList() {
+        List<PhotoAlbumDO> photoAlbumList = photoAlbumService.getPhotoAlbumList();
+        List<PhotoAlbumVO> list = photoAlbumList.stream().map(photoAlbum -> photoAlbum.asViewObject(PhotoAlbumVO.class)).toList();
         return Result.success(list);
     }
 

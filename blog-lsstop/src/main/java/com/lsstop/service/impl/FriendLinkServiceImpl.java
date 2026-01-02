@@ -1,6 +1,6 @@
 package com.lsstop.service.impl;
 
-import com.lsstop.domain.entity.FriendLink;
+import com.lsstop.domain.dataObject.FriendLinkDO;
 import com.lsstop.mapper.FriendLinkMapper;
 import com.lsstop.service.FriendLinkService;
 import jakarta.annotation.Resource;
@@ -26,7 +26,7 @@ public class FriendLinkServiceImpl implements FriendLinkService {
      * @return 友链列表
      */
     @Override
-    public List<FriendLink> getFriendLinkList() {
+    public List<FriendLinkDO> getFriendLinkList() {
         return friendLinkMapper.getFriendLinkList();
     }
 }

@@ -9,7 +9,7 @@ import lombok.Data;
  * @date 2025/12/27
  */
 @Data
-public class FriendLinkVo {
+public class FriendLinkVO {
 
     /**
      * 链接名

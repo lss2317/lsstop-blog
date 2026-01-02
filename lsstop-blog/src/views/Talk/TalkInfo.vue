@@ -145,10 +145,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
+import useLikeStore from '@/stores/modules/like.ts'
 import { getTalk } from '@/apis/talk'
 import { dateFormat } from '@/utils/date'
 import {
@@ -158,6 +159,7 @@ import {
   getUserNickname,
   useShare,
 } from '@/utils/talk'
+import { LikeTypeEnum } from '@/constants/likeType'
 import Comment from '@/components/Comment/BlogComment.vue'
 
 // 获取路由参数
@@ -168,14 +170,20 @@ const talkId = Number(route.params.talkId)
 const pageInfoStore = usePageInfoStore()
 const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 
+// 点赞状态管理
+const likeStore = useLikeStore()
+
 // 加载状态
 const loading = ref(true)
 
 // 说说详情数据
 const talk = ref<TalkItem | null>(null)
 
-// 是否已点赞
-const isLiked = ref(false)
+// 是否已点赞（从 store 中计算）
+const isLiked = computed(() => {
+  if (!talk.value) return false
+  return likeStore.isLiked(LikeTypeEnum.TALK, talk.value.id)
+})
 
 // 图片灯箱
 const lightboxVisible = ref(false)
@@ -196,14 +204,13 @@ const {
 } = useShare()
 
 // 点赞操作
-function like() {
+async function like() {
   if (!talk.value) return
-  if (isLiked.value) {
-    isLiked.value = false
-    talk.value.likeCount = (talk.value.likeCount || 1) - 1
-  } else {
-    isLiked.value = true
+  const liked = await likeStore.toggleLike(LikeTypeEnum.TALK, talk.value.id)
+  if (liked) {
     talk.value.likeCount = (talk.value.likeCount || 0) + 1
+  } else {
+    talk.value.likeCount = (talk.value.likeCount || 1) - 1
   }
 }
 

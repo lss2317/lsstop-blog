@@ -1,4 +1,4 @@
-package com.lsstop.domain.entity;
+package com.lsstop.domain.dataObject;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 用户资料实体类
+ * 用户基础DO
  *
  * @author lishusheng
  * @date 2026/01/01
@@ -18,37 +18,32 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserProfile implements BaseData {
+public class UserDO implements BaseData {
 
     /**
      * 用户id
      */
-    private Integer userId;
+    private Integer id;
 
     /**
-     * 昵称
+     * 用户唯一标识
      */
-    private String nickname;
+    private String userUid;
 
     /**
-     * 头像
+     * 状态 1正常 0禁用
      */
-    private String avatar;
+    private Integer status;
 
     /**
-     * 个人网站
-     */
-    private String website;
-
-    /**
-     * 个人简介
-     */
-    private String intro;
-
-    /**
-     * 是否删除
+     * 是否删除 0否 1是
      */
     private Integer isDelete;
+
+    /**
+     * 最近一次成功登录时间
+     */
+    private LocalDateTime lastLoginTime;
 
     /**
      * 创建时间

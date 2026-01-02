@@ -1,19 +1,28 @@
 package com.lsstop.task;
 
 import com.lsstop.constant.RedisConst;
-import com.lsstop.domain.dto.TalkStatsDto;
-import com.lsstop.mapper.TalkMapper;
+import com.lsstop.domain.dataObject.CommentCountDO;
+import com.lsstop.domain.dataObject.LikeCountDO;
+import com.lsstop.domain.dataObject.LikeRecordDO;
+import com.lsstop.enums.CommentTypeEnum;
+import com.lsstop.enums.LikeTypeEnum;
+import com.lsstop.mapper.CommentMapper;
+import com.lsstop.mapper.LikeMapper;
 import com.lsstop.utils.RedisUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
- * 说说统计数据初始化
+ * 统计数据初始化任务
  * <p>项目启动时从数据库统计点赞数和评论数到Redis</p>
  *
  * @author lishusheng
@@ -25,26 +34,171 @@ public class TalkStatsTask {
     private static final Logger log = LoggerFactory.getLogger(TalkStatsTask.class);
 
     @Resource
-    private TalkMapper talkMapper;
+    private LikeMapper likeMapper;
+
+    @Resource
+    private CommentMapper commentMapper;
 
     @Resource
     private RedisUtils redisUtils;
 
     /**
-     * 项目启动时从数据库统计点赞数和评论数到Redis
+     * 项目启动时初始化统计数据到Redis
      */
     @PostConstruct
     public void init() {
-        log.info("开始初始化说说统计数据到Redis...");
-        List<TalkStatsDto> statsList = talkMapper.countTalkStats();
-        if (statsList == null || statsList.isEmpty()) {
-            log.info("没有说说数据需要初始化");
+        initLikeCounts();
+        initCommentCounts();
+        initUserLikes();
+    }
+
+    /**
+     * 初始化所有类型的点赞数
+     */
+    private void initLikeCounts() {
+        log.info("开始初始化点赞数到Redis...");
+        int count = 0;
+
+        // 说说点赞数
+        count += initLikeCountByType(LikeTypeEnum.TALK.getType(), RedisConst.TALK_LIKE_COUNT);
+        // 文章点赞数
+        count += initLikeCountByType(LikeTypeEnum.ARTICLE.getType(), RedisConst.ARTICLE_LIKE_COUNT);
+        // 评论点赞数
+        count += initLikeCountByType(LikeTypeEnum.COMMENT.getType(), RedisConst.COMMENT_LIKE_COUNT);
+
+        log.info("点赞数初始化完成，共{}条", count);
+    }
+
+    /**
+     * 按类型初始化点赞数
+     */
+    private int initLikeCountByType(Integer type, String keyPrefix) {
+        List<LikeCountDO> likeCounts = likeMapper.countLikesByType(type);
+        if (likeCounts == null || likeCounts.isEmpty()) {
+            return 0;
+        }
+        for (LikeCountDO likeCount : likeCounts) {
+            redisUtils.set(keyPrefix + likeCount.getTargetId(), likeCount.getLikeCount());
+        }
+        return likeCounts.size();
+    }
+
+    /**
+     * 初始化说说评论数
+     */
+    private void initCommentCounts() {
+        log.info("开始初始化说说评论数到Redis...");
+        // 只有说说需要评论数
+        List<CommentCountDO> commentCounts = commentMapper.countCommentsByTargetType(CommentTypeEnum.TALK.getType());
+        if (commentCounts == null || commentCounts.isEmpty()) {
+            log.info("没有说说评论数需要初始化");
             return;
         }
-        for (TalkStatsDto stats : statsList) {
-            redisUtils.set(RedisConst.TALK_LIKE_COUNT + stats.getId(), stats.getLikeCount());
-            redisUtils.set(RedisConst.TALK_COMMENT_COUNT + stats.getId(), stats.getCommentCount());
+        for (CommentCountDO commentCount : commentCounts) {
+            redisUtils.set(RedisConst.TALK_COMMENT_COUNT + commentCount.getTargetId(), commentCount.getCommentCount());
         }
-        log.info("说说统计数据初始化完成，共{}条", statsList.size());
+        log.info("说说评论数初始化完成，共{}条", commentCounts.size());
+    }
+
+    /**
+     * 初始化用户点赞记录
+     */
+    private void initUserLikes() {
+        log.info("开始初始化用户点赞记录到Redis...");
+        List<LikeRecordDO> likeRecords = likeMapper.listValidLikes();
+        if (likeRecords == null || likeRecords.isEmpty()) {
+            log.info("没有点赞记录需要初始化");
+            return;
+        }
+        int count = 0;
+        for (LikeRecordDO record : likeRecords) {
+            String userLikeKey = getUserLikeKey(record.getType(), record.getUserId());
+            if (userLikeKey != null) {
+                redisUtils.sAdd(userLikeKey, record.getTargetId());
+                count++;
+            }
+        }
+        log.info("用户点赞记录初始化完成，共{}条", count);
+    }
+
+    /**
+     * 根据点赞类型获取用户点赞记录缓存key
+     */
+    private String getUserLikeKey(Integer type, String userId) {
+        LikeTypeEnum likeType = LikeTypeEnum.of(type);
+        if (likeType == null) {
+            return null;
+        }
+        return switch (likeType) {
+            case TALK -> RedisConst.USER_TALK_LIKE + userId;
+            case ARTICLE -> RedisConst.USER_ARTICLE_LIKE + userId;
+            case COMMENT -> RedisConst.USER_COMMENT_LIKE + userId;
+        };
+    }
+
+    /**
+     * 定时同步点赞记录到数据库
+     * 每5分钟执行一次
+     */
+    @Scheduled(fixedRate = 5 * 60 * 1000)
+    public void syncLikeRecordsToDb() {
+        log.info("开始同步点赞记录到数据库...");
+        int totalCount = 0;
+
+        // 同步三种类型的点赞记录
+        totalCount += syncLikesByType(LikeTypeEnum.TALK);
+        totalCount += syncLikesByType(LikeTypeEnum.ARTICLE);
+        totalCount += syncLikesByType(LikeTypeEnum.COMMENT);
+
+        log.info("点赞记录同步完成，共处理{}条", totalCount);
+    }
+
+    /**
+     * 按类型同步点赞记录
+     */
+    private int syncLikesByType(LikeTypeEnum likeType) {
+        String pendingKey = RedisConst.LIKE_PENDING_SYNC + likeType.name().toLowerCase();
+
+        // 获取所有待同步的点赞记录
+        Map<Object, Object> pendingRecords = redisUtils.hGetAll(pendingKey);
+        if (CollectionUtils.isEmpty(pendingRecords)) {
+            return 0;
+        }
+
+        List<LikeRecordDO> records = new ArrayList<>();
+        List<Object> processedFields = new ArrayList<>();
+
+        for (Map.Entry<Object, Object> entry : pendingRecords.entrySet()) {
+            String field = (String) entry.getKey();
+            Integer status = (Integer) entry.getValue();
+
+            // 解析 field: userId:targetId
+            String[] parts = field.split(":");
+            if (parts.length != 2) {
+                continue;
+            }
+
+            String userId = parts[0];
+            Integer targetId = Integer.parseInt(parts[1]);
+
+            LikeRecordDO record = LikeRecordDO.builder()
+                    .userId(userId)
+                    .targetId(targetId)
+                    .type(likeType.getType())
+                    .status(status)
+                    .build();
+            records.add(record);
+            processedFields.add(field);
+        }
+
+        if (!records.isEmpty()) {
+            // 批量插入或更新
+            likeMapper.batchInsertOrUpdate(records);
+            // 删除已处理的记录
+            redisUtils.hDelete(pendingKey, processedFields.toArray());
+            log.info("同步{}点赞记录{}条", likeType.getDesc(), records.size());
+        }
+
+        return records.size();
     }
 }

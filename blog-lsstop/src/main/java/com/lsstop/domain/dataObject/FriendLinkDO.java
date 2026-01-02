@@ -1,4 +1,4 @@
-package com.lsstop.domain.entity;
+package com.lsstop.domain.dataObject;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,41 +9,46 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 用户基础实体类
+ * 友链DO
  *
  * @author lishusheng
- * @date 2026/01/01
+ * @date 2025/12/27
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User implements BaseData {
+public class FriendLinkDO implements BaseData {
 
     /**
-     * 用户id
+     * id
      */
     private Integer id;
 
     /**
-     * 用户唯一标识
+     * 链接名
      */
-    private String userUid;
+    private String linkName;
 
     /**
-     * 状态 1正常 0禁用
+     * 链接头像
      */
-    private Integer status;
+    private String linkAvatar;
 
     /**
-     * 是否删除 0否 1是
+     * 链接地址
+     */
+    private String linkAddress;
+
+    /**
+     * 介绍
+     */
+    private String linkIntro;
+
+    /**
+     * 是否删除
      */
     private Integer isDelete;
-
-    /**
-     * 最近一次成功登录时间
-     */
-    private LocalDateTime lastLoginTime;
 
     /**
      * 创建时间
@@ -51,7 +56,7 @@ public class User implements BaseData {
     private LocalDateTime createTime;
 
     /**
-     * 更新时间
+     * 修改时间
      */
     private LocalDateTime updateTime;
 }

@@ -7,7 +7,7 @@ import lombok.Data;
  * @date 2025/12/27
  */
 @Data
-public class PhotoAlbumVo {
+public class PhotoAlbumVO {
 
     /**
      * 相册名

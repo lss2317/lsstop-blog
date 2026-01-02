@@ -1,6 +1,6 @@
 package com.lsstop.mapper;
 
-import com.lsstop.domain.entity.PhotoAlbum;
+import com.lsstop.domain.dataObject.PhotoAlbumDO;
 
 import java.util.List;
 
@@ -17,6 +17,6 @@ public interface PhotoAlbumMapper {
      *
      * @return 相册列表
      */
-    List<PhotoAlbum> getPhotoAlbumList();
+    List<PhotoAlbumDO> getPhotoAlbumList();
 
 }

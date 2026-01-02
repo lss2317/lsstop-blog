@@ -1,4 +1,4 @@
-package com.lsstop.domain.entity;
+package com.lsstop.domain.dataObject;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,41 +9,46 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 通用点赞表实体类
+ * 相册DO
  *
  * @author lishusheng
- * @date 2026/01/01
+ * @date 2025/12/27
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LikeRecord implements BaseData {
+public class PhotoAlbumDO implements BaseData {
 
     /**
-     * 点赞id
+     * id
      */
     private Integer id;
 
     /**
-     * 点赞用户id
+     * 相册名
      */
-    private Integer userId;
+    private String photoAlbumName;
 
     /**
-     * 被点赞对象id（说说id/文章id/评论id）
+     * 相册描述
      */
-    private Integer targetId;
+    private String photoAlbumDesc;
 
     /**
-     * 点赞类型 1说说 2文章 3评论
+     * 相册封面
      */
-    private Integer type;
+    private String photoAlbumCover;
 
     /**
-     * 状态 1点赞 0取消
+     * 状态值 1公开 2私密
      */
     private Integer status;
+
+    /**
+     * 是否删除
+     */
+    private Integer isDelete;
 
     /**
      * 创建时间
@@ -54,5 +59,4 @@ public class LikeRecord implements BaseData {
      * 修改时间
      */
     private LocalDateTime updateTime;
-
 }

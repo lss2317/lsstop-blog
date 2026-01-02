@@ -12,7 +12,9 @@ export interface UserInfo {
 }
 
 const defaultUserInfo: UserInfo = {
-  userId: null,
+  //TODO 测试用
+  // userId: null,
+  userId: '2IfS7IEoVPP2gfeD',
   avatar: null,
   nickname: null,
   intro: null,

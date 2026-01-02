@@ -1,4 +1,4 @@
-package com.lsstop.domain.entity;
+package com.lsstop.domain.dataObject;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 用户登录认证与第三方账号绑定实体类
+ * 用户资料DO
  *
  * @author lishusheng
  * @date 2026/01/01
@@ -18,12 +18,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserAuth implements BaseData {
-
-    /**
-     * id
-     */
-    private Integer id;
+public class UserProfileDO implements BaseData {
 
     /**
      * 用户id
@@ -31,22 +26,27 @@ public class UserAuth implements BaseData {
     private Integer userId;
 
     /**
-     * 登录方式：1邮箱密码 2QQ 3微博 4微信
+     * 昵称
      */
-    private Integer loginType;
+    private String nickname;
 
     /**
-     * 登录唯一标识（邮箱 / QQ openId / 微博uid / 微信openId）
+     * 头像
      */
-    private String identifier;
+    private String avatar;
 
     /**
-     * 登录凭证（密码hash / access_token，第三方登录可为空）
+     * 个人网站
      */
-    private String credential;
+    private String website;
 
     /**
-     * 是否删除：0否 1是
+     * 个人简介
+     */
+    private String intro;
+
+    /**
+     * 是否删除
      */
     private Integer isDelete;
 

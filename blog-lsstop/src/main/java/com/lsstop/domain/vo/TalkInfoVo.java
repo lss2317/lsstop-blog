@@ -12,7 +12,7 @@ import java.util.List;
  * @date 2026/01/01
  */
 @Data
-public class TalkInfoVo {
+public class TalkInfoVO {
 
     /**
      * id

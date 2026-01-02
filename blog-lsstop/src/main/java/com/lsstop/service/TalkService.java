@@ -1,7 +1,7 @@
 package com.lsstop.service;
 
-import com.lsstop.domain.vo.TalkInfoVo;
-import com.lsstop.domain.vo.TalkVo;
+import com.lsstop.domain.vo.TalkInfoVO;
+import com.lsstop.domain.vo.TalkVO;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ public interface TalkService {
      *
      * @return 说说视图对象列表
      */
-    List<TalkVo> listTalk();
+    List<TalkVO> listTalk();
 
     /**
      * 根据id获取说说详情
@@ -26,6 +26,6 @@ public interface TalkService {
      * @param id 说说id
      * @return 说说详情
      */
-    TalkInfoVo getTalkById(int id);
+    TalkInfoVO getTalkById(int id);
 
 }

@@ -9,7 +9,7 @@ import lombok.Data;
  * @date 2025/12/21
  */
 @Data
-public class MessageVo {
+public class MessageVO {
 
     /**
      * 昵称

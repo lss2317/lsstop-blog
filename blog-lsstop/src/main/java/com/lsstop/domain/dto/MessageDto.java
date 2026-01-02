@@ -11,7 +11,7 @@ import lombok.Data;
  * @date 2025/12/22
  */
 @Data
-public class MessageDto implements BaseData {
+public class MessageDTO implements BaseData {
 
     /**
      * 昵称

@@ -1,4 +1,4 @@
-package com.lsstop.domain.entity;
+package com.lsstop.domain.dataObject;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,51 +9,46 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 留言实体类
+ * 说说DO
  *
  * @author lishusheng
- * @date 2025/12/21
+ * @date 2025/12/30
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Message implements BaseData {
+public class TalkDO implements BaseData {
 
     /**
-     * 主键id
+     * id
      */
     private Integer id;
 
     /**
-     * 用户ip
+     * 用户id
      */
-    private String ipAddress;
+    private String userId;
 
     /**
-     * IP所在地
+     * 说说内容
      */
-    private String ipRegion;
+    private String content;
 
     /**
-     * 昵称
+     * 是否置顶 1.是 0.否
      */
-    private String nickname;
+    private Integer isTop;
 
     /**
-     * 头像
+     * 状态 1.公开 2.私密
      */
-    private String avatar;
+    private Integer status;
 
     /**
-     * 留言内容
+     * 是否删除 1.是 0.否
      */
-    private String messageContent;
-
-    /**
-     * 是否要审核(0：否、1：是)
-     */
-    private Integer review;
+    private Integer isDelete;
 
     /**
      * 创建时间
@@ -61,7 +56,8 @@ public class Message implements BaseData {
     private LocalDateTime createTime;
 
     /**
-     * 修改时间
+     * 更新时间
      */
     private LocalDateTime updateTime;
+
 }

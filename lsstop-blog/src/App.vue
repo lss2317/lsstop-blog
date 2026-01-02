@@ -26,13 +26,16 @@ import BackTop from './components/BackTop/BackTop.vue'
 import SnackbarMessage from './components/Snackbar/SnackbarMessage.vue'
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
 import usePageInfoStore from '@/stores/modules/pageInfo'
+import useLikeStore from '@/stores/modules/like'
 
 const websiteConfigStore = useWebsiteConfigStore()
 const pageInfoStore = usePageInfoStore()
+const likeStore = useLikeStore()
 
 onMounted(() => {
   websiteConfigStore.fetchWebsiteConfig()
   pageInfoStore.fetchPageList()
+  likeStore.fetchUserLike()
 })
 
 const isMobile = (): boolean => {

@@ -1,5 +1,6 @@
-package com.lsstop.domain.entity;
+package com.lsstop.domain.dataObject;
 
+import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,41 +9,41 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 说说图片实体类
+ * 点赞记录DO
  *
  * @author lishusheng
- * @date 2025/12/30
+ * @date 2026/01/01
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TalkImage {
+public class LikeRecordDO implements BaseData {
 
     /**
-     * 图片id
+     * 点赞id
      */
     private Integer id;
 
     /**
-     * 说说id
+     * 点赞用户id
      */
-    private Integer talkId;
+    private String userId;
 
     /**
-     * 图片地址
+     * 被点赞对象id（说说id/文章id/评论id）
      */
-    private String imageUrl;
+    private Integer targetId;
 
     /**
-     * 图片顺序
+     * 点赞类型 1说说 2文章 3评论
      */
-    private Integer sort;
+    private Integer type;
 
     /**
-     * 是否删除
+     * 状态 1点赞 0取消
      */
-    private Integer isDelete;
+    private Integer status;
 
     /**
      * 创建时间
@@ -50,7 +51,7 @@ public class TalkImage {
     private LocalDateTime createTime;
 
     /**
-     * 更新时间
+     * 修改时间
      */
     private LocalDateTime updateTime;
 

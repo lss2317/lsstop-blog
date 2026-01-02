@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * @date 2025/12/25
  */
 @Data
-public class WebsiteConfigVo {
+public class WebsiteConfigVO {
 
     /**
      * 网站头像

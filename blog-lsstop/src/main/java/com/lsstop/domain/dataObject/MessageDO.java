@@ -1,4 +1,4 @@
-package com.lsstop.domain.entity;
+package com.lsstop.domain.dataObject;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,46 +9,51 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 相册实体类
+ * 留言DO
  *
  * @author lishusheng
- * @date 2025/12/27
+ * @date 2025/12/21
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PhotoAlbum implements BaseData {
+public class MessageDO implements BaseData {
 
     /**
-     * id
+     * 主键id
      */
     private Integer id;
 
     /**
-     * 相册名
+     * 用户ip
      */
-    private String photoAlbumName;
+    private String ipAddress;
 
     /**
-     * 相册描述
+     * IP所在地
      */
-    private String photoAlbumDesc;
+    private String ipRegion;
 
     /**
-     * 相册封面
+     * 昵称
      */
-    private String photoAlbumCover;
+    private String nickname;
 
     /**
-     * 状态值 1公开 2私密
+     * 头像
      */
-    private Integer status;
+    private String avatar;
 
     /**
-     * 是否删除
+     * 留言内容
      */
-    private Integer isDelete;
+    private String messageContent;
+
+    /**
+     * 是否要审核(0：否、1：是)
+     */
+    private Integer review;
 
     /**
      * 创建时间

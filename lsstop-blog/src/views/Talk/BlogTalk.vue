@@ -59,12 +59,12 @@
                 :class="[
                   'talk-operation-item',
                   'like-item',
-                  likedTalkSet.has(item.id) ? 'liked' : '',
+                  likedTalkIds.has(item.id) ? 'liked' : '',
                 ]"
                 @click="like(item)"
               >
                 <v-icon size="16" class="like-btn">
-                  {{ likedTalkSet.has(item.id) ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
+                  {{ likedTalkIds.has(item.id) ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
                 </v-icon>
                 <span class="operation-count">
                   {{ item.likeCount == null ? 0 : item.likeCount }}
@@ -153,6 +153,7 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
+import useLikeStore from '@/stores/modules/like.ts'
 import { listTalk } from '@/apis/talk'
 import { dateFormat } from '@/utils/date'
 import {
@@ -160,8 +161,9 @@ import {
   isUserDeactivated,
   getUserAvatar,
   getUserNickname,
-  useShare,
+  useShare
 } from '@/utils/talk'
+import { LikeTypeEnum } from '@/constants/likeType'
 
 // 获取路由实例
 const router = useRouter()
@@ -170,14 +172,15 @@ const router = useRouter()
 const pageInfoStore = usePageInfoStore()
 const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 
+// 点赞状态管理
+const likeStore = useLikeStore()
+const { likedTalkIds } = storeToRefs(likeStore)
+
 // 加载状态
 const loading = ref(true)
 
 // 说说列表数据
 const talkList = ref<TalkItem[]>([])
-
-// 用户点赞的说说ID集合
-const likedTalkSet = ref<Set<number>>(new Set())
 
 // 图片灯箱
 const lightboxVisible = ref(false)
@@ -201,17 +204,16 @@ const {
   copyLink,
   shareToWeibo,
   shareToWeixin,
-  shareToQQ,
+  shareToQQ
 } = useShare()
 
 // 点赞操作
-function like(item: TalkItem) {
-  if (likedTalkSet.value.has(item.id)) {
-    likedTalkSet.value.delete(item.id)
-    item.likeCount = (item.likeCount || 1) - 1
-  } else {
-    likedTalkSet.value.add(item.id)
+async function like(item: TalkItem) {
+  const isLiked = await likeStore.toggleLike(LikeTypeEnum.TALK, item.id)
+  if (isLiked) {
     item.likeCount = (item.likeCount || 0) + 1
+  } else {
+    item.likeCount = (item.likeCount || 1) - 1
   }
 }
 

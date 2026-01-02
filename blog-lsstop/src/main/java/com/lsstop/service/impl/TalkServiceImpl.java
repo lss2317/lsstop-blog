@@ -1,8 +1,8 @@
 package com.lsstop.service.impl;
 
 import com.lsstop.constant.RedisConst;
-import com.lsstop.domain.vo.TalkInfoVo;
-import com.lsstop.domain.vo.TalkVo;
+import com.lsstop.domain.vo.TalkInfoVO;
+import com.lsstop.domain.vo.TalkVO;
 import com.lsstop.mapper.TalkMapper;
 import com.lsstop.service.TalkService;
 import com.lsstop.utils.RedisUtils;
@@ -34,28 +34,28 @@ public class TalkServiceImpl implements TalkService {
      * @return 说说视图对象列表
      */
     @Override
-    public List<TalkVo> listTalk() {
-        List<TalkVo> talkVos = talkMapper.listTalk();
-        if (talkVos.isEmpty()) {
-            return talkVos;
+    public List<TalkVO> listTalk() {
+        List<TalkVO> talkVOs = talkMapper.listTalk();
+        if (talkVOs.isEmpty()) {
+            return talkVOs;
         }
         // 批量构建 Redis key
-        List<String> likeKeys = talkVos.stream()
+        List<String> likeKeys = talkVOs.stream()
                 .map(vo -> RedisConst.TALK_LIKE_COUNT + vo.getId())
                 .collect(Collectors.toList());
-        List<String> commentKeys = talkVos.stream()
+        List<String> commentKeys = talkVOs.stream()
                 .map(vo -> RedisConst.TALK_COMMENT_COUNT + vo.getId())
                 .collect(Collectors.toList());
         // 批量获取点赞数和评论数
         List<Integer> likeCounts = redisUtils.mGet(likeKeys, Integer.class);
         List<Integer> commentCounts = redisUtils.mGet(commentKeys, Integer.class);
         // 设置点赞数和评论数
-        for (int i = 0; i < talkVos.size(); i++) {
-            TalkVo vo = talkVos.get(i);
+        for (int i = 0; i < talkVOs.size(); i++) {
+            TalkVO vo = talkVOs.get(i);
             vo.setLikeCount(likeCounts.get(i) == null ? 0 : likeCounts.get(i));
             vo.setCommentCount(commentCounts.get(i) == null ? 0 : commentCounts.get(i));
         }
-        return talkVos;
+        return talkVOs;
     }
 
     /**
@@ -65,14 +65,14 @@ public class TalkServiceImpl implements TalkService {
      * @return 说说详情
      */
     @Override
-    public TalkInfoVo getTalkById(int id) {
-        TalkVo talkVo = talkMapper.getTalkById(id);
-        if (talkVo == null) {
+    public TalkInfoVO getTalkById(int id) {
+        TalkVO talkVO = talkMapper.getTalkById(id);
+        if (talkVO == null) {
             return null;
         }
         // 获取点赞数
-        Integer likeCount = redisUtils.get(RedisConst.TALK_LIKE_COUNT + talkVo.getId(), Integer.class);
-        talkVo.setLikeCount(likeCount == null ? 0 : likeCount);
-        return talkVo.asViewObject(TalkInfoVo.class);
+        Integer likeCount = redisUtils.get(RedisConst.TALK_LIKE_COUNT + talkVO.getId(), Integer.class);
+        talkVO.setLikeCount(likeCount == null ? 0 : likeCount);
+        return talkVO.asViewObject(TalkInfoVO.class);
     }
 }

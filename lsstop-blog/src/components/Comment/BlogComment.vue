@@ -285,6 +285,8 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import CommentEmoji from '@/components/Emoji/CommentEmoji.vue'
 import { formatTime } from '@/utils/date'
+import useLikeStore from '@/stores/modules/like.ts'
+import { LikeTypeEnum } from '@/constants/likeType'
 
 // 回复类型
 interface Reply {
@@ -334,8 +336,8 @@ const replyingToReplyId = ref<string | null>(null)
 const showReplies = reactive<Record<number, boolean>>({})
 // 当前用户头像
 const currentUserAvatar = ref('https://assets.leetcode.cn/aliyun-lc-upload/default_avatar.png')
-// 已点赞的评论ID集合
-const likedIds = ref<Set<string>>(new Set())
+// 点赞状态管理
+const likeStore = useLikeStore()
 // 排序类型
 const sortType = ref<'hot' | 'new'>('hot')
 // 是否显示排序菜单
@@ -366,19 +368,18 @@ const addEmoji = (key: string) => {
 }
 
 // 点赞
-const like = (item: Comment | Reply) => {
-  if (likedIds.value.has(item.id)) {
-    likedIds.value.delete(item.id)
-    item.likeCount--
-  } else {
-    likedIds.value.add(item.id)
+const like = async (item: Comment | Reply) => {
+  const isLiked = await likeStore.toggleLike(LikeTypeEnum.COMMENT, item.id)
+  if (isLiked) {
     item.likeCount++
+  } else {
+    item.likeCount--
   }
 }
 
 // 判断是否已点赞
 const isLike = (id: string): boolean => {
-  return likedIds.value.has(id)
+  return likeStore.isLiked(LikeTypeEnum.COMMENT, id)
 }
 
 // 回复评论
@@ -593,13 +594,27 @@ onUnmounted(() => {
 
 .lc-emoji-panel {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 1px);
   left: 0;
   z-index: 1000;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 10px;
+}
+
+.lc-emoji-panel::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 20px;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-left: 1px solid #e5e5e5;
+  border-top: 1px solid #e5e5e5;
+  transform: rotate(45deg);
+  box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.03);
 }
 
 /* 排序 */

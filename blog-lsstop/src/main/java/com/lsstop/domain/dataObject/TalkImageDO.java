@@ -1,4 +1,4 @@
-package com.lsstop.domain.entity;
+package com.lsstop.domain.dataObject;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,41 +9,41 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 页面信息实体类
+ * 说说图片DO
  *
  * @author lishusheng
- * @date 2025/12/24
+ * @date 2025/12/30
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PageInfo implements BaseData {
+public class TalkImageDO implements BaseData {
 
     /**
-     * id
+     * 图片id
      */
     private Integer id;
 
     /**
-     * 页面名称
+     * 说说id
      */
-    private String pageName;
+    private Integer talkId;
 
     /**
-     * 页面标签
+     * 图片地址
      */
-    private String pageLabel;
+    private String imageUrl;
 
     /**
-     * 页面封面
+     * 图片顺序
      */
-    private String pageCover;
+    private Integer sort;
 
     /**
      * 是否删除
      */
-    private Boolean isDelete;
+    private Integer isDelete;
 
     /**
      * 创建时间
@@ -51,7 +51,7 @@ public class PageInfo implements BaseData {
     private LocalDateTime createTime;
 
     /**
-     * 修改时间
+     * 更新时间
      */
     private LocalDateTime updateTime;
 

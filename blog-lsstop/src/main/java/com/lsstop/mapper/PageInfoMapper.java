@@ -1,6 +1,6 @@
 package com.lsstop.mapper;
 
-import com.lsstop.domain.entity.PageInfo;
+import com.lsstop.domain.dataObject.PageInfoDO;
 
 import java.util.List;
 
@@ -17,5 +17,5 @@ public interface PageInfoMapper {
      *
      * @return 页面信息列表
      */
-    List<PageInfo> getPageInfoList();
+    List<PageInfoDO> getPageInfoList();
 }
