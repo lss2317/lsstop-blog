@@ -1,22 +1,73 @@
-# 本地开发环境配置
-# 配置端口
+# 本地开发环境配置（模板）
+
+# 服务器配置
 server:
+  # 端口号
   port: 8080
   servlet:
     session:
+      # 会话超时时间（秒）
       timeout: 21600
 
 spring:
+  # 数据源配置
   datasource:
-    url: jdbc:mysql://localhost:3306/new-blog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-    username: root
-    password: lishusheng7898
+    # 数据库连接地址
+    url: jdbc:mysql://localhost:3306/your-database?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    # 数据库用户名
+    username: your-username
+    # 数据库密码
+    password: your-password
+    # 数据库驱动
     driver-class-name: com.mysql.cj.jdbc.Driver
+  # Redis 配置
+  data:
+    redis:
+      # Redis 服务器地址
+      host: localhost
+      # Redis 端口
+      port: 6379
+      # Redis 密码（无密码留空）
+      password: your-redis-password
+      # Redis 数据库索引
+      database: 0
+      # 连接超时时间
+      timeout: 10000ms
+      # Lettuce 连接池配置
+      lettuce:
+        pool:
+          # 最大连接数
+          max-active: 8
+          # 最大空闲连接数
+          max-idle: 8
+          # 最小空闲连接数
+          min-idle: 0
+          # 获取连接最大等待时间（-1表示无限制）
+          max-wait: -1ms
 
+# MyBatis-Plus 配置
 mybatis-plus:
   configuration:
-    #开启驼峰命名
+    # 开启驼峰命名转换
     map-underscore-to-camel-case: true
-    #SQL日志打印到控制台
+    # SQL日志打印到控制台
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  # Mapper XML 文件位置
   mapper-locations: classpath*:/mapper/*.xml
+
+# JWT配置
+jwt:
+  # 密钥（至少256位，生产环境请更换）
+  secret: your-jwt-secret-key-must-be-at-least-256-bits-long
+  # 前台配置
+  front:
+    # Access Token 过期时间：15分钟（毫秒）
+    access-token-expiration: 900000
+    # Refresh Token 过期时间：1天（毫秒）
+    refresh-token-expiration: 86400000
+  # 后台配置
+  admin:
+    # Access Token 过期时间：10分钟（毫秒）
+    access-token-expiration: 600000
+    # Refresh Token 过期时间：1天（毫秒）
+    refresh-token-expiration: 86400000
