@@ -71,7 +71,7 @@
           </a>
         </div>
         <div class="menus-item">
-          <a class="menu-btn" v-if="!avatar"> <i class="iconfont icondenglu" /> 登录 </a>
+          <a class="menu-btn" v-if="!avatar" @click="openLoginDialog"> <i class="iconfont icondenglu" /> 登录 </a>
           <template v-else>
             <img class="user-avatar" :src="avatar" height="30" width="30" />
             <ul class="menus-submenu">
@@ -94,10 +94,14 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDrawerStore } from '@/stores/modules/drawer'
+import { useLoginStore } from '@/stores/modules/login'
 
 const router = useRouter()
 const drawerStore = useDrawerStore()
 const { openDrawer } = drawerStore
+
+const loginStore = useLoginStore()
+const { openLoginDialog } = loginStore
 
 // 导航并滚动到顶部
 function navigateTo(path: string) {

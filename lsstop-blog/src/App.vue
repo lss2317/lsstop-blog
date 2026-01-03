@@ -14,6 +14,8 @@
     <BackTop></BackTop>
     <!-- 全局消息提示 -->
     <SnackbarMessage></SnackbarMessage>
+    <!-- 登录相关弹窗 -->
+    <AuthDialog></AuthDialog>
   </v-app>
 </template>
 
@@ -24,6 +26,7 @@ import SideNavBar from '@/components/layout/SideNavBar.vue'
 import BlogFooter from './components/layout/BlogFooter.vue'
 import BackTop from './components/BackTop/BackTop.vue'
 import SnackbarMessage from './components/Snackbar/SnackbarMessage.vue'
+import AuthDialog from './components/Login/AuthDialog.vue'
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
 import usePageInfoStore from '@/stores/modules/pageInfo'
 import useLikeStore from '@/stores/modules/like'
