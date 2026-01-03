@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.AuthMapper">
+
+    <!-- 用户认证信息ResultMap -->
+    <resultMap id="UserAuthResultMap" type="com.lsstop.domain.dataObject.UserAuthDO">
+        <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="loginType" column="login_type" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="identifier" column="identifier" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="credential" column="credential" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    </resultMap>
+
+    <!-- 用户资料ResultMap -->
+    <resultMap id="UserProfileResultMap" type="com.lsstop.domain.dataObject.UserProfileDO">
+        <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="nickname" column="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="website" column="website" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="intro" column="intro" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    </resultMap>
+
+    <!-- 根据登录信息查询用户认证信息 -->
+    <select id="selectByLoginDTO" parameterType="com.lsstop.domain.dataObject.LoginDTO" resultMap="UserAuthResultMap">
+        SELECT user_id, login_type, identifier, credential
+        FROM blog_user_auth
+        WHERE identifier = #{dto.identifier}
+          AND login_type = #{dto.loginType}
+          AND is_delete = 0
+    </select>
+
+    <!-- 根据用户ID查询用户资料 -->
+    <select id="selectProfileById" parameterType="java.lang.String" resultMap="UserProfileResultMap">
+        SELECT user_id,
+               nickname,
+               avatar,
+               website,
+               intro
+        FROM blog_user_profile
+        WHERE user_id = #{userId}
+          AND is_delete = 0
+    </select>
+
+</mapper>

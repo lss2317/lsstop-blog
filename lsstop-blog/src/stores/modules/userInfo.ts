@@ -1,26 +1,32 @@
 import { defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
+import { getUserInfo } from '@/apis/user'
 
 export interface UserInfo {
-  userId: string | null
-  avatar: string | null
+  /** 用户id */
+  userId: number | null
+  /** 昵称 */
   nickname: string | null
+  /** 头像 */
+  avatar: string | null
+  /** 个人网站 */
+  website: string | null
+  /** 个人简介 */
   intro: string | null
-  email: string | null
-  webSite: string | null
-  loginType: number | null
+  /** accessToken */
+  accessToken?: string | null
+  /** refreshToken */
+  refreshToken?: string | null
 }
 
 const defaultUserInfo: UserInfo = {
-  //TODO 测试用
-  // userId: null,
-  userId: '2IfS7IEoVPP2gfeD',
-  avatar: null,
+  userId: null,
   nickname: null,
+  avatar: null,
+  website: null,
   intro: null,
-  email: null,
-  webSite: null,
-  loginType: null,
+  accessToken: null,
+  refreshToken: null
 }
 
 const useUserInfoStore = defineStore('userInfo', () => {
@@ -45,6 +51,18 @@ const useUserInfoStore = defineStore('userInfo', () => {
     blogInfo.value = info
   }
 
+  // 获取用户信息
+  async function fetchUserInfo() {
+    try {
+      const res = await getUserInfo()
+      if (res.code === 200 && res.data) {
+        setUserInfo(res.data)
+      }
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
+    }
+  }
+
   return {
     userInfo,
     blogInfo,
@@ -52,6 +70,7 @@ const useUserInfoStore = defineStore('userInfo', () => {
     setUserInfo,
     clearUserInfo,
     setBlogInfo,
+    fetchUserInfo
   }
 })
 

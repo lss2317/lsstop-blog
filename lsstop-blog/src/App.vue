@@ -30,15 +30,22 @@ import AuthDialog from './components/Login/AuthDialog.vue'
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
 import usePageInfoStore from '@/stores/modules/pageInfo'
 import useLikeStore from '@/stores/modules/like'
+import useUserInfoStore from '@/stores/modules/userInfo'
+import { tokenManager } from '@/utils/token'
 
 const websiteConfigStore = useWebsiteConfigStore()
 const pageInfoStore = usePageInfoStore()
 const likeStore = useLikeStore()
+const userInfoStore = useUserInfoStore()
 
 onMounted(() => {
   websiteConfigStore.fetchWebsiteConfig()
   pageInfoStore.fetchPageList()
   likeStore.fetchUserLike()
+  // 有token时获取用户信息
+  if (tokenManager.hasToken()) {
+    userInfoStore.fetchUserInfo()
+  }
 })
 
 const isMobile = (): boolean => {

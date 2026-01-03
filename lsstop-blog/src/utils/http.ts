@@ -1,11 +1,40 @@
 // 封装axios
 import axios from 'axios'
-import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
+import type { AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
+import { tokenManager } from '@/utils/token'
+
+// 统一响应结构
+export interface ApiResponse<T = unknown> {
+  /** 状态码 */
+  code: number
+  /** 提示信息 */
+  msg: string
+  /** 结果数据 */
+  data: T
+}
+
+// 自定义请求实例接口，统一返回 ApiResponse<T>
+interface HttpInstance {
+  <T = unknown>(config: AxiosRequestConfig): Promise<ApiResponse<T>>
+  get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
+  post<T = unknown>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<ApiResponse<T>>
+  put<T = unknown>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<ApiResponse<T>>
+  delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
+  request<T = unknown>(config: AxiosRequestConfig): Promise<ApiResponse<T>>
+}
 
 // 创建axios实例
-const http: AxiosInstance = axios.create({
+const instance = axios.create({
   baseURL: '/api/front',
   timeout: 60000, // 请求超时时间
   headers: {
@@ -14,9 +43,15 @@ const http: AxiosInstance = axios.create({
 })
 
 // request拦截器
-http.interceptors.request.use(
+instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     NProgress.start()
+
+    // 如果有token，添加到请求头
+    const token = tokenManager.getAccessToken()
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
     return config
   },
   (error) => {
@@ -25,8 +60,7 @@ http.interceptors.request.use(
 )
 
 // response拦截器
-// 应改为
-http.interceptors.response.use(
+instance.interceptors.response.use(
   (response) => {
     NProgress.done()
     return response.data
@@ -36,5 +70,7 @@ http.interceptors.response.use(
     return Promise.reject(error)
   },
 )
+
+const http = instance as unknown as HttpInstance
 
 export default http

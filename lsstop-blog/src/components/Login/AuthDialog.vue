@@ -1,21 +1,19 @@
 <template>
   <v-dialog v-model="dialogVisible" :fullscreen="isMobile" max-width="400">
     <v-card class="login-container">
-      <v-icon class="close-btn" @click="closeAllDialogs">
-        mdi-close
-      </v-icon>
-      
+      <v-icon class="close-btn" @click="closeAllDialogs"> mdi-close </v-icon>
+
       <transition name="fade" mode="out-in">
         <!-- 密码登录 -->
         <div v-if="loginDialog" key="login" class="login-wrapper">
-        <v-text-field
+          <v-text-field
             v-model="loginForm.email"
             label="邮箱"
             variant="underlined"
             hide-details
             @keyup.enter="login"
-        />
-        <v-text-field
+          />
+          <v-text-field
             v-model="loginForm.password"
             class="mt-8"
             label="密码"
@@ -25,93 +23,98 @@
             :append-inner-icon="loginForm.showPwd ? 'mdi-eye' : 'mdi-eye-off'"
             :type="loginForm.showPwd ? 'text' : 'password'"
             @click:append-inner="loginForm.showPwd = !loginForm.showPwd"
-        />
-        <v-btn
+          />
+          <v-btn
             class="mt-10 login-btn"
             block
             color="#1976d2"
             rounded="lg"
             size="large"
             @click="login"
-        >
-          登录
-        </v-btn>
-        <div class="mt-6 login-tip">
-          <span @click="openRegisterDialog" class="tip-link">立即注册</span>
-          <span @click="openCodeLoginDialog" class="tip-link" style="margin-left: auto; margin-right: 12px;">免密登录</span>
-          <span @click="openForgetDialog" class="tip-link">忘记密码?</span>
+          >
+            登录
+          </v-btn>
+          <div class="mt-6 login-tip">
+            <span @click="openRegisterDialog" class="tip-link">立即注册</span>
+            <span
+              @click="openCodeLoginDialog"
+              class="tip-link"
+              style="margin-left: auto; margin-right: 12px"
+              >免密登录</span
+            >
+            <span @click="openForgetDialog" class="tip-link">忘记密码?</span>
+          </div>
+          <div class="social-login-title">其他登录方式</div>
+          <div class="social-login-wrapper">
+            <a @click="weiboLogin" class="mr-3 iconfont iconweibo" style="color: #e05244" />
+            <a @click="qqLogin" class="iconfont iconqq" style="color: #00aaee" />
+          </div>
         </div>
-        <div class="social-login-title">其他登录方式</div>
-        <div class="social-login-wrapper">
-          <a @click="weiboLogin" class="mr-3 iconfont iconweibo" style="color:#e05244" />
-          <a @click="qqLogin" class="iconfont iconqq" style="color:#00AAEE"/>
-        </div>
-      </div>
 
-      <!-- 免密登录 -->
+        <!-- 免密登录 -->
         <div v-else-if="codeLoginDialog" key="codeLogin" class="login-wrapper">
-        <v-text-field
+          <v-text-field
             v-model="codeLoginForm.email"
             label="邮箱"
             variant="underlined"
             hide-details
             @keyup.enter="codeLogin"
-        />
-        <div class="code-input-wrapper mt-8">
-          <v-text-field
+          />
+          <div class="code-input-wrapper mt-8">
+            <v-text-field
               v-model="codeLoginForm.code"
               label="验证码"
               variant="underlined"
               hide-details
               @keyup.enter="codeLogin"
-          />
-          <span
+            />
+            <span
               class="send-code-btn"
               :class="{ disabled: codeLoginForm.countdown > 0 }"
               @click="sendCodeForLogin"
-          >
-            {{ codeLoginForm.countdown > 0 ? `${codeLoginForm.countdown}s` : '发送' }}
-          </span>
-        </div>
-        <v-btn
+            >
+              {{ codeLoginForm.countdown > 0 ? `${codeLoginForm.countdown}s` : '发送' }}
+            </span>
+          </div>
+          <v-btn
             class="mt-10 login-btn"
             block
             color="#1976d2"
             rounded="lg"
             size="large"
             @click="codeLogin"
-        >
-          登录
-        </v-btn>
-        <div class="mt-6 login-tip center">
-          <span @click="openLoginDialog" class="tip-link">返回密码登录</span>
+          >
+            登录
+          </v-btn>
+          <div class="mt-6 login-tip center">
+            <span @click="openLoginDialog" class="tip-link">返回密码登录</span>
+          </div>
         </div>
-      </div>
 
-      <!-- 注册 -->
+        <!-- 注册 -->
         <div v-else-if="registerDialog" key="register" class="login-wrapper">
-        <v-text-field
+          <v-text-field
             v-model="registerForm.email"
             label="邮箱"
             variant="underlined"
             hide-details
-        />
-        <div class="code-input-wrapper mt-8">
-          <v-text-field
+          />
+          <div class="code-input-wrapper mt-8">
+            <v-text-field
               v-model="registerForm.code"
               label="验证码"
               variant="underlined"
               hide-details
-          />
-          <span
+            />
+            <span
               class="send-code-btn"
               :class="{ disabled: registerForm.countdown > 0 }"
               @click="sendCodeForRegister"
-          >
-            {{ registerForm.countdown > 0 ? `${registerForm.countdown}s` : '发送' }}
-          </span>
-        </div>
-        <v-text-field
+            >
+              {{ registerForm.countdown > 0 ? `${registerForm.countdown}s` : '发送' }}
+            </span>
+          </div>
+          <v-text-field
             v-model="registerForm.password"
             class="mt-8"
             label="密码"
@@ -120,8 +123,8 @@
             :append-inner-icon="registerForm.showPwd ? 'mdi-eye' : 'mdi-eye-off'"
             :type="registerForm.showPwd ? 'text' : 'password'"
             @click:append-inner="registerForm.showPwd = !registerForm.showPwd"
-        />
-        <v-text-field
+          />
+          <v-text-field
             v-model="registerForm.confirmPassword"
             class="mt-8"
             label="确认密码"
@@ -131,49 +134,49 @@
             :type="registerForm.showConfirmPwd ? 'text' : 'password'"
             @click:append-inner="registerForm.showConfirmPwd = !registerForm.showConfirmPwd"
             @keyup.enter="register"
-        />
-        <v-btn
+          />
+          <v-btn
             class="mt-10 login-btn"
             block
             color="#1976d2"
             rounded="lg"
             size="large"
             @click="register"
-        >
-          注册
-        </v-btn>
-        <div class="mt-6 login-tip">
-          <span>已有账号?</span>
-          <span @click="openLoginDialog" class="tip-link ml-2">立即登录</span>
+          >
+            注册
+          </v-btn>
+          <div class="mt-6 login-tip">
+            <span>已有账号?</span>
+            <span @click="openLoginDialog" class="tip-link ml-2">立即登录</span>
+          </div>
         </div>
-      </div>
 
-      <!-- 忘记密码 -->
+        <!-- 忘记密码 -->
         <div v-else-if="forgetDialog" key="forget" class="login-wrapper">
-        <div class="title">找回密码</div>
-        <v-text-field
+          <div class="title">找回密码</div>
+          <v-text-field
             v-model="forgetForm.email"
             class="mt-6"
             label="邮箱"
             variant="underlined"
             hide-details
-        />
-        <div class="code-input-wrapper mt-8">
-          <v-text-field
+          />
+          <div class="code-input-wrapper mt-8">
+            <v-text-field
               v-model="forgetForm.code"
               label="验证码"
               variant="underlined"
               hide-details
-          />
-          <span
+            />
+            <span
               class="send-code-btn"
               :class="{ disabled: forgetForm.countdown > 0 }"
               @click="sendCodeForForget"
-          >
-            {{ forgetForm.countdown > 0 ? `${forgetForm.countdown}s` : '发送' }}
-          </span>
-        </div>
-        <v-text-field
+            >
+              {{ forgetForm.countdown > 0 ? `${forgetForm.countdown}s` : '发送' }}
+            </span>
+          </div>
+          <v-text-field
             v-model="forgetForm.password"
             class="mt-8"
             label="新密码"
@@ -182,8 +185,8 @@
             :append-inner-icon="forgetForm.showPwd ? 'mdi-eye' : 'mdi-eye-off'"
             :type="forgetForm.showPwd ? 'text' : 'password'"
             @click:append-inner="forgetForm.showPwd = !forgetForm.showPwd"
-        />
-        <v-text-field
+          />
+          <v-text-field
             v-model="forgetForm.confirmPassword"
             class="mt-8"
             label="确认密码"
@@ -193,20 +196,20 @@
             :type="forgetForm.showConfirmPwd ? 'text' : 'password'"
             @click:append-inner="forgetForm.showConfirmPwd = !forgetForm.showConfirmPwd"
             @keyup.enter="resetPassword"
-        />
-        <v-btn
+          />
+          <v-btn
             class="mt-10 login-btn"
             block
             color="#1976d2"
             rounded="lg"
             size="large"
             @click="resetPassword"
-        >
-          重置密码
-        </v-btn>
-        <div class="mt-6 login-tip center">
-          <span @click="openLoginDialog" class="tip-link">返回登录</span>
-        </div>
+          >
+            重置密码
+          </v-btn>
+          <div class="mt-6 login-tip center">
+            <span @click="openLoginDialog" class="tip-link">返回登录</span>
+          </div>
         </div>
       </transition>
     </v-card>
@@ -214,13 +217,30 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed } from 'vue'
+import { reactive, computed, ref } from 'vue'
 import { useLoginStore } from '@/stores/modules/login'
 import { storeToRefs } from 'pinia'
+import { login as loginApi } from '@/apis/auth'
+import useUserInfoStore from '@/stores/modules/userInfo'
+import { useSnackbarStore } from '@/stores/modules/snackbar'
+import { LoginType } from '@/constants/user'
+import { tokenManager } from '@/utils/token'
 
 const loginStore = useLoginStore()
-const { dialogVisible, loginDialog, codeLoginDialog, registerDialog, forgetDialog } = storeToRefs(loginStore)
-const { closeAllDialogs, openLoginDialog, openCodeLoginDialog, openRegisterDialog, openForgetDialog } = loginStore
+const userInfoStore = useUserInfoStore()
+const snackbar = useSnackbarStore()
+const { dialogVisible, loginDialog, codeLoginDialog, registerDialog, forgetDialog } =
+  storeToRefs(loginStore)
+const {
+  closeAllDialogs,
+  openLoginDialog,
+  openCodeLoginDialog,
+  openRegisterDialog,
+  openForgetDialog,
+} = loginStore
+
+// 登录loading状态
+const loginLoading = ref(false)
 
 // 响应式判断
 const isMobile = computed(() => {
@@ -232,14 +252,14 @@ const isMobile = computed(() => {
 const loginForm = reactive({
   email: '',
   password: '',
-  showPwd: false
+  showPwd: false,
 })
 
 // 免密登录表单
 const codeLoginForm = reactive({
   email: '',
   code: '',
-  countdown: 0
+  countdown: 0,
 })
 
 // 注册表单
@@ -250,7 +270,7 @@ const registerForm = reactive({
   confirmPassword: '',
   showPwd: false,
   showConfirmPwd: false,
-  countdown: 0
+  countdown: 0,
 })
 
 // 忘记密码表单
@@ -261,7 +281,7 @@ const forgetForm = reactive({
   confirmPassword: '',
   showPwd: false,
   showConfirmPwd: false,
-  countdown: 0
+  countdown: 0,
 })
 
 // 发送验证码通用函数
@@ -299,8 +319,47 @@ const sendCodeForForget = () => {
 }
 
 // 密码登录
-const login = () => {
-  // TODO: 实现登录逻辑
+const login = async () => {
+  // 表单验证
+  if (!loginForm.email) {
+    snackbar.warning('请输入邮箱')
+    return
+  }
+  if (!loginForm.password) {
+    snackbar.warning('请输入密码')
+    return
+  }
+
+  loginLoading.value = true
+  try {
+    const res = await loginApi({
+      identifier: loginForm.email,
+      credential: loginForm.password,
+      loginType: LoginType.EMAIL_PASSWORD,
+    })
+    // 判断业务状态码
+    if (res.code !== 200) {
+      snackbar.error(res.msg || '登录失败')
+      return
+    }
+    // 保存用户信息到store
+    userInfoStore.setUserInfo(res.data)
+    // 保存token
+    if (res.data.accessToken && res.data.refreshToken) {
+      tokenManager.setTokens(res.data.accessToken, res.data.refreshToken)
+    }
+    snackbar.success('登录成功')
+    // 关闭弹框并重置表单
+    closeAllDialogs()
+    loginForm.email = ''
+    loginForm.password = ''
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { msg?: string } } }
+    const msg = err.response?.data?.msg || '网络错误，请稍后重试'
+    snackbar.error(msg)
+  } finally {
+    loginLoading.value = false
+  }
 }
 
 // 验证码登录
@@ -421,7 +480,7 @@ const qqLogin = () => {
 }
 
 .social-login-title::before {
-  content: "";
+  content: '';
   display: inline-block;
   background-color: #e0e0e0;
   width: 80px;
@@ -431,7 +490,7 @@ const qqLogin = () => {
 }
 
 .social-login-title::after {
-  content: "";
+  content: '';
   display: inline-block;
   background-color: #e0e0e0;
   width: 80px;

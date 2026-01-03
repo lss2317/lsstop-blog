@@ -45,16 +45,17 @@ public class GlobalExceptionControllerHandler {
     }
 
     /**
-     * 处理运行时异常
+     * 处理运行时异常（业务异常）
+     * <p>项目中抛出的RuntimeException主要用于业务错误，如“密码错误”、“用户不存在”等</p>
      *
      * @param e 运行时异常
      * @return 统一错误响应
      */
     @ExceptionHandler(RuntimeException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Void> handleRuntimeException(RuntimeException e) {
-        log.error("运行时异常: ", e);
-        return Result.failure("运行时异常，请稍后重试");
+        log.warn("业务异常: {}", e.getMessage());
+        return Result.failure(e.getMessage());
     }
 
     /**

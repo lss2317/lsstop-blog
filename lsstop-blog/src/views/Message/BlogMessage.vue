@@ -53,18 +53,11 @@
 import VueDanmaku from 'vue3-danmaku'
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { listMessage, addMessage } from '@/apis/message'
+import { listMessage, addMessage, type MessageVo, type AddMessageDto } from '@/apis/message'
 import useUserInfoStore from '@/stores/modules/userInfo'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
-
-interface Barrage {
-  avatar: string
-  nickname: string
-  messageContent: string
-  review: number
-}
 
 // 默认配置
 const DEFAULT_NICKNAME = '游客'
@@ -81,7 +74,7 @@ const messageContent = ref('')
 const inputWrapperRef = ref<HTMLElement | null>(null)
 const danmakuRef = ref<InstanceType<typeof VueDanmaku> | null>(null)
 const isReady = ref(false)
-const barrageList = ref<Barrage[]>([])
+const barrageList = ref<MessageVo[]>([])
 
 // 发送留言
 function addBlogMessage() {
@@ -90,7 +83,7 @@ function addBlogMessage() {
     return
   }
 
-  const message: Barrage = {
+  const message: AddMessageDto = {
     avatar: userInfoStore.userInfo.avatar ?? websiteConfigStore.config.touristAvatar,
     nickname: userInfoStore.userInfo.nickname ?? DEFAULT_NICKNAME,
     messageContent: messageContent.value,

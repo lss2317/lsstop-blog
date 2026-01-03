@@ -21,22 +21,17 @@ import java.time.LocalDateTime;
 public class UserAuthDO implements BaseData {
 
     /**
-     * id
-     */
-    private Integer id;
-
-    /**
      * 用户id
      */
-    private Integer userId;
+    private String userId;
 
     /**
-     * 登录方式：1邮箱密码 2QQ 3微博 4微信
+     * 登录方式：1邮箱密码 2QQ 3微博
      */
     private Integer loginType;
 
     /**
-     * 登录唯一标识（邮箱 / QQ openId / 微博uid / 微信openId）
+     * 登录唯一标识（邮箱 / QQ openId / 微博uid）
      */
     private String identifier;
 
@@ -45,18 +40,4 @@ public class UserAuthDO implements BaseData {
      */
     private String credential;
 
-    /**
-     * 是否删除：0否 1是
-     */
-    private Integer isDelete;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
 }

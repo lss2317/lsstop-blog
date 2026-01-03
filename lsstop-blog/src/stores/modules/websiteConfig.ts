@@ -1,32 +1,8 @@
 import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
-import { getWebsiteConfig } from '@/apis/websiteConfig'
+import { getWebsiteConfig, type WebsiteConfigVo } from '@/apis/websiteConfig'
 
-interface WebsiteConfig {
-  websiteAvatar: string
-  websiteName: string
-  websiteAuthor: string
-  websiteIntro: string
-  websiteNotice: string
-  websiteCreateTime: string
-  websiteRecordNo: string
-  qq: string
-  github: string
-  gitee: string
-  touristAvatar: string
-  userAvatar: string
-  commentReview: number
-  emailNotice: number
-  reward: number
-  weixinQrcode: string
-  alipayQrcode: string
-  chatRoom: number
-  musicPlayer: number
-  websocketUrl: string
-  about: string
-}
-
-const defaultConfig: WebsiteConfig = {
+const defaultConfig: WebsiteConfigVo = {
   websiteAvatar: '',
   websiteName: '',
   websiteAuthor: '',
@@ -51,7 +27,7 @@ const defaultConfig: WebsiteConfig = {
 }
 
 const useWebsiteConfigStore = defineStore('websiteConfig', () => {
-  const config = shallowRef<WebsiteConfig>({ ...defaultConfig })
+  const config = shallowRef<WebsiteConfigVo>({ ...defaultConfig })
   const isLoaded = shallowRef(false)
 
   // 获取网站配置（已有数据则不重复请求）

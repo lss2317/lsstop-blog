@@ -71,7 +71,9 @@
           </a>
         </div>
         <div class="menus-item">
-          <a class="menu-btn" v-if="!avatar" @click="openLoginDialog"> <i class="iconfont icondenglu" /> 登录 </a>
+          <a class="menu-btn" v-if="!avatar" @click="openLoginDialog">
+            <i class="iconfont icondenglu" /> 登录
+          </a>
           <template v-else>
             <img class="user-avatar" :src="avatar" height="30" width="30" />
             <ul class="menus-submenu">

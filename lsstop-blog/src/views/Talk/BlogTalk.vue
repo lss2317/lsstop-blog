@@ -161,7 +161,7 @@ import {
   isUserDeactivated,
   getUserAvatar,
   getUserNickname,
-  useShare
+  useShare,
 } from '@/utils/talk'
 import { LikeTypeEnum } from '@/constants/likeType'
 
@@ -204,7 +204,7 @@ const {
   copyLink,
   shareToWeibo,
   shareToWeixin,
-  shareToQQ
+  shareToQQ,
 } = useShare()
 
 // 点赞操作

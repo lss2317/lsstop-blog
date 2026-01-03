@@ -1,24 +1,15 @@
-package com.lsstop.domain.dataObject;
+package com.lsstop.domain.vo;
 
-import com.lsstop.domain.BaseData;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 /**
- * 用户资料DO
+ * 用户信息VO
  *
  * @author lishusheng
- * @date 2026/01/01
+ * @date 2026/01/03
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserProfileDO implements BaseData {
+public class UserInfoVO {
 
     /**
      * 用户id

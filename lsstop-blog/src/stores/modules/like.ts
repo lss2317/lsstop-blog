@@ -56,7 +56,7 @@ const useLikeStore = defineStore('like', () => {
         await toggleLikeApi({
           userId: userId,
           targetId: Number(id),
-          type
+          type,
         })
       } catch (error) {
         // 请求失败，显示错误信息
@@ -205,7 +205,7 @@ const useLikeStore = defineStore('like', () => {
     setLikedIds,
     clearAll,
     fetchUserLike,
-    hasFetched
+    hasFetched,
   }
 })
 

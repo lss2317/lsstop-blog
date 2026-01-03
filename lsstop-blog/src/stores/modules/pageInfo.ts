@@ -1,16 +1,10 @@
 import { defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
-import { listPageInfo } from '@/apis/pageInfo'
-
-interface PageInfo {
-  pageName: string
-  pageLabel: string
-  pageCover: string
-}
+import { listPageInfo, type PageInfoVo } from '@/apis/pageInfo'
 
 const usePageInfoStore = defineStore('pageInfo', () => {
-  const pageList = shallowRef<PageInfo[]>([])
+  const pageList = shallowRef<PageInfoVo[]>([])
 
   // 获取页面列表（已有数据则不重复请求）
   async function fetchPageList() {

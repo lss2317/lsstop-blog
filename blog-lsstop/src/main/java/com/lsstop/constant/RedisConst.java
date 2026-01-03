@@ -104,6 +104,16 @@ public class RedisConst {
     public static final String USER_INFO = PREFIX + "user:info:";
 
     /**
+     * 前台用户RefreshToken
+     */
+    public static final String FRONT_REFRESH_TOKEN = PREFIX + "front:refresh:token:";
+
+    /**
+     * 后台用户RefreshToken
+     */
+    public static final String ADMIN_REFRESH_TOKEN = PREFIX + "admin:refresh:token:";
+
+    /**
      * 过期时间：1分钟（秒）
      */
     public static final long EXPIRE_ONE_MINUTE = 60;

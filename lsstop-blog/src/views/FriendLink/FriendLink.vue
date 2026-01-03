@@ -57,7 +57,7 @@
 import Comment from '@/components/Comment/BlogComment.vue'
 import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { listFriendLink } from '@/apis/friendLink'
+import { listFriendLink, type FriendLinkVo } from '@/apis/friendLink'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig.ts'
 import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
@@ -70,7 +70,7 @@ const { config: websiteConfig } = storeToRefs(websiteConfigStore)
 
 const snackbarStore = useSnackbarStore()
 
-const friendLinkList = ref<FriendLink[]>([])
+const friendLinkList = ref<FriendLinkVo[]>([])
 
 onMounted(() => {
   listFriendLink()
@@ -81,13 +81,6 @@ onMounted(() => {
       snackbarStore.error('获取友链列表失败')
     })
 })
-
-interface FriendLink {
-  linkName: string
-  linkAvatar: string
-  linkAddress: string
-  linkIntro: string
-}
 </script>
 
 <style scoped>

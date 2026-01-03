@@ -1,18 +1,35 @@
 import http from '@/utils/http.ts'
 
+/** 留言信息 */
+export interface MessageVo {
+  /** 用户头像 */
+  avatar: string
+  /** 用户昵称 */
+  nickname: string
+  /** 留言内容 */
+  messageContent: string
+  /** 审核状态 */
+  review: number
+}
+
+/** 添加留言请求参数 */
+export interface AddMessageDto {
+  /** 用户头像 */
+  avatar: string
+  /** 用户昵称 */
+  nickname: string
+  /** 留言内容 */
+  messageContent: string
+  /** 审核状态 */
+  review: number
+}
+
 // 查询留言板列表
 export function listMessage() {
-  return http({
-    url: '/message/listMessage',
-    method: 'get',
-  })
+  return http.get<MessageVo[]>('/message/listMessage')
 }
 
 // 用户添加留言
-export const addMessage = (data: object) => {
-  return http.request({
-    url: '/message/addMessage',
-    method: 'post',
-    data,
-  })
+export const addMessage = (data: AddMessageDto) => {
+  return http.post<null>('/message/addMessage', data)
 }
