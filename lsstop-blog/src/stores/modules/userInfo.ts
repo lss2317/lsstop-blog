@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, shallowRef } from 'vue'
+import { shallowRef } from 'vue'
 import { getUserInfo } from '@/apis/user'
 
 export interface UserInfo {
@@ -33,9 +33,6 @@ const useUserInfoStore = defineStore('userInfo', () => {
   const userInfo = shallowRef<UserInfo>({ ...defaultUserInfo })
   const blogInfo = shallowRef<Record<string, unknown>>({})
 
-  // 是否已登录
-  const isLoggedIn = computed(() => !!userInfo.value.userId)
-
   // 设置用户信息
   function setUserInfo(info: Partial<UserInfo>) {
     userInfo.value = { ...userInfo.value, ...info }
@@ -66,11 +63,10 @@ const useUserInfoStore = defineStore('userInfo', () => {
   return {
     userInfo,
     blogInfo,
-    isLoggedIn,
     setUserInfo,
     clearUserInfo,
     setBlogInfo,
-    fetchUserInfo
+    fetchUserInfo,
   }
 })
 

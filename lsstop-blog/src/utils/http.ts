@@ -1,6 +1,6 @@
 // 封装axios
 import axios from 'axios'
-import type { AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
+import type { AxiosRequestConfig, InternalAxiosRequestConfig, AxiosError } from 'axios'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { tokenManager } from '@/utils/token'
@@ -42,10 +42,23 @@ const instance = axios.create({
   },
 })
 
+// 标记是否正在刷新token
+let isRefreshing = false
+// 等待刷新token的请求队列
+let requestsQueue: Array<(token: string) => void> = []
+// 请求计数器，用于控制NProgress
+let requestCount = 0
+
 // request拦截器
 instance.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    NProgress.start()
+  (config: InternalAxiosRequestConfig & { _isRetry?: boolean }) => {
+    // 重试请求不参与计数（原请求已经计过了）
+    if (!config._isRetry) {
+      if (requestCount === 0) {
+        NProgress.start()
+      }
+      requestCount++
+    }
 
     // 如果有token，添加到请求头
     const token = tokenManager.getAccessToken()
@@ -55,6 +68,10 @@ instance.interceptors.request.use(
     return config
   },
   (error) => {
+    requestCount--
+    if (requestCount === 0) {
+      NProgress.done()
+    }
     return Promise.reject(error)
   },
 )
@@ -62,11 +79,89 @@ instance.interceptors.request.use(
 // response拦截器
 instance.interceptors.response.use(
   (response) => {
-    NProgress.done()
+    const config = response.config as InternalAxiosRequestConfig & { _isRetry?: boolean }
+    // 重试请求不参与计数
+    if (!config._isRetry) {
+      requestCount--
+      if (requestCount === 0) {
+        NProgress.done()
+      }
+    }
     return response.data
   },
-  (error) => {
-    NProgress.done()
+  async (error: AxiosError<ApiResponse>) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean; _isRetry?: boolean }
+    
+    // 重试请求不参与计数
+    if (!originalRequest._isRetry) {
+      requestCount--
+      if (requestCount === 0) {
+        NProgress.done()
+      }
+    }
+
+    // 如果是401错误且未重试过，尝试刷新token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      // 刷新token的请求不重试
+      if (originalRequest.url?.includes('/auth/refresh')) {
+        tokenManager.clearTokens()
+        return Promise.reject(error)
+      }
+
+      if (isRefreshing) {
+        // 如果正在刷新，将请求加入队列等待
+        return new Promise((resolve) => {
+          requestsQueue.push((token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`
+            originalRequest._isRetry = true
+            resolve(instance(originalRequest))
+          })
+        })
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      const refreshTokenValue = tokenManager.getRefreshToken()
+      if (!refreshTokenValue) {
+        tokenManager.clearTokens()
+        isRefreshing = false
+        return Promise.reject(error)
+      }
+
+      try {
+        // 刷新token
+        const response = await axios.post<ApiResponse<{ accessToken: string; refreshToken: string }>>(
+          '/api/front/auth/refresh',
+          { refreshToken: refreshTokenValue },
+          { headers: { 'Content-Type': 'application/json;charset=UTF-8' } }
+        )
+
+        if (response.data.code === 200 && response.data.data) {
+          const { accessToken, refreshToken } = response.data.data
+          tokenManager.setTokens(accessToken, refreshToken)
+
+          // 执行队列中的请求
+          requestsQueue.forEach((callback) => callback(accessToken))
+          requestsQueue = []
+
+          // 重试原请求，标记为重试请求
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`
+          originalRequest._isRetry = true
+          return instance(originalRequest)
+        } else {
+          tokenManager.clearTokens()
+          return Promise.reject(error)
+        }
+      } catch (refreshError) {
+        tokenManager.clearTokens()
+        requestsQueue = []
+        return Promise.reject(refreshError)
+      } finally {
+        isRefreshing = false
+      }
+    }
+
     return Promise.reject(error)
   },
 )

@@ -118,12 +118,13 @@ blockquote {
 .link-avatar {
   margin-top: 5px;
   margin-left: 10px;
-  transition: all 0.4s ease;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   flex-shrink: 0;
   opacity: 1;
   width: 65px;
   overflow: hidden;
+  transform: scale(1);
 }
 
 .link-avatar :deep(img) {
@@ -189,6 +190,7 @@ blockquote {
   opacity: 0;
   width: 0;
   margin-left: 0;
+  transform: scale(0);
 }
 
 .link-wrapper a {

@@ -38,13 +38,13 @@ const pageInfoStore = usePageInfoStore()
 const likeStore = useLikeStore()
 const userInfoStore = useUserInfoStore()
 
-onMounted(() => {
-  websiteConfigStore.fetchWebsiteConfig()
-  pageInfoStore.fetchPageList()
-  likeStore.fetchUserLike()
-  // 有token时获取用户信息
+onMounted(async () => {
+  void websiteConfigStore.fetchWebsiteConfig()
+  void pageInfoStore.fetchPageList()
+  // 有token时先获取用户信息，再获取点赞数据
   if (tokenManager.hasToken()) {
-    userInfoStore.fetchUserInfo()
+    await userInfoStore.fetchUserInfo()
+    void likeStore.fetchUserLike()
   }
 })
 

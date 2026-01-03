@@ -2,8 +2,7 @@ package com.lsstop.service;
 
 import com.lsstop.domain.dataObject.LoginDTO;
 import com.lsstop.domain.vo.LoginVO;
-
-import java.util.Map;
+import com.lsstop.domain.vo.TokenVO;
 
 /**
  * 认证服务
@@ -34,6 +33,6 @@ public interface AuthService {
      * @param refreshToken 刷新token
      * @return 新的token信息
      */
-    Map<String, String> refreshToken(String refreshToken);
+    TokenVO refreshToken(String refreshToken);
 
 }

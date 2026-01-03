@@ -3,7 +3,9 @@ package com.lsstop.controller;
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
 import com.lsstop.domain.dataObject.LoginDTO;
+import com.lsstop.domain.dto.RefreshTokenDTO;
 import com.lsstop.domain.vo.LoginVO;
+import com.lsstop.domain.vo.TokenVO;
 import com.lsstop.service.AuthService;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -35,5 +37,15 @@ public class AuthController {
         return Result.success(authService.login(loginDTO));
     }
 
+    /**
+     * 刷新token
+     *
+     * @param dto 刷新token请求参数
+     * @return 新的token信息
+     */
+    @PostMapping("/front/auth/refresh")
+    public Result<TokenVO> refreshToken(@RequestBody @Validated RefreshTokenDTO dto) {
+        return Result.success(authService.refreshToken(dto.getRefreshToken()));
+    }
 
 }

@@ -70,12 +70,13 @@
             <i class="iconfont iconpinglunzu" /> 留言
           </a>
         </div>
-        <div class="menus-item">
-          <a class="menu-btn" v-if="!avatar" @click="openLoginDialog">
+        <div class="menus-item user-menu">
+          <a class="menu-btn" v-if="!isLoggedIn" @click="openLoginDialog">
             <i class="iconfont icondenglu" /> 登录
           </a>
           <template v-else>
-            <img class="user-avatar" :src="avatar" height="30" width="30" />
+            <img v-if="avatar" class="user-avatar" :src="avatar" height="30" width="30" />
+            <i v-else class="iconfont icongerenzhongxin user-icon" />
             <ul class="menus-submenu">
               <li>
                 <a @click="navigateTo('/user')">
@@ -93,10 +94,12 @@
   </v-app-bar>
 </template>
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDrawerStore } from '@/stores/modules/drawer'
 import { useLoginStore } from '@/stores/modules/login'
+import useUserInfoStore from '@/stores/modules/userInfo'
+import { tokenManager } from '@/utils/token'
 
 const router = useRouter()
 const drawerStore = useDrawerStore()
@@ -105,6 +108,10 @@ const { openDrawer } = drawerStore
 const loginStore = useLoginStore()
 const { openLoginDialog } = loginStore
 
+const userInfoStore = useUserInfoStore()
+const avatar = computed(() => userInfoStore.userInfo.avatar)
+const isLoggedIn = computed(() => tokenManager.hasToken())
+
 // 导航并滚动到顶部
 function navigateTo(path: string) {
   router.push(path).then(() => {
@@ -112,7 +119,6 @@ function navigateTo(path: string) {
   })
 }
 
-const avatar = ref('')
 const navClass = ref<'nav' | 'nav-fixed'>('nav')
 
 const handleScroll = () => {
@@ -254,13 +260,27 @@ ul {
   border-radius: 50%;
 }
 
-.menus-item:hover .menus-submenu {
+.user-menu {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+}
+
+.user-icon {
+  font-size: 24px;
+  cursor: pointer;
+  color: inherit;
+}
+
+.menus-item:hover .menus-submenu,
+.user-menu:hover .menus-submenu {
   display: block;
 }
 
 .menus-submenu {
   position: absolute;
   display: none;
+  top: 100%;
   right: 0;
   width: max-content;
   margin-top: 8px;
@@ -277,6 +297,21 @@ ul {
   left: 0;
   width: 100%;
   height: 20px;
+  content: '';
+}
+
+.menus-submenu:after {
+  display: none;
+}
+
+.user-menu .menus-submenu:after {
+  display: block;
+  position: absolute;
+  top: -6px;
+  right: 12px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #fff;
   content: '';
 }
 

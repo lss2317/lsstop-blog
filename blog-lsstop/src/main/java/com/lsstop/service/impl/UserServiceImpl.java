@@ -1,7 +1,6 @@
 package com.lsstop.service.impl;
 
 import com.lsstop.domain.dataObject.UserProfileDO;
-import com.lsstop.domain.vo.LoginVO;
 import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.service.UserService;

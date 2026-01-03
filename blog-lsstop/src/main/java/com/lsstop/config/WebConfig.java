@@ -28,6 +28,7 @@ public class WebConfig implements WebMvcConfigurer {
 
         // 前台拦截器 - 拦截 /front/** 路径，必须登录且使用front token
         registry.addInterceptor(frontAuthInterceptor)
-                .addPathPatterns("/front/**");
+                .addPathPatterns("/front/**")
+                .excludePathPatterns("/front/auth/*");
     }
 }

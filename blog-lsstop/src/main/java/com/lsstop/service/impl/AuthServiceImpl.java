@@ -5,6 +5,7 @@ import com.lsstop.domain.dataObject.LoginDTO;
 import com.lsstop.domain.dataObject.UserAuthDO;
 import com.lsstop.domain.dataObject.UserProfileDO;
 import com.lsstop.domain.vo.LoginVO;
+import com.lsstop.domain.vo.TokenVO;
 import com.lsstop.enums.LoginTypeEnum;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.service.AuthService;
@@ -13,9 +14,6 @@ import com.lsstop.utils.PasswordUtils;
 import com.lsstop.utils.RedisUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 认证服务实现类
@@ -140,7 +138,7 @@ public class AuthServiceImpl implements AuthService {
      * @return 新的token信息
      */
     @Override
-    public Map<String, String> refreshToken(String refreshToken) {
+    public TokenVO refreshToken(String refreshToken) {
         // 验证refreshToken
         if (!jwtUtils.validateRefreshToken(refreshToken)) {
             throw new RuntimeException("refreshToken无效");
@@ -157,10 +155,10 @@ public class AuthServiceImpl implements AuthService {
         // 更新Redis中的refreshToken
         redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userId, tokenPair.getRefreshToken());
         // 返回新token
-        Map<String, String> tokenMap = new HashMap<>(2);
-        tokenMap.put("accessToken", tokenPair.getAccessToken());
-        tokenMap.put("refreshToken", tokenPair.getRefreshToken());
-        return tokenMap;
+        return TokenVO.builder()
+                .accessToken(tokenPair.getAccessToken())
+                .refreshToken(tokenPair.getRefreshToken())
+                .build();
     }
 
 }

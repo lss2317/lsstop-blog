@@ -9,7 +9,7 @@
     <!-- 博主介绍 -->
     <div class="blogger-info">
       <v-avatar size="110" style="margin-bottom: 0.5rem">
-        <img :src="avatar" />
+        <v-img :src="avatar" cover />
       </v-avatar>
     </div>
     <!-- 博客信息 -->
@@ -18,7 +18,7 @@
         <a @click="navigateTo('/archives')">
           <div style="font-size: 0.875rem">文章</div>
           <div style="font-size: 1.125rem">
-            {{ avatar }}
+            {{ articleCount }}
           </div>
         </a>
       </div>
@@ -26,7 +26,7 @@
         <a @click="navigateTo('/categories')">
           <div style="font-size: 0.875rem">分类</div>
           <div style="font-size: 1.125rem">
-            {{ avatar }}
+            {{ categoriesCount }}
           </div>
         </a>
       </div>
@@ -34,7 +34,7 @@
         <a @click="navigateTo('/tags')">
           <div style="font-size: 0.875rem">标签</div>
           <div style="font-size: 1.125rem">
-            {{ avatar }}
+            {{ labelCount }}
           </div>
         </a>
       </div>
@@ -69,7 +69,7 @@
       <div class="menus-item">
         <a @click="navigateTo('/message')"> <i class="iconfont iconpinglunzu" /> 留言 </a>
       </div>
-      <div class="menus-item" v-if="!avatar">
+      <div class="menus-item" v-if="!isLoggedIn">
         <a><i class="iconfont icondenglu" /> 登录 </a>
       </div>
       <div v-else>
@@ -85,16 +85,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useDrawerStore } from '@/stores/modules/drawer'
+import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
+import { tokenManager } from '@/utils/token'
 
 const router = useRouter()
 const drawerStore = useDrawerStore()
 const { drawer } = storeToRefs(drawerStore)
 
-const avatar = ref('1112')
+const websiteConfigStore = useWebsiteConfigStore()
+const { config } = storeToRefs(websiteConfigStore)
+const avatar = computed(() => config.value.websiteAvatar)
+
+
+const isLoggedIn = computed(() => tokenManager.hasToken())
+
+const articleCount = ref(0)
+const categoriesCount = ref(0)
+const labelCount = ref(0)
 
 // 导航并滚动到顶部
 function navigateTo(path: string) {
@@ -110,32 +121,39 @@ function navigateTo(path: string) {
   padding: 26px 30px 0;
   text-align: center;
 }
+
 .blog-info-wrapper {
   display: flex;
   align-items: center;
   padding: 12px 10px 0;
 }
+
 .blog-info-data {
   flex: 1;
   line-height: 2;
   text-align: center;
 }
+
 hr {
   border: 2px dashed #d2ebfd;
   margin: 20px 0;
 }
+
 .menu-container {
   padding: 0 10px 40px;
   animation: 0.8s ease 0s 1 normal none running sidebarItem;
 }
+
 .menus-item a {
   padding: 6px 30px;
   display: block;
   line-height: 2;
 }
+
 .menus-item i {
   margin-right: 2rem;
 }
+
 @keyframes sidebarItem {
   0% {
     transform: translateX(200px);
