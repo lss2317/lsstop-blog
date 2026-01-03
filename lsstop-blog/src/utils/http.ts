@@ -4,6 +4,7 @@ import type { AxiosRequestConfig, InternalAxiosRequestConfig, AxiosError } from 
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { tokenManager } from '@/utils/token'
+import useUserInfoStore from '@/stores/modules/userInfo'
 
 // 统一响应结构
 export interface ApiResponse<T = unknown> {
@@ -105,6 +106,7 @@ instance.interceptors.response.use(
       // 刷新token的请求不重试
       if (originalRequest.url?.includes('/auth/refresh')) {
         tokenManager.clearTokens()
+        useUserInfoStore().clearUserInfo()
         return Promise.reject(error)
       }
 
@@ -125,6 +127,7 @@ instance.interceptors.response.use(
       const refreshTokenValue = tokenManager.getRefreshToken()
       if (!refreshTokenValue) {
         tokenManager.clearTokens()
+        useUserInfoStore().clearUserInfo()
         isRefreshing = false
         return Promise.reject(error)
       }
@@ -151,10 +154,12 @@ instance.interceptors.response.use(
           return instance(originalRequest)
         } else {
           tokenManager.clearTokens()
+          useUserInfoStore().clearUserInfo()
           return Promise.reject(error)
         }
       } catch (refreshError) {
         tokenManager.clearTokens()
+        useUserInfoStore().clearUserInfo()
         requestsQueue = []
         return Promise.reject(refreshError)
       } finally {

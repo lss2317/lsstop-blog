@@ -11,7 +11,6 @@
             label="邮箱"
             variant="underlined"
             hide-details
-            @keyup.enter="login"
           />
           <v-text-field
             v-model="loginForm.password"
@@ -19,7 +18,6 @@
             label="密码"
             variant="underlined"
             hide-details
-            @keyup.enter="login"
             :append-inner-icon="loginForm.showPwd ? 'mdi-eye' : 'mdi-eye-off'"
             :type="loginForm.showPwd ? 'text' : 'password'"
             @click:append-inner="loginForm.showPwd = !loginForm.showPwd"
@@ -58,7 +56,6 @@
             label="邮箱"
             variant="underlined"
             hide-details
-            @keyup.enter="codeLogin"
           />
           <div class="code-input-wrapper mt-8">
             <v-text-field
@@ -66,7 +63,6 @@
               label="验证码"
               variant="underlined"
               hide-details
-              @keyup.enter="codeLogin"
             />
             <span
               class="send-code-btn"
@@ -133,7 +129,6 @@
             :append-inner-icon="registerForm.showConfirmPwd ? 'mdi-eye' : 'mdi-eye-off'"
             :type="registerForm.showConfirmPwd ? 'text' : 'password'"
             @click:append-inner="registerForm.showConfirmPwd = !registerForm.showConfirmPwd"
-            @keyup.enter="register"
           />
           <v-btn
             class="mt-10 login-btn"
@@ -195,7 +190,6 @@
             :append-inner-icon="forgetForm.showConfirmPwd ? 'mdi-eye' : 'mdi-eye-off'"
             :type="forgetForm.showConfirmPwd ? 'text' : 'password'"
             @click:append-inner="forgetForm.showConfirmPwd = !forgetForm.showConfirmPwd"
-            @keyup.enter="resetPassword"
           />
           <v-btn
             class="mt-10 login-btn"
@@ -222,12 +216,14 @@ import { useLoginStore } from '@/stores/modules/login'
 import { storeToRefs } from 'pinia'
 import { login as loginApi } from '@/apis/auth'
 import useUserInfoStore from '@/stores/modules/userInfo'
+import useLikeStore from '@/stores/modules/like'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
 import { LoginType } from '@/constants/user'
 import { tokenManager } from '@/utils/token'
 
 const loginStore = useLoginStore()
 const userInfoStore = useUserInfoStore()
+const likeStore = useLikeStore()
 const snackbar = useSnackbarStore()
 const { dialogVisible, loginDialog, codeLoginDialog, registerDialog, forgetDialog } =
   storeToRefs(loginStore)
@@ -348,6 +344,8 @@ const login = async () => {
     if (res.data.accessToken && res.data.refreshToken) {
       tokenManager.setTokens(res.data.accessToken, res.data.refreshToken)
     }
+    // 获取用户点赞数据
+    likeStore.fetchUserLike()
     snackbar.success('登录成功')
     // 关闭弹框并重置表单
     closeAllDialogs()

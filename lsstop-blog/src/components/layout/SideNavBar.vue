@@ -70,14 +70,14 @@
         <a @click="navigateTo('/message')"> <i class="iconfont iconpinglunzu" /> 留言 </a>
       </div>
       <div class="menus-item" v-if="!isLoggedIn">
-        <a><i class="iconfont icondenglu" /> 登录 </a>
+        <a @click="openLoginDialog"><i class="iconfont icondenglu" /> 登录 </a>
       </div>
       <div v-else>
         <div class="menus-item">
           <a @click="navigateTo('/user')"> <i class="iconfont icongerenzhongxin" /> 个人中心 </a>
         </div>
         <div class="menus-item">
-          <a><i class="iconfont icontuichu" /> 退出</a>
+          <a @click="handleLogout"><i class="iconfont icontuichu" /> 退出</a>
         </div>
       </div>
     </div>
@@ -89,19 +89,36 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useDrawerStore } from '@/stores/modules/drawer'
+import { useLoginStore } from '@/stores/modules/login'
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
+import useUserInfoStore from '@/stores/modules/userInfo'
+import useLikeStore from '@/stores/modules/like'
+import { useSnackbarStore } from '@/stores/modules/snackbar'
 import { tokenManager } from '@/utils/token'
 
 const router = useRouter()
 const drawerStore = useDrawerStore()
 const { drawer } = storeToRefs(drawerStore)
 
+const loginStore = useLoginStore()
+const { openLoginDialog } = loginStore
+
 const websiteConfigStore = useWebsiteConfigStore()
 const { config } = storeToRefs(websiteConfigStore)
 const avatar = computed(() => config.value.websiteAvatar)
 
+const userInfoStore = useUserInfoStore()
+const likeStore = useLikeStore()
+const snackbarStore = useSnackbarStore()
+const isLoggedIn = computed(() => !!userInfoStore.userInfo.userId)
 
-const isLoggedIn = computed(() => tokenManager.hasToken())
+// 退出登录
+function handleLogout() {
+  tokenManager.clearTokens()
+  userInfoStore.clearUserInfo()
+  likeStore.clearAll()
+  snackbarStore.success('退出成功')
+}
 
 const articleCount = ref(0)
 const categoriesCount = ref(0)

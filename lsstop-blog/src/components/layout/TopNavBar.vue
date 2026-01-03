@@ -84,7 +84,7 @@
                 </a>
               </li>
               <li>
-                <a><i class="iconfont icontuichu" /> 退出</a>
+                <a @click="handleLogout"><i class="iconfont icontuichu" /> 退出</a>
               </li>
             </ul>
           </template>
@@ -99,6 +99,8 @@ import { useRouter } from 'vue-router'
 import { useDrawerStore } from '@/stores/modules/drawer'
 import { useLoginStore } from '@/stores/modules/login'
 import useUserInfoStore from '@/stores/modules/userInfo'
+import useLikeStore from '@/stores/modules/like'
+import { useSnackbarStore } from '@/stores/modules/snackbar'
 import { tokenManager } from '@/utils/token'
 
 const router = useRouter()
@@ -109,8 +111,18 @@ const loginStore = useLoginStore()
 const { openLoginDialog } = loginStore
 
 const userInfoStore = useUserInfoStore()
+const likeStore = useLikeStore()
+const snackbarStore = useSnackbarStore()
 const avatar = computed(() => userInfoStore.userInfo.avatar)
-const isLoggedIn = computed(() => tokenManager.hasToken())
+const isLoggedIn = computed(() => !!userInfoStore.userInfo.userId)
+
+// 退出登录
+function handleLogout() {
+  tokenManager.clearTokens()
+  userInfoStore.clearUserInfo()
+  likeStore.clearAll()
+  snackbarStore.success('退出成功')
+}
 
 // 导航并滚动到顶部
 function navigateTo(path: string) {
