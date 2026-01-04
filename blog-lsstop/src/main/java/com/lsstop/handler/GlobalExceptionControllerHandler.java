@@ -2,10 +2,12 @@ package com.lsstop.handler;
 
 import com.lsstop.common.Result;
 import com.lsstop.enums.StatusEnum;
+import com.lsstop.exception.BusinessException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -45,17 +47,30 @@ public class GlobalExceptionControllerHandler {
     }
 
     /**
-     * 处理运行时异常（业务异常）
-     * <p>项目中抛出的RuntimeException主要用于业务错误，如“密码错误”、“用户不存在”等</p>
+     * 处理业务异常
+     * <p>支持自定义业务码和HTTP状态码</p>
+     *
+     * @param e 业务异常
+     * @return 统一错误响应
+     */
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<Result<Void>> handleBusinessException(BusinessException e) {
+        log.warn("业务异常: {}", e.getMessage());
+        return ResponseEntity.status(e.getHttpStatus())
+                .body(Result.failure(e.getCode(), e.getMessage()));
+    }
+    
+    /**
+     * 处理运行时异常
      *
      * @param e 运行时异常
      * @return 统一错误响应
      */
     @ExceptionHandler(RuntimeException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result<Void> handleRuntimeException(RuntimeException e) {
-        log.warn("业务异常: {}", e.getMessage());
-        return Result.failure(e.getMessage());
+        log.error("运行时异常: ", e);
+        return Result.failure("系统异常，请稍后重试");
     }
 
     /**

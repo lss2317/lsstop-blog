@@ -26,7 +26,7 @@ const defaultUserInfo: UserInfo = {
   website: null,
   intro: null,
   accessToken: null,
-  refreshToken: null
+  refreshToken: null,
 }
 
 const useUserInfoStore = defineStore('userInfo', () => {

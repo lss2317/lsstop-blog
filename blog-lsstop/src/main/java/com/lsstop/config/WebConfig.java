@@ -22,13 +22,14 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-//        // 后台拦截器 - 拦截 /admin/** 路径，必须登录且使用admin token
-//        registry.addInterceptor(adminAuthInterceptor)
-//                .addPathPatterns("/admin/**");
+        // 后台拦截器 - 拦截 /admin/** 路径，必须登录且使用admin token
+        registry.addInterceptor(adminAuthInterceptor)
+                .addPathPatterns("/admin/**");
 
-        // 前台拦截器 - 拦截 /front/** 路径，必须登录且使用front token
-//        registry.addInterceptor(frontAuthInterceptor)
-//                .addPathPatterns("/front/**")
-//                .excludePathPatterns("/front/auth/*");
+        // 前台拦截器 - 拦截需要登录的 /front/** 路径
+        registry.addInterceptor(frontAuthInterceptor)
+                .addPathPatterns("/front/like/**",
+                        "/front/message/addMessage",
+                        "/front/user/info");
     }
 }

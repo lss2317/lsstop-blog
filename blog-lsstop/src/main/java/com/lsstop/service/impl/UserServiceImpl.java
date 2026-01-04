@@ -2,6 +2,7 @@ package com.lsstop.service.impl;
 
 import com.lsstop.domain.dataObject.UserProfileDO;
 import com.lsstop.domain.vo.UserInfoVO;
+import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.service.UserService;
 import jakarta.annotation.Resource;
@@ -29,7 +30,7 @@ public class UserServiceImpl implements UserService {
     public UserInfoVO getUserProfile(String userId) {
         UserProfileDO userProfile = authMapper.selectProfileById(userId);
         if (userProfile == null) {
-            throw new RuntimeException("用户不存在");
+            throw new BusinessException("用户不存在");
         }
         return userProfile.asViewObject(UserInfoVO.class);
     }

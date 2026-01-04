@@ -1,12 +1,15 @@
 package com.lsstop.service.impl;
 
 import com.lsstop.constant.RedisConst;
-import com.lsstop.domain.dataObject.LoginDTO;
 import com.lsstop.domain.dataObject.UserAuthDO;
 import com.lsstop.domain.dataObject.UserProfileDO;
+import com.lsstop.domain.dto.EmailLoginDTO;
+import com.lsstop.domain.dto.QQLoginDTO;
+import com.lsstop.domain.dto.WeiboLoginDTO;
 import com.lsstop.domain.vo.LoginVO;
 import com.lsstop.domain.vo.TokenVO;
 import com.lsstop.enums.LoginTypeEnum;
+import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.service.AuthService;
 import com.lsstop.utils.JwtUtils;
@@ -34,89 +37,83 @@ public class AuthServiceImpl implements AuthService {
     private RedisUtils redisUtils;
 
     /**
-     * 用户登录
-     * <ul>
-     *     <li>邮箱密码登录：验证密码</li>
-     *     <li>QQ登录：验证QQ access_token</li>
-     *     <li>微博登录：验证微博access_token</li>
-     * </ul>
+     * 邮箱密码登录
      *
-     * @param loginDTO 登录参数
+     * @param dto 邮箱登录参数
      * @return 用户信息
      */
     @Override
-    public LoginVO login(LoginDTO loginDTO) {
-        // 根据标识和登录方式查询用户认证信息
-        UserAuthDO userAuth = authMapper.selectByLoginDTO(loginDTO);
+    public LoginVO emailLogin(EmailLoginDTO dto) {
+        // 查询用户认证信息
+        UserAuthDO userAuth = authMapper.selectByIdentifierAndType(dto.getEmail(), LoginTypeEnum.EMAIL.getCode());
         if (userAuth == null) {
-            throw new RuntimeException("用户不存在");
+            throw new BusinessException("用户不存在");
         }
 
-        // 根据登录方式进行不同的验证
-        LoginTypeEnum loginType = LoginTypeEnum.getByCode(loginDTO.getLoginType());
-        if (loginType == null) {
-            throw new RuntimeException("不支持的登录方式");
+        // 验证密码
+        if (!PasswordUtils.verify(dto.getPassword(), userAuth.getCredential())) {
+            throw new BusinessException("密码错误");
         }
 
-        switch (loginType) {
-            case EMAIL -> validateEmailLogin(userAuth, loginDTO);
-            case QQ -> validateQQLogin(userAuth, loginDTO);
-            case WEIBO -> validateWeiboLogin(userAuth, loginDTO);
-        }
+        return buildLoginVO(userAuth);
+    }
 
+    /**
+     * QQ登录
+     *
+     * @param dto QQ登录参数
+     * @return 用户信息
+     */
+    @Override
+    public LoginVO qqLogin(QQLoginDTO dto) {
+        // TODO: 调用QQ开放平台接口验证access_token
+        // 1. 使用accessToken调用QQ接口获取openId
+        // 2. 根据 openId 查询用户认证信息
+        // UserAuthDO userAuth = authMapper.selectByIdentifierAndType(openId, LoginTypeEnum.QQ.getCode());
+        // 3. 如果用户不存在，可考虑自动注册
+        // 4. 返回登录结果
+        // return buildLoginVO(userAuth);
+        throw new BusinessException("QQ登录功能暂未实现");
+    }
+
+    /**
+     * 微博登录
+     *
+     * @param dto 微博登录参数
+     * @return 用户信息
+     */
+    @Override
+    public LoginVO weiboLogin(WeiboLoginDTO dto) {
+        // TODO: 调用微博开放平台接口验证access_token
+        // 1. 使用accessToken调用微博接口获取uid
+        // 2. 根据 uid 查询用户认证信息
+        // UserAuthDO userAuth = authMapper.selectByIdentifierAndType(uid, LoginTypeEnum.WEIBO.getCode());
+        // 3. 如果用户不存在，可考虑自动注册
+        // 4. 返回登录结果
+        // return buildLoginVO(userAuth);
+        throw new BusinessException("微博登录功能暂未实现");
+    }
+
+    /**
+     * 构建登录返回结果
+     *
+     * @param userAuth  用户认证信息
+     * @return 登录结果
+     */
+    private LoginVO buildLoginVO(UserAuthDO userAuth) {
         // 查询用户资料
         UserProfileDO userProfileDO = authMapper.selectProfileById(userAuth.getUserId());
         LoginVO loginVO = userProfileDO.asViewObject(LoginVO.class);
-        loginVO.setLoginType(loginDTO.getLoginType());
 
         // 生成token
         JwtUtils.TokenPair tokenPair = jwtUtils.generateFrontTokenPair(userAuth.getUserId());
         loginVO.setAccessToken(tokenPair.getAccessToken());
         loginVO.setRefreshToken(tokenPair.getRefreshToken());
+
         // 存储refreshToken到Redis
         redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userAuth.getUserId(), tokenPair.getRefreshToken());
+
         return loginVO;
-    }
-
-    /**
-     * 邮箱密码登录验证
-     * <p>使用PBKDF2WithHmacSHA256算法验证密码，将用户输入的明文密码与数据库中存储的加密密码进行比对</p>
-     *
-     * @param userAuth 用户认证信息（credential字段存储加密后的密码）
-     * @param loginDTO 登录参数（credential字段为用户输入的明文密码）
-     */
-    private void validateEmailLogin(UserAuthDO userAuth, LoginDTO loginDTO) {
-        if (!PasswordUtils.verify(loginDTO.getCredential(), userAuth.getCredential())) {
-            throw new RuntimeException("密码错误");
-        }
-    }
-
-    /**
-     * QQ登录验证
-     * <p>验证QQ OAuth返回的access_token有效性</p>
-     *
-     * @param userAuth 用户认证信息
-     * @param loginDTO 登录参数（credential为QQ access_token）
-     */
-    private void validateQQLogin(UserAuthDO userAuth, LoginDTO loginDTO) {
-        // TODO: 调用QQ开放平台接口验证access_token
-        // 1. 使用access_token调用QQ接口获取openId
-        // 2. 比对openId与userAuth.identifier是否一致
-        throw new RuntimeException("QQ登录功能暂未实现");
-    }
-
-    /**
-     * 微博登录验证
-     * <p>验证微博OAuth返回的access_token有效性</p>
-     *
-     * @param userAuth 用户认证信息
-     * @param loginDTO 登录参数（credential为微博access_token）
-     */
-    private void validateWeiboLogin(UserAuthDO userAuth, LoginDTO loginDTO) {
-        // TODO: 调用微博开放平台接口验证access_token
-        // 1. 使用access_token调用微博接口获取uid
-        // 2. 比对uid与userAuth.identifier是否一致
-        throw new RuntimeException("微博登录功能暂未实现");
     }
 
     /**
@@ -141,14 +138,14 @@ public class AuthServiceImpl implements AuthService {
     public TokenVO refreshToken(String refreshToken) {
         // 验证refreshToken
         if (!jwtUtils.validateRefreshToken(refreshToken)) {
-            throw new RuntimeException("refreshToken无效");
+            throw new BusinessException("refreshToken无效");
         }
         // 获取用户ID
         String userId = jwtUtils.getSubject(refreshToken);
         // 检查Redis中的refreshToken是否一致
         String storedToken = redisUtils.get(RedisConst.FRONT_REFRESH_TOKEN + userId, String.class);
         if (storedToken == null || !storedToken.equals(refreshToken)) {
-            throw new RuntimeException("refreshToken已过期");
+            throw new BusinessException("refreshToken已过期");
         }
         // 生成新token
         JwtUtils.TokenPair tokenPair = jwtUtils.generateFrontTokenPair(userId);

@@ -1,6 +1,5 @@
 package com.lsstop.mapper;
 
-import com.lsstop.domain.dataObject.LoginDTO;
 import com.lsstop.domain.dataObject.UserAuthDO;
 import com.lsstop.domain.dataObject.UserProfileDO;
 import org.apache.ibatis.annotations.Param;
@@ -14,12 +13,14 @@ import org.apache.ibatis.annotations.Param;
 public interface AuthMapper {
 
     /**
-     * 根据登录信息查询用户认证信息
+     * 根据标识和登录类型查询用户认证信息
+     * <p>标识根据登录类型不同：邮箱登录为email，QQ登录为openId，微博登录为uid</p>
      *
-     * @param loginDTO 登录参数（包含标识和登录方式）
+     * @param identifier 登录标识（邮箱/openId/uid）
+     * @param loginType  登录类型
      * @return 用户认证信息
      */
-    UserAuthDO selectByLoginDTO(@Param("dto") LoginDTO loginDTO);
+    UserAuthDO selectByIdentifierAndType(@Param("identifier") String identifier, @Param("loginType") Integer loginType);
 
     /**
      * 根据用户ID查询用户资料

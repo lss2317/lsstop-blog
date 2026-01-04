@@ -19,12 +19,12 @@
         <result property="intro" column="intro" jdbcType="VARCHAR" javaType="java.lang.String"/>
     </resultMap>
 
-    <!-- 根据登录信息查询用户认证信息 -->
-    <select id="selectByLoginDTO" parameterType="com.lsstop.domain.dataObject.LoginDTO" resultMap="UserAuthResultMap">
+    <!-- 根据标识和登录类型查询用户认证信息 -->
+    <select id="selectByIdentifierAndType" resultMap="UserAuthResultMap">
         SELECT user_id, login_type, identifier, credential
         FROM blog_user_auth
-        WHERE identifier = #{dto.identifier}
-          AND login_type = #{dto.loginType}
+        WHERE identifier = #{identifier}
+          AND login_type = #{loginType}
           AND is_delete = 0
     </select>
 

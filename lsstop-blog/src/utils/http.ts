@@ -91,8 +91,11 @@ instance.interceptors.response.use(
     return response.data
   },
   async (error: AxiosError<ApiResponse>) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean; _isRetry?: boolean }
-    
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean
+      _isRetry?: boolean
+    }
+
     // 重试请求不参与计数
     if (!originalRequest._isRetry) {
       requestCount--
@@ -134,10 +137,12 @@ instance.interceptors.response.use(
 
       try {
         // 刷新token
-        const response = await axios.post<ApiResponse<{ accessToken: string; refreshToken: string }>>(
+        const response = await axios.post<
+          ApiResponse<{ accessToken: string; refreshToken: string }>
+        >(
           '/api/front/auth/refresh',
           { refreshToken: refreshTokenValue },
-          { headers: { 'Content-Type': 'application/json;charset=UTF-8' } }
+          { headers: { 'Content-Type': 'application/json;charset=UTF-8' } },
         )
 
         if (response.data.code === 200 && response.data.data) {

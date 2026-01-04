@@ -1,6 +1,8 @@
 package com.lsstop.service;
 
-import com.lsstop.domain.dataObject.LoginDTO;
+import com.lsstop.domain.dto.EmailLoginDTO;
+import com.lsstop.domain.dto.QQLoginDTO;
+import com.lsstop.domain.dto.WeiboLoginDTO;
 import com.lsstop.domain.vo.LoginVO;
 import com.lsstop.domain.vo.TokenVO;
 
@@ -13,12 +15,28 @@ import com.lsstop.domain.vo.TokenVO;
 public interface AuthService {
 
     /**
-     * 用户登录
+     * 邮箱密码登录
      *
-     * @param loginDTO 登录参数
+     * @param dto 邮箱登录参数
      * @return 用户信息
      */
-    LoginVO login(LoginDTO loginDTO);
+    LoginVO emailLogin(EmailLoginDTO dto);
+
+    /**
+     * QQ登录
+     *
+     * @param dto QQ登录参数
+     * @return 用户信息
+     */
+    LoginVO qqLogin(QQLoginDTO dto);
+
+    /**
+     * 微博登录
+     *
+     * @param dto 微博登录参数
+     * @return 用户信息
+     */
+    LoginVO weiboLogin(WeiboLoginDTO dto);
 
     /**
      * 用户登出

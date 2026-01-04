@@ -2,8 +2,10 @@ package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
-import com.lsstop.domain.dataObject.LoginDTO;
+import com.lsstop.domain.dto.EmailLoginDTO;
+import com.lsstop.domain.dto.QQLoginDTO;
 import com.lsstop.domain.dto.RefreshTokenDTO;
+import com.lsstop.domain.dto.WeiboLoginDTO;
 import com.lsstop.domain.vo.LoginVO;
 import com.lsstop.domain.vo.TokenVO;
 import com.lsstop.service.AuthService;
@@ -26,15 +28,39 @@ public class AuthController {
     private AuthService authService;
 
     /**
-     * 登录
+     * 邮箱密码登录
      *
-     * @param loginDTO 登录参数
+     * @param dto 邮箱登录参数
      * @return 登录结果
      */
-    @PostMapping("/front/auth/login")
+    @PostMapping("/front/auth/login/email")
     @AccessLimit(seconds = 60, maxCount = 10)
-    public Result<LoginVO> login(@RequestBody @Validated LoginDTO loginDTO) {
-        return Result.success(authService.login(loginDTO));
+    public Result<LoginVO> emailLogin(@RequestBody @Validated EmailLoginDTO dto) {
+        return Result.success(authService.emailLogin(dto));
+    }
+
+    /**
+     * QQ登录
+     *
+     * @param dto QQ登录参数
+     * @return 登录结果
+     */
+    @PostMapping("/front/auth/login/qq")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    public Result<LoginVO> qqLogin(@RequestBody @Validated QQLoginDTO dto) {
+        return Result.success(authService.qqLogin(dto));
+    }
+
+    /**
+     * 微博登录
+     *
+     * @param dto 微博登录参数
+     * @return 登录结果
+     */
+    @PostMapping("/front/auth/login/weibo")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    public Result<LoginVO> weiboLogin(@RequestBody @Validated WeiboLoginDTO dto) {
+        return Result.success(authService.weiboLogin(dto));
     }
 
     /**

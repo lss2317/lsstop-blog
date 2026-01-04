@@ -50,24 +50,28 @@ const useLikeStore = defineStore('like', () => {
     const snackbarStore = useSnackbarStore()
     const userId = userInfoStore.userInfo.userId
 
-    // 发送点赞请求
-    if (userId) {
-      try {
-        await toggleLikeApi({
-          userId: userId,
-          targetId: Number(id),
-          type,
-        })
-      } catch (error) {
-        // 请求失败，显示错误信息
-        console.error(error)
-        snackbarStore.error('点赞失败，请稍后重试')
-        // 请求失败时返回 null，让调用方知道失败了
-        return null
-      }
+    // 未登录时提示用户登录
+    if (!userId) {
+      snackbarStore.info('登录后即可点赞哦~')
+      return null
     }
 
-    // 请求成功或未登录，更新本地状态
+    // 发送点赞请求
+    try {
+      await toggleLikeApi({
+        userId: userId,
+        targetId: Number(id),
+        type,
+      })
+    } catch (error) {
+      // 请求失败，显示错误信息
+      console.error(error)
+      snackbarStore.error('点赞失败，请稍后重试')
+      // 请求失败时返回 null，让调用方知道失败了
+      return null
+    }
+
+    // 请求成功，更新本地状态
     switch (type) {
       case LikeTypeEnum.TALK:
         if (likedTalkIds.value.has(id as number)) {

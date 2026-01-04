@@ -39,7 +39,7 @@ public class Result<T> {
      * 成功响应，不需要返回数据
      */
     public static <T> Result<T> success() {
-        return new Result(StatusEnum.SUCCESS.getCode(), StatusEnum.SUCCESS.getMsg(), null);
+        return new Result<>(StatusEnum.SUCCESS.getCode(), StatusEnum.SUCCESS.getMsg(), null);
     }
 
     /**

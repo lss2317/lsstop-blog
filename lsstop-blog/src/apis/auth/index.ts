@@ -3,12 +3,10 @@ import type { UserInfo } from '@/stores/modules/userInfo'
 
 // 登录请求参数
 export interface LoginParams {
-  /** 登录方式标识符（邮箱） */
-  identifier: string
-  /** 登录凭证（密码/验证码等） */
-  credential: string
-  /** 登录方式：1邮箱密码 2QQ 3微博 */
-  loginType: number
+  /** 邮箱 */
+  email: string
+  /** 密码 */
+  password: string
 }
 
 // 注册请求参数
@@ -39,9 +37,9 @@ export interface SendCodeParams {
   type: number
 }
 
-// 用户登录
-export const login = (data: LoginParams) => {
-  return http.post<UserInfo>('/auth/login', data)
+// 邮箱登录
+export const emailLogin = (data: LoginParams) => {
+  return http.post<UserInfo>('/auth/login/email', data)
 }
 
 // 用户注册

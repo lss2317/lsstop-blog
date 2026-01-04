@@ -6,12 +6,7 @@
       <transition name="fade" mode="out-in">
         <!-- 密码登录 -->
         <div v-if="loginDialog" key="login" class="login-wrapper">
-          <v-text-field
-            v-model="loginForm.email"
-            label="邮箱"
-            variant="underlined"
-            hide-details
-          />
+          <v-text-field v-model="loginForm.email" label="邮箱" variant="underlined" hide-details />
           <v-text-field
             v-model="loginForm.password"
             class="mt-8"
@@ -214,11 +209,10 @@
 import { reactive, computed, ref } from 'vue'
 import { useLoginStore } from '@/stores/modules/login'
 import { storeToRefs } from 'pinia'
-import { login as loginApi } from '@/apis/auth'
+import { emailLogin } from '@/apis/auth'
 import useUserInfoStore from '@/stores/modules/userInfo'
 import useLikeStore from '@/stores/modules/like'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
-import { LoginType } from '@/constants/user'
 import { tokenManager } from '@/utils/token'
 
 const loginStore = useLoginStore()
@@ -318,20 +312,19 @@ const sendCodeForForget = () => {
 const login = async () => {
   // 表单验证
   if (!loginForm.email) {
-    snackbar.warning('请输入邮箱')
+    snackbar.info('请输入邮箱')
     return
   }
   if (!loginForm.password) {
-    snackbar.warning('请输入密码')
+    snackbar.info('请输入密码')
     return
   }
 
   loginLoading.value = true
   try {
-    const res = await loginApi({
-      identifier: loginForm.email,
-      credential: loginForm.password,
-      loginType: LoginType.EMAIL_PASSWORD,
+    const res = await emailLogin({
+      email: loginForm.email,
+      password: loginForm.password,
     })
     // 判断业务状态码
     if (res.code !== 200) {
@@ -345,7 +338,7 @@ const login = async () => {
       tokenManager.setTokens(res.data.accessToken, res.data.refreshToken)
     }
     // 获取用户点赞数据
-    likeStore.fetchUserLike()
+    void likeStore.fetchUserLike()
     snackbar.success('登录成功')
     // 关闭弹框并重置表单
     closeAllDialogs()

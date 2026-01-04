@@ -37,11 +37,6 @@ public class LoginVO {
     private String intro;
 
     /**
-     * 登录方式：1邮箱密码 2QQ 3微博
-     */
-    private Integer loginType;
-
-    /**
      * accessToken
      */
     private String accessToken;
