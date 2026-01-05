@@ -120,6 +120,25 @@ public class JwtUtils {
     }
 
     /**
+     * 获取Token中的主题信息（忽略过期校验）
+     * <p>用于退出登录等场景，即使token过期也需要解析出userId</p>
+     *
+     * @param token Token字符串
+     * @return 主题信息，解析失败返回null
+     */
+    public String getSubjectIgnoreExpiration(String token) {
+        try {
+            return parseToken(token).getSubject();
+        } catch (ExpiredJwtException e) {
+            // token过期时，仍可从异常中获取claims
+            return e.getClaims().getSubject();
+        } catch (Exception e) {
+            log.warn("Token解析失败: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * 获取Token来源（front-前台，admin-后台）
      *
      * @param token Token字符串

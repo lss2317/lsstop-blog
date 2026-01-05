@@ -63,8 +63,8 @@ jwt:
   front:
     # Access Token 过期时间：15分钟（毫秒）
     access-token-expiration: 900000
-    # Refresh Token 过期时间：1天（毫秒）
-    refresh-token-expiration: 86400000
+    # Refresh Token 过期时间：3天（毫秒）
+    refresh-token-expiration: 259200000
   # 后台配置
   admin:
     # Access Token 过期时间：10分钟（毫秒）

@@ -40,10 +40,11 @@ public interface AuthService {
 
     /**
      * 用户登出
+     * <p>根据refreshToken解析用户ID，清除Redis中的令牌</p>
      *
-     * @param userId 用户ID
+     * @param refreshToken 刷新令牌
      */
-    void logout(String userId);
+    void logout(String refreshToken);
 
     /**
      * 刷新token

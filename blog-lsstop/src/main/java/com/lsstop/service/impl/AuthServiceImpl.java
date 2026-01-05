@@ -118,13 +118,21 @@ public class AuthServiceImpl implements AuthService {
 
     /**
      * 用户登出
-     * <p>清除Redis中存储的refreshToken</p>
+     * <p>根据refreshToken解析用户ID，清除Redis中存储的refreshToken</p>
+     * <p>宽松处理：即使token过期或无效，也不报错，确保用户能正常退出</p>
      *
-     * @param userId 用户ID
+     * @param refreshToken 刷新令牌
      */
     @Override
-    public void logout(String userId) {
-        redisUtils.delete(RedisConst.FRONT_REFRESH_TOKEN + userId);
+    public void logout(String refreshToken) {
+        try {
+            String userId = jwtUtils.getSubjectIgnoreExpiration(refreshToken);
+            if (userId != null) {
+                redisUtils.delete(RedisConst.FRONT_REFRESH_TOKEN + userId);
+            }
+        } catch (Exception e) {
+            // 静默处理，退出登录不应因为token解析失败而报错
+        }
     }
 
     /**

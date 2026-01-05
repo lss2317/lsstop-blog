@@ -92,9 +92,7 @@ import { useDrawerStore } from '@/stores/modules/drawer'
 import { useLoginStore } from '@/stores/modules/login'
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
 import useUserInfoStore from '@/stores/modules/userInfo'
-import useLikeStore from '@/stores/modules/like'
-import { useSnackbarStore } from '@/stores/modules/snackbar'
-import { tokenManager } from '@/utils/token'
+import { useAuthStore } from '@/stores/modules/auth'
 
 const router = useRouter()
 const drawerStore = useDrawerStore()
@@ -108,17 +106,9 @@ const { config } = storeToRefs(websiteConfigStore)
 const avatar = computed(() => config.value.websiteAvatar)
 
 const userInfoStore = useUserInfoStore()
-const likeStore = useLikeStore()
-const snackbarStore = useSnackbarStore()
+const authStore = useAuthStore()
+const { handleLogout } = authStore
 const isLoggedIn = computed(() => !!userInfoStore.userInfo.userId)
-
-// 退出登录
-function handleLogout() {
-  tokenManager.clearTokens()
-  userInfoStore.clearUserInfo()
-  likeStore.clearAll()
-  snackbarStore.success('退出成功')
-}
 
 const articleCount = ref(0)
 const categoriesCount = ref(0)

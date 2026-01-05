@@ -74,4 +74,16 @@ public class AuthController {
         return Result.success(authService.refreshToken(dto.getRefreshToken()));
     }
 
+    /**
+     * 退出登录
+     *
+     * @param dto 包含refreshToken的请求参数
+     * @return 操作结果
+     */
+    @PostMapping("/front/auth/logout")
+    public Result<Void> logout(@RequestBody @Validated RefreshTokenDTO dto) {
+        authService.logout(dto.getRefreshToken());
+        return Result.success();
+    }
+
 }

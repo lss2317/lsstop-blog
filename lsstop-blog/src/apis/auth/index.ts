@@ -57,7 +57,13 @@ export const sendEmailCode = (data: SendCodeParams) => {
   return http.post<null>('/auth/sendCode', data)
 }
 
+// 退出登录请求参数
+export interface LogoutParams {
+  /** 刷新令牌 */
+  refreshToken: string
+}
+
 // 退出登录
-export const logout = () => {
-  return http.post<null>('/auth/logout')
+export const logout = (data: LogoutParams) => {
+  return http.post<null>('/auth/logout', data)
 }
