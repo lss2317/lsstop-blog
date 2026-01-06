@@ -293,6 +293,22 @@ ul {
   z-index: 1000;
 }
 
+.v-theme--dark .menus-submenu {
+  background-color: #2d2d2d;
+}
+
+.v-theme--dark .menus-submenu a {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.v-theme--dark .menus-submenu a:hover {
+  background: #3d3d3d;
+}
+
+.v-theme--dark .user-menu .menus-submenu:after {
+  border-bottom-color: #2d2d2d;
+}
+
 .menus-submenu:before {
   position: absolute;
   top: -8px;

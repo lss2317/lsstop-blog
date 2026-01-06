@@ -1,3 +1,71 @@
+/* ===================== CSS变量定义 ===================== */
+:root {
+  /* 主题色 */
+  --color-primary: #49b1f5;
+  --color-primary-hover: #3da6e8;
+  --color-success: #5cb85c;
+  --color-success-hover: #4cae4c;
+  --color-danger: #eb5055;
+  --color-warning: #ff7242;
+  --color-link: #40a9ff;
+
+  /* 文本色 */
+  --color-text-primary: #262626;
+  --color-text-secondary: #595959;
+  --color-text-tertiary: #8c8c8c;
+  --color-text-placeholder: #bfbfbf;
+  --color-text-title: #344c67;
+
+  /* 背景色 */
+  --color-bg-white: #fff;
+  --color-bg-light: #f5f5f5;
+  --color-bg-hover: rgba(0, 0, 0, 0.04);
+
+  /* 边框色 */
+  --color-border: #e5e5e5;
+  --color-border-light: #ebebeb;
+  --color-border-focus: #d9d9d9;
+
+  /* 阴影 */
+  --shadow-card: 0 3px 8px 6px rgba(7, 17, 27, 0.06);
+  --shadow-card-hover: 0 2px 20px var(--color-primary);
+  --shadow-dropdown: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-round: 20px;
+  --radius-circle: 50%;
+
+  /* 过渡 */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.4s ease;
+}
+
+/* 夜间模式CSS变量 */
+.v-theme--dark {
+  --color-text-primary: rgba(255, 255, 255, 0.9);
+  --color-text-secondary: rgba(255, 255, 255, 0.7);
+  --color-text-tertiary: rgba(255, 255, 255, 0.5);
+  --color-text-placeholder: rgba(255, 255, 255, 0.4);
+  --color-text-title: rgba(255, 255, 255, 0.9);
+
+  --color-bg-white: #1a1a1a;
+  --color-bg-light: rgba(255, 255, 255, 0.08);
+  --color-bg-hover: rgba(255, 255, 255, 0.08);
+
+  --color-border: rgba(255, 255, 255, 0.15);
+  --color-border-light: rgba(255, 255, 255, 0.1);
+  --color-border-focus: rgba(255, 255, 255, 0.25);
+
+  --shadow-card: 0 3px 8px 6px rgba(0, 0, 0, 0.2);
+  --shadow-card-hover: 0 5px 10px 8px rgba(0, 0, 0, 0.3);
+  --shadow-dropdown: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* ===================== 基础样式 ===================== */
 a,
 button,
 img {
@@ -109,6 +177,15 @@ ul {
 .v-theme--dark .v-card {
   background: #121212;
   color: rgba(255, 255, 255, 0.8);
+}
+
+.v-theme--dark .v-card.blog-container {
+  background: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 3px 8px 6px rgb(0 0 0 / 20%);
+}
+
+.v-theme--dark .v-card.blog-container:hover {
+  box-shadow: 0 5px 10px 8px rgb(0 0 0 / 30%);
 }
 
 .v-theme--dark .v-footer {

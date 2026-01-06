@@ -12,6 +12,11 @@ import lombok.Data;
 public class FriendLinkVO {
 
     /**
+     * id
+     */
+    private Integer id;
+
+    /**
      * 链接名
      */
     private String linkName;

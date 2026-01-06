@@ -2,6 +2,8 @@ import http from '@/utils/http.ts'
 
 /** 友链信息 */
 export interface FriendLinkVo {
+  /** 友链ID */
+  id: number
   /** 友链名称 */
   linkName: string
   /** 友链头像 */

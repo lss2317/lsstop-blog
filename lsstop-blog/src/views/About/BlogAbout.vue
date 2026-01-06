@@ -58,6 +58,7 @@ const aboutContent = computed(() => {
 
 .my-wrapper {
   text-align: center;
+  margin-bottom: 24px;
 }
 
 .author-avatar {

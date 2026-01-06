@@ -1068,3 +1068,189 @@ onUnmounted(() => {
   color: #5cb85c !important;
 }
 </style>
+
+<!-- 夜间模式样式 -->
+<style>
+.v-theme--dark .lc-comment-container {
+  background: transparent;
+}
+
+.v-theme--dark .lc-icon {
+  color: var(--color-text-primary);
+}
+
+.v-theme--dark .lc-comment-title,
+.v-theme--dark .lc-comment-count {
+  color: var(--color-text-title);
+}
+
+/* 输入框 */
+.v-theme--dark .lc-input-box {
+  background: var(--color-bg-light);
+  border-color: var(--color-border);
+}
+
+.v-theme--dark .lc-input-box:focus-within {
+  border-color: var(--color-border-focus);
+}
+
+.v-theme--dark .lc-textarea {
+  color: var(--color-text-primary);
+}
+
+.v-theme--dark .lc-textarea::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+/* 表情面板 */
+.v-theme--dark .lc-emoji-panel {
+  background: #2a2a2a;
+  box-shadow: var(--shadow-dropdown);
+}
+
+.v-theme--dark .lc-emoji-panel::before {
+  background: #2a2a2a;
+  border-color: var(--color-border-light);
+}
+
+.v-theme--dark .lc-tool-icon {
+  color: var(--color-text-secondary);
+}
+
+.v-theme--dark .lc-tool-icon:hover,
+.v-theme--dark .lc-tool-icon.active {
+  color: var(--color-success);
+}
+
+/* 排序 */
+.v-theme--dark .lc-sort-bar {
+  color: var(--color-text-secondary);
+}
+
+.v-theme--dark .lc-sort-label {
+  color: var(--color-text-tertiary);
+}
+
+.v-theme--dark .lc-sort-value {
+  color: var(--color-text-primary);
+}
+
+.v-theme--dark .lc-dropdown-icon {
+  color: var(--color-text-tertiary);
+}
+
+.v-theme--dark .lc-sort-menu {
+  background: #2a2a2a;
+  box-shadow: var(--shadow-dropdown);
+}
+
+.v-theme--dark .lc-sort-menu-item {
+  color: var(--color-text-primary);
+}
+
+.v-theme--dark .lc-sort-menu-item:hover {
+  background: var(--color-bg-hover);
+}
+
+/* 评论列表 */
+.v-theme--dark .lc-comment-item {
+  border-bottom-color: var(--color-border-light);
+}
+
+.v-theme--dark .lc-nickname {
+  color: var(--color-text-primary);
+}
+
+.v-theme--dark .lc-nickname:hover {
+  color: var(--color-success);
+}
+
+.v-theme--dark .lc-meta-row {
+  color: var(--color-text-tertiary);
+}
+
+.v-theme--dark .lc-meta-divider {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.v-theme--dark .lc-content {
+  color: var(--color-text-primary);
+}
+
+/* 操作栏 */
+.v-theme--dark .lc-action-row {
+  color: var(--color-text-tertiary);
+}
+
+.v-theme--dark .lc-action-item:hover {
+  color: var(--color-text-primary);
+}
+
+/* 回复输入框 */
+.v-theme--dark .lc-reply-input {
+  background: var(--color-bg-light);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.v-theme--dark .lc-reply-input::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.v-theme--dark .lc-reply-input:focus {
+  border-color: var(--color-border-focus);
+}
+
+.v-theme--dark .lc-cancel-btn {
+  background: var(--color-bg-light);
+  color: var(--color-text-primary);
+}
+
+.v-theme--dark .lc-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* 回复列表 */
+.v-theme--dark .lc-reply-item {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.v-theme--dark .lc-sub-reply-input {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* 隐藏按钮 */
+.v-theme--dark .lc-hide-replies {
+  color: var(--color-text-tertiary);
+}
+
+.v-theme--dark .lc-hide-replies:hover {
+  color: var(--color-text-primary);
+}
+
+/* 加载更多 */
+.v-theme--dark .lc-load-btn {
+  background: transparent;
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.v-theme--dark .lc-load-btn:hover {
+  background: var(--color-success);
+  color: #fff;
+}
+
+/* 空状态 */
+.v-theme--dark .lc-empty {
+  color: var(--color-text-tertiary);
+}
+
+/* 更多回复链接 */
+.v-theme--dark .lc-more-reply {
+  color: var(--color-text-tertiary);
+}
+
+.v-theme--dark .lc-paging {
+  color: var(--color-text-secondary);
+}
+</style>

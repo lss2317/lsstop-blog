@@ -23,6 +23,8 @@
             color="#1976d2"
             rounded="lg"
             size="large"
+            :loading="loginLoading"
+            :disabled="loginLoading"
             @click="login"
           >
             登录

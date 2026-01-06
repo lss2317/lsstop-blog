@@ -10,23 +10,41 @@
         <v-icon color="blue">mdi-link-variant</v-icon>
         大佬链接
       </div>
-      <v-row v-if="friendLinkList.length > 0" class="link-container">
+      <!-- 加载骨架屏 -->
+      <v-row v-if="loading" class="link-container">
+        <v-col md="4" cols="12" v-for="n in 6" :key="n">
+          <div class="link-wrapper skeleton-wrapper">
+            <v-skeleton-loader type="avatar" class="skeleton-avatar" />
+            <div class="skeleton-text">
+              <v-skeleton-loader type="text" width="60%" />
+              <v-skeleton-loader type="text" width="80%" />
+            </div>
+          </div>
+        </v-col>
+      </v-row>
+      <!-- 友链列表 -->
+      <v-row v-else-if="friendLinkList.length > 0" class="link-container">
         <v-col
-          class="link-wrapper"
           md="4"
           cols="12"
           v-for="item of friendLinkList"
-          :key="item.linkAddress"
+          :key="item.id"
         >
-          <a :href="item.linkAddress" target="_blank">
-            <v-avatar size="65" class="link-avatar">
-              <img :src="item.linkAvatar" :alt="item.linkName" />
-            </v-avatar>
-            <div class="link-text-content">
-              <div class="link-name">{{ item.linkName }}</div>
-              <div class="link-intro">{{ item.linkIntro }}</div>
-            </div>
-          </a>
+          <div class="link-wrapper">
+            <a :href="item.linkAddress" target="_blank">
+              <v-avatar size="65" class="link-avatar">
+                <img
+                  :src="item.linkAvatar"
+                  :alt="item.linkName"
+                  @error="handleImageError"
+                />
+              </v-avatar>
+              <div class="link-text-content">
+                <div class="link-name">{{ item.linkName }}</div>
+                <div class="link-intro">{{ item.linkIntro }}</div>
+              </div>
+            </a>
+          </div>
         </v-col>
       </v-row>
       <div v-else class="empty-state">
@@ -71,6 +89,16 @@ const { config: websiteConfig } = storeToRefs(websiteConfigStore)
 const snackbarStore = useSnackbarStore()
 
 const friendLinkList = ref<FriendLinkVo[]>([])
+const loading = ref(true)
+
+// 默认头像
+const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
+
+// 图片加载失败处理
+const handleImageError = (e: Event) => {
+  const target = e.target as HTMLImageElement
+  target.src = defaultAvatar
+}
 
 onMounted(() => {
   listFriendLink()
@@ -80,39 +108,70 @@ onMounted(() => {
     .catch(() => {
       snackbarStore.error('获取友链列表失败')
     })
+    .finally(() => {
+      loading.value = false
+    })
 })
 </script>
 
 <style scoped>
+/* 骨架屏样式 */
+.skeleton-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+}
+
+.skeleton-avatar {
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.skeleton-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 blockquote {
   line-height: 2;
   margin: 0;
   font-size: 15px;
-  border-left: 0.2rem solid #49b1f5;
+  border-left: 0.2rem solid var(--color-primary);
   padding: 10px 1rem !important;
   background-color: #ecf7fe;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .link-banner {
-  background: #49b1f5;
+  background: var(--color-primary);
 }
 
 .link-title {
-  color: #344c67;
+  color: var(--color-text-title);
   font-size: 21px;
   font-weight: bold;
   line-height: 2;
 }
 
 .link-container {
-  margin: 10px 10px 0;
+  margin: 10px 0 0;
 }
 
 .link-wrapper {
   position: relative;
-  transition: all 0.3s;
-  border-radius: 8px;
+  transition: all var(--transition-normal);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-card);
+  padding: 8px;
+  margin-bottom: 16px;
+}
+
+.link-wrapper:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-3px);
 }
 
 .link-avatar {
@@ -129,6 +188,9 @@ blockquote {
 
 .link-avatar :deep(img) {
   cursor: pointer;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 @media (max-width: 759px) {
@@ -141,8 +203,8 @@ blockquote {
   text-align: center;
   font-size: 1.25rem;
   font-weight: bold;
-  z-index: 1000;
-  transition: all 0.4s ease;
+  z-index: 1;
+  transition: all var(--transition-slow);
 }
 
 .link-wrapper:hover .link-name {
@@ -153,9 +215,9 @@ blockquote {
   text-align: center;
   padding: 8px 10px;
   font-size: 13px;
-  color: #1f2d3d;
+  color: var(--color-text-primary);
   width: 100%;
-  transition: all 0.4s ease;
+  transition: all var(--transition-slow);
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
@@ -168,7 +230,7 @@ blockquote {
 .link-text-content {
   width: 100%;
   z-index: 10;
-  transition: all 0.4s ease;
+  transition: all var(--transition-slow);
   transform: translateX(0);
 }
 
@@ -194,7 +256,7 @@ blockquote {
 }
 
 .link-wrapper a {
-  color: #333;
+  color: var(--color-text-primary);
   text-decoration: none;
   display: flex;
   height: 80px;
@@ -204,22 +266,18 @@ blockquote {
   overflow: hidden;
 }
 
-.link-wrapper:hover {
-  box-shadow: 0 2px 20px #49b1f5;
-}
-
 .link-wrapper:hover:before {
   transform: scale(1);
 }
 
 .link-wrapper:before {
   position: absolute;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
-  background: #49b1f5 !important;
+  background: var(--color-primary) !important;
   content: '';
   transition-timing-function: ease-out;
   transition-duration: 0.3s;
@@ -233,11 +291,45 @@ blockquote {
   align-items: center;
   justify-content: center;
   padding: 40px 0;
-  color: #999;
+  color: var(--color-text-tertiary);
 }
 
 .empty-state p {
   margin-top: 12px;
   font-size: 14px;
+}
+</style>
+
+<style>
+/* 夜间模式样式 */
+.v-theme--dark .blog-container blockquote {
+  background-color: rgba(73, 177, 245, 0.15);
+  border-left-color: var(--color-primary);
+  color: var(--color-text-secondary);
+}
+
+.v-theme--dark .blog-container .link-title {
+  color: var(--color-text-title);
+}
+
+.v-theme--dark .blog-container .link-intro {
+  color: var(--color-text-secondary);
+}
+
+.v-theme--dark .blog-container .link-wrapper a {
+  color: var(--color-text-primary);
+}
+
+.v-theme--dark .blog-container .link-wrapper:hover a {
+  color: #fff;
+}
+
+.v-theme--dark .blog-container .link-wrapper {
+  background: var(--color-bg-light);
+  box-shadow: var(--shadow-card);
+}
+
+.v-theme--dark .blog-container .link-wrapper:hover {
+  box-shadow: var(--shadow-card-hover);
 }
 </style>
