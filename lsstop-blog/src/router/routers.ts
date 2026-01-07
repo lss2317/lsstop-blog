@@ -1,5 +1,14 @@
 export const constantRouter = [
   {
+    path: '/photoAlbum',
+    name: 'PhotoAlbum',
+    component: () => import('@/views/PhotoAlbum/PhotoAlbum.vue'),
+    meta: {
+      title: '相册',
+      pageLabel: 'photoAlbum',
+    },
+  },
+  {
     path: '/talk',
     name: 'Talk',
     component: () => import('@/views/Talk/BlogTalk.vue'),
@@ -13,7 +22,7 @@ export const constantRouter = [
     name: 'TalkInfo',
     component: () => import('@/views/Talk/TalkInfo.vue'),
     meta: {
-      title: '说说',
+      title: '说说详情',
       pageLabel: 'talk',
     },
   },

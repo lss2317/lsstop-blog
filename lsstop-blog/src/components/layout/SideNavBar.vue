@@ -49,7 +49,7 @@
         <a @click="navigateTo('/archives')"> <i class="iconfont iconguidang" /> 归档 </a>
       </div>
       <div class="menus-item">
-        <a @click="navigateTo('/albums')"> <i class="iconfont iconxiangce1" /> 相册 </a>
+        <a @click="navigateTo('/photoAlbum')"> <i class="iconfont iconxiangce1" /> 相册 </a>
       </div>
       <div class="menus-item">
         <a @click="navigateTo('/talk')"> <i class="iconfont iconpinglun" /> 说说 </a>

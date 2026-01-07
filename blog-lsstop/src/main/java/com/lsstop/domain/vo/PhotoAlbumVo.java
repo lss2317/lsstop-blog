@@ -10,6 +10,11 @@ import lombok.Data;
 public class PhotoAlbumVO {
 
     /**
+     * id
+     */
+    private Integer id;
+
+    /**
      * 相册名
      */
     private String photoAlbumName;

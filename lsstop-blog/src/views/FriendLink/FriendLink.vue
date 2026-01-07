@@ -24,20 +24,11 @@
       </v-row>
       <!-- 友链列表 -->
       <v-row v-else-if="friendLinkList.length > 0" class="link-container">
-        <v-col
-          md="4"
-          cols="12"
-          v-for="item of friendLinkList"
-          :key="item.id"
-        >
+        <v-col md="4" cols="12" v-for="item of friendLinkList" :key="item.id">
           <div class="link-wrapper">
             <a :href="item.linkAddress" target="_blank">
               <v-avatar size="65" class="link-avatar">
-                <img
-                  :src="item.linkAvatar"
-                  :alt="item.linkName"
-                  @error="handleImageError"
-                />
+                <img :src="item.linkAvatar" :alt="item.linkName" @error="handleImageError" />
               </v-avatar>
               <div class="link-text-content">
                 <div class="link-name">{{ item.linkName }}</div>
@@ -79,6 +70,7 @@ import { listFriendLink, type FriendLinkVo } from '@/apis/friendLink'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig.ts'
 import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
+import { DEFAULT_AVATAR } from '@/constants/user'
 
 const pageInfoStore = usePageInfoStore()
 const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
@@ -91,13 +83,10 @@ const snackbarStore = useSnackbarStore()
 const friendLinkList = ref<FriendLinkVo[]>([])
 const loading = ref(true)
 
-// 默认头像
-const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
-
 // 图片加载失败处理
 const handleImageError = (e: Event) => {
   const target = e.target as HTMLImageElement
-  target.src = defaultAvatar
+  target.src = DEFAULT_AVATAR
 }
 
 onMounted(() => {

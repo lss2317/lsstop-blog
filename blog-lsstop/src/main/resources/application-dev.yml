@@ -40,8 +40,8 @@ spring:
           max-active: 8
           # 最大空闲连接数
           max-idle: 8
-          # 最小空闲连接数
-          min-idle: 0
+          # 最小空闲连接数（保持至少1个空闲连接）
+          min-idle: 1
           # 获取连接最大等待时间（-1表示无限制）
           max-wait: -1ms
 

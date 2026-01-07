@@ -70,6 +70,7 @@ public class AuthController {
      * @return 新的token信息
      */
     @PostMapping("/front/auth/refresh")
+    @AccessLimit(seconds = 60, maxCount = 10)
     public Result<TokenVO> refreshToken(@RequestBody @Validated RefreshTokenDTO dto) {
         return Result.success(authService.refreshToken(dto.getRefreshToken()));
     }
@@ -81,6 +82,7 @@ public class AuthController {
      * @return 操作结果
      */
     @PostMapping("/front/auth/logout")
+    @AccessLimit(seconds = 60, maxCount = 10)
     public Result<Void> logout(@RequestBody @Validated RefreshTokenDTO dto) {
         authService.logout(dto.getRefreshToken());
         return Result.success();

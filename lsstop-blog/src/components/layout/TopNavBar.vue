@@ -48,7 +48,7 @@
           </a>
           <ul class="menus-submenu">
             <li>
-              <a @click="navigateTo('/albums')"><i class="iconfont iconxiangce1" /> 相册</a>
+              <a @click="navigateTo('/photoAlbum')"><i class="iconfont iconxiangce1" /> 相册</a>
             </li>
             <li>
               <a @click="navigateTo('/talk')"><i class="iconfont iconpinglun" /> 说说</a>

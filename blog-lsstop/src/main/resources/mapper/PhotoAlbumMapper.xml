@@ -24,6 +24,7 @@
                update_time
         from blog_photo_album
         where is_delete = 0
+        order by create_time desc
 
     </select>
 
