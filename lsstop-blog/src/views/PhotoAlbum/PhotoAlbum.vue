@@ -118,6 +118,8 @@ onMounted(() => {
   overflow: hidden;
   padding: 0.7rem 0;
   position: relative;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .album-name:after {
@@ -141,6 +143,12 @@ onMounted(() => {
     opacity 0.35s,
     transform 0.35s;
   transform: translate3d(100%, 0, 0);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .empty-state {

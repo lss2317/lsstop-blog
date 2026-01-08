@@ -138,7 +138,7 @@
             注册
           </v-btn>
           <div class="mt-6 login-tip">
-            <span>已有账号?</span>
+            <span class="tip-text">已有账号?</span>
             <span @click="openLoginDialog" class="tip-link ml-2">立即登录</span>
           </div>
         </div>
@@ -435,6 +435,12 @@ const qqLogin = () => {
 
 .tip-link:hover {
   color: #1976d2;
+}
+
+.tip-text {
+  color: #333;
+  font-size: 14px;
+  cursor: default;
 }
 
 .code-input-wrapper {

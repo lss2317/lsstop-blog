@@ -242,6 +242,56 @@ p {
 .login-container {
   background: #fff !important;
 }
+
+.v-theme--dark .login-container {
+  background: #2a2a2a !important;
+}
+
+.v-theme--dark .login-container .title {
+  color: #e0e0e0;
+}
+
+.v-theme--dark .login-container .tip-link,
+.v-theme--dark .login-container .tip-text {
+  color: #e0e0e0;
+}
+
+.v-theme--dark .login-container .tip-link:hover {
+  color: #64b5f6;
+}
+
+.v-theme--dark .login-container .close-btn {
+  color: #aaa;
+}
+
+.v-theme--dark .login-container .close-btn:hover {
+  color: #fff;
+}
+
+.v-theme--dark .login-container .send-code-btn {
+  color: #aaa;
+}
+
+.v-theme--dark .login-container .send-code-btn:hover:not(.disabled) {
+  color: #64b5f6;
+}
+
+.v-theme--dark .login-container .send-code-btn.disabled {
+  color: #666;
+}
+
+.v-theme--dark .login-container .social-login-title {
+  color: #888;
+}
+
+.v-theme--dark .login-container .social-login-title::before,
+.v-theme--dark .login-container .social-login-title::after {
+  background-color: #444;
+}
+
+.v-theme--dark .login-tip {
+  color: #e0e0e0;
+}
 @media (min-width: 760px) {
   .v-toolbar__content,
   .v-toolbar__extension {
