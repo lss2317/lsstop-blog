@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 public class PhotoAlbumImageDO implements BaseData {
 
     /**
-     * 主键id
+     * id
      */
     private Integer id;
 
@@ -29,16 +29,6 @@ public class PhotoAlbumImageDO implements BaseData {
      * 相册id
      */
     private Integer albumId;
-
-    /**
-     * 照片名称
-     */
-    private String photoName;
-
-    /**
-     * 照片描述
-     */
-    private String photoDesc;
 
     /**
      * 照片地址

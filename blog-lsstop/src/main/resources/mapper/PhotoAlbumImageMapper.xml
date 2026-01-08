@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.PhotoAlbumImageMapper">
+
+    <resultMap id="photoAlbumImageResult" type="com.lsstop.domain.dataObject.PhotoAlbumImageDO">
+        <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="album_id" property="albumId" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="photo_src" property="photoSrc" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="sort" property="sort" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="is_recycle" property="isRecycle" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="is_delete" property="isDelete" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <select id="getPhotoListByAlbumId" resultMap="photoAlbumImageResult">
+        select id,
+               album_id,
+               photo_src,
+               sort,
+               is_recycle,
+               is_delete,
+               create_time,
+               update_time
+        from blog_photo_album_image
+        where album_id = #{albumId}
+          and is_delete = 0
+          and is_recycle = 0
+        order by sort desc, create_time desc
+    </select>
+
+</mapper>
