@@ -95,13 +95,14 @@
 </template>
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useDrawerStore } from '@/stores/modules/drawer'
 import { useLoginStore } from '@/stores/modules/login'
 import useUserInfoStore from '@/stores/modules/userInfo'
 import { useAuthStore } from '@/stores/modules/auth'
 
 const router = useRouter()
+const route = useRoute()
 const drawerStore = useDrawerStore()
 const { openDrawer } = drawerStore
 
@@ -114,8 +115,10 @@ const { handleLogout } = authStore
 const avatar = computed(() => userInfoStore.userInfo.avatar)
 const isLoggedIn = computed(() => !!userInfoStore.userInfo.userId)
 
-// 导航并滚动到顶部
+// 导航
 function navigateTo(path: string) {
+  // 相同页面不滚动
+  if (route.path === path) return
   router.push(path).then(() => {
     window.scrollTo(0, 0)
   })

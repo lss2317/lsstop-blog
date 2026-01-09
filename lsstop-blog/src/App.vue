@@ -32,11 +32,15 @@ import usePageInfoStore from '@/stores/modules/pageInfo'
 import useLikeStore from '@/stores/modules/like'
 import useUserInfoStore from '@/stores/modules/userInfo'
 import { tokenManager } from '@/utils/token'
+import { useScrollRestore } from '@/composables/useScrollRestore'
 
 const websiteConfigStore = useWebsiteConfigStore()
 const pageInfoStore = usePageInfoStore()
 const likeStore = useLikeStore()
 const userInfoStore = useUserInfoStore()
+
+// 页面刷新时保持滚动位置
+useScrollRestore()
 
 onMounted(async () => {
   void websiteConfigStore.fetchWebsiteConfig()
