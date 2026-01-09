@@ -40,7 +40,7 @@ const usePageInfoStore = defineStore('pageInfo', () => {
   return {
     pageList,
     fetchPageList,
-    currentCoverStyle
+    currentCoverStyle,
   }
 })
 

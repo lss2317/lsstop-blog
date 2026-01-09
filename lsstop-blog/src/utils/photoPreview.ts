@@ -42,8 +42,8 @@ export async function previewImages(images: string[], index: number = 0) {
 
   const items = images.map((src, i) => ({
     src,
-    width: sizes[i].width,
-    height: sizes[i].height,
+    width: sizes[i]?.width ?? 1200,
+    height: sizes[i]?.height ?? 800,
   }))
 
   const pswp = new PhotoSwipe({

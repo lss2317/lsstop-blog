@@ -17,10 +17,10 @@
         <v-col :md="6" cols="12" v-for="item of photoAlbumList" :key="item.id">
           <div class="album-item">
             <img class="album-cover" :src="item.photoAlbumCover" :alt="item.photoAlbumName" />
-            <router-link :to="'/photoAlbum/' + item.id" class="album-wrapper">
+            <a class="album-wrapper" @click="goToAlbum(item.id)">
               <div class="album-name">{{ item.photoAlbumName }}</div>
               <div class="album-desc">{{ item.photoAlbumDesc }}</div>
-            </router-link>
+            </a>
           </div>
         </v-col>
       </v-row>
@@ -35,10 +35,13 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { listPhotoAlbum, type PhotoAlbum } from '@/apis/photoAlbum'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
 import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
+
+const router = useRouter()
 
 const pageInfoStore = usePageInfoStore()
 const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
@@ -47,6 +50,13 @@ const snackbarStore = useSnackbarStore()
 
 const photoAlbumList = ref<PhotoAlbum[]>([])
 const loading = ref(true)
+
+// 跳转到相册详情页
+function goToAlbum(id: number) {
+  router.push('/photoAlbum/' + id).then(() => {
+    window.scrollTo(0, 0)
+  })
+}
 
 onMounted(() => {
   listPhotoAlbum()

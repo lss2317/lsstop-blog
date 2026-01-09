@@ -218,7 +218,7 @@ function previewAvatar() {
 // 分享功能
 function share() {
   if (!talk.value) return
-  const url = `${window.location.origin}/talks/${talk.value.id}`
+  const url = `${window.location.origin}/talk/${talk.value.id}`
   const title = talk.value.content.replace(/<[^>]+>/g, '').substring(0, 50)
   openShareDialog(url, title)
 }

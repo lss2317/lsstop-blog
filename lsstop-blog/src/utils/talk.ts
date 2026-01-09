@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import QRCode from 'qrcode'
 import { DEACTIVATED_USER } from '@/constants/user'
+import { useSnackbarStore } from '@/stores/modules/snackbar'
 
 // 说说数据接口
 export interface TalkItem {
@@ -57,7 +58,7 @@ export function useShare() {
   // 复制链接
   function copyLink() {
     navigator.clipboard.writeText(shareUrl.value).then(() => {
-      alert('链接已复制到剪贴板')
+      useSnackbarStore().success('链接已复制到剪贴板')
       shareDialogVisible.value = false
     })
   }
