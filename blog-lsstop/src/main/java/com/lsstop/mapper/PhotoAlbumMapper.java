@@ -19,4 +19,12 @@ public interface PhotoAlbumMapper {
      */
     List<PhotoAlbumDO> getPhotoAlbumList();
 
+    /**
+     * 根据ID获取相册
+     *
+     * @param id 相册ID
+     * @return 相册信息
+     */
+    PhotoAlbumDO getPhotoAlbumById(Integer id);
+
 }

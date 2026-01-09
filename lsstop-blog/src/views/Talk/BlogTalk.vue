@@ -45,7 +45,7 @@
                 class="image-wrapper"
                 v-for="(img, index) of item.imgList"
                 :key="index"
-                @click.stop="previewImg(img)"
+                @click.stop="previewImg(item, img)"
               >
                 <img :src="img" class="images-items" />
               </div>
@@ -85,16 +85,6 @@
         </div>
       </div>
     </v-card>
-
-    <!-- 图片灯箱预览 -->
-    <v-dialog v-model="lightboxVisible" max-width="90vw" content-class="lightbox-dialog">
-      <div class="lightbox" @click.self="lightboxVisible = false">
-        <img :src="lightboxImg" alt="预览图片" @click.stop />
-        <v-btn icon class="lightbox-close" size="small" @click="lightboxVisible = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </div>
-    </v-dialog>
     <!-- 分享弹窗 -->
     <v-dialog v-model="shareDialogVisible" max-width="320" transition="dialog-bottom-transition">
       <v-card class="share-dialog">
@@ -164,6 +154,7 @@ import {
   useShare,
 } from '@/utils/talk'
 import { LikeTypeEnum } from '@/constants/likeType'
+import { previewImages } from '@/utils/photoPreview'
 
 // 获取路由实例
 const router = useRouter()
@@ -181,10 +172,6 @@ const loading = ref(true)
 
 // 说说列表数据
 const talkList = ref<TalkItem[]>([])
-
-// 图片灯箱
-const lightboxVisible = ref(false)
-const lightboxImg = ref('')
 
 // 跳转到说说详情页
 function goToTalkInfo(id: number) {
@@ -219,15 +206,16 @@ async function like(item: TalkItem) {
   }
 }
 
-// 预览图片（灯箱）
-function previewImg(img: string) {
-  lightboxImg.value = img
-  lightboxVisible.value = true
+// 预览图片
+function previewImg(item: TalkItem, img: string) {
+  const images = item.imgList || []
+  const index = images.indexOf(img)
+  previewImages(images, index >= 0 ? index : 0)
 }
 
 // 预览头像
 function previewAvatar(item: TalkItem) {
-  previewImg(getUserAvatar(item))
+  previewImages([getUserAvatar(item)], 0)
 }
 
 // 分享功能
@@ -466,38 +454,6 @@ onMounted(() => {
 .share-btn:hover :deep(.v-icon) {
   color: #07c160 !important;
   transform: scale(1.2);
-}
-
-/* 灯箱样式 */
-:global(.lightbox-dialog) {
-  background: transparent !important;
-  box-shadow: none !important;
-  overflow: visible !important;
-}
-
-.lightbox {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  min-height: 200px;
-}
-
-.lightbox img {
-  max-width: 90vw;
-  max-height: 85vh;
-  object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-}
-
-.lightbox-close {
-  position: absolute;
-  top: -40px;
-  right: 0;
-  color: #fff !important;
-  background: rgba(0, 0, 0, 0.5) !important;
 }
 
 .empty-state {

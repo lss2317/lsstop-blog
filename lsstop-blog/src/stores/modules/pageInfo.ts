@@ -3,6 +3,16 @@ import { computed, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { listPageInfo, type PageInfoVo } from '@/apis/pageInfo'
 
+/**
+ * 生成封面背景样式
+ * @param coverUrl 封面图片地址
+ * @param position 背景位置，默认 'center 35%'
+ */
+export function createCoverStyle(coverUrl?: string, position = 'center 35%') {
+  if (!coverUrl) return {}
+  return { background: `#49b1f5 url(${coverUrl}) ${position} / cover no-repeat` }
+}
+
 const usePageInfoStore = defineStore('pageInfo', () => {
   const pageList = shallowRef<PageInfoVo[]>([])
 
@@ -17,7 +27,7 @@ const usePageInfoStore = defineStore('pageInfo', () => {
   function getCoverStyle(pageLabel: string): string {
     const page = pageList.value.find((item) => item.pageLabel === pageLabel)
     const cover = page?.pageCover || ''
-    return `background: #49b1f5 url(${cover}) center 38% / cover no-repeat`
+    return `background: #49b1f5 url(${cover}) center 35% / cover no-repeat`
   }
 
   // 自动根据当前路由获取 cover 样式
@@ -30,7 +40,7 @@ const usePageInfoStore = defineStore('pageInfo', () => {
   return {
     pageList,
     fetchPageList,
-    currentCoverStyle,
+    currentCoverStyle
   }
 })
 

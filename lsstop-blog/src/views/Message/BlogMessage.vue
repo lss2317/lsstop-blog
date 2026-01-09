@@ -58,9 +58,7 @@ import useUserInfoStore from '@/stores/modules/userInfo'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
-
-// 默认配置
-const DEFAULT_NICKNAME = '游客'
+import { DEFAULT_NICKNAME } from '@/constants/user'
 
 const userInfoStore = useUserInfoStore()
 const snackbarStore = useSnackbarStore()

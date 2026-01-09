@@ -28,4 +28,13 @@
 
     </select>
 
+    <select id="getPhotoAlbumById" resultMap="photoAlbumsResult">
+        select id,
+               photo_album_name,
+               photo_album_cover
+        from blog_photo_album
+        where id = #{id}
+          and is_delete = 0
+    </select>
+
 </mapper>

@@ -66,7 +66,7 @@
 import Comment from '@/components/Comment/BlogComment.vue'
 import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { listFriendLink, type FriendLinkVo } from '@/apis/friendLink'
+import { listFriendLink, type FriendLink } from '@/apis/friendLink'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig.ts'
 import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
@@ -80,7 +80,7 @@ const { config: websiteConfig } = storeToRefs(websiteConfigStore)
 
 const snackbarStore = useSnackbarStore()
 
-const friendLinkList = ref<FriendLinkVo[]>([])
+const friendLinkList = ref<FriendLink[]>([])
 const loading = ref(true)
 
 // 图片加载失败处理

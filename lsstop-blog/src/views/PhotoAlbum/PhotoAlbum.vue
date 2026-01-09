@@ -36,7 +36,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { listPhotoAlbum, type PhotoAlbumVO } from '@/apis/photoAlbum'
+import { listPhotoAlbum, type PhotoAlbum } from '@/apis/photoAlbum'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
 import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
 
@@ -45,7 +45,7 @@ const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 
 const snackbarStore = useSnackbarStore()
 
-const photoAlbumList = ref<PhotoAlbumVO[]>([])
+const photoAlbumList = ref<PhotoAlbum[]>([])
 const loading = ref(true)
 
 onMounted(() => {

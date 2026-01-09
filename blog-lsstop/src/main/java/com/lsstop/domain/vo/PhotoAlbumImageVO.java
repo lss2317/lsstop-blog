@@ -21,5 +21,4 @@ public class PhotoAlbumImageVO {
      */
     private String photoSrc;
 
-
 }

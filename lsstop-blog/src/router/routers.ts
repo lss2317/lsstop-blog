@@ -9,6 +9,15 @@ export const constantRouter = [
     },
   },
   {
+    path: '/photoAlbum/:albumId',
+    name: 'PhotoAlbumImage',
+    component: () => import('@/views/PhotoAlbum/PhotoAlbumImage.vue'),
+    meta: {
+      title: '相册详情',
+      pageLabel: 'photoAlbum',
+    },
+  },
+  {
     path: '/talk',
     name: 'Talk',
     component: () => import('@/views/Talk/BlogTalk.vue'),

@@ -30,4 +30,15 @@ public class PhotoAlbumServiceImpl implements PhotoAlbumService {
     public List<PhotoAlbumDO> getPhotoAlbumList() {
         return photoAlbumMapper.getPhotoAlbumList();
     }
+
+    /**
+     * 根据ID获取相册
+     *
+     * @param id 相册ID
+     * @return 相册信息
+     */
+    @Override
+    public PhotoAlbumDO getPhotoAlbumById(Integer id) {
+        return photoAlbumMapper.getPhotoAlbumById(id);
+    }
 }

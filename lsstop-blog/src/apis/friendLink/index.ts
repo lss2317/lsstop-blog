@@ -1,7 +1,7 @@
 import http from '@/utils/http.ts'
 
 /** 友链信息 */
-export interface FriendLinkVo {
+export interface FriendLink {
   /** 友链ID */
   id: number
   /** 友链名称 */
@@ -16,5 +16,5 @@ export interface FriendLinkVo {
 
 // 获取友链列表
 export function listFriendLink() {
-  return http.get<FriendLinkVo[]>('/friendLink/listFriendLink')
+  return http.get<FriendLink[]>('/friendLink/listFriendLink')
 }
