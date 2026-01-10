@@ -11,8 +11,8 @@ export const useLoginStore = defineStore('login', () => {
   /** 当前显示的弹窗类型 */
   const currentDialog = ref<DialogType>(null)
 
-  /** 弹窗是否显示 */
-  const dialogVisible = computed(() => currentDialog.value !== null)
+  /** 弹窗是否显示（独立状态，避免关闭时动画冲突） */
+  const dialogVisible = ref(false)
 
   /** 密码登录弹窗 */
   const loginDialog = computed(() => currentDialog.value === 'login')
@@ -25,12 +25,18 @@ export const useLoginStore = defineStore('login', () => {
 
   /** 关闭所有弹窗 */
   const closeAllDialogs = () => {
+    dialogVisible.value = false
+  }
+
+  /** v-dialog 关闭动画结束后重置内部状态 */
+  const onDialogClosed = () => {
     currentDialog.value = null
   }
 
   /** 打开密码登录弹窗 */
   const openLoginDialog = () => {
     currentDialog.value = 'login'
+    dialogVisible.value = true
   }
 
   /** 关闭密码登录弹窗 */
@@ -41,6 +47,7 @@ export const useLoginStore = defineStore('login', () => {
   /** 打开邮箱验证码登录弹窗 */
   const openCodeLoginDialog = () => {
     currentDialog.value = 'codeLogin'
+    dialogVisible.value = true
   }
 
   /** 关闭邮箱验证码登录弹窗 */
@@ -51,6 +58,7 @@ export const useLoginStore = defineStore('login', () => {
   /** 打开注册弹窗 */
   const openRegisterDialog = () => {
     currentDialog.value = 'register'
+    dialogVisible.value = true
   }
 
   /** 关闭注册弹窗 */
@@ -61,6 +69,7 @@ export const useLoginStore = defineStore('login', () => {
   /** 打开忘记密码弹窗 */
   const openForgetDialog = () => {
     currentDialog.value = 'forget'
+    dialogVisible.value = true
   }
 
   /** 关闭忘记密码弹窗 */
@@ -84,5 +93,6 @@ export const useLoginStore = defineStore('login', () => {
     openForgetDialog,
     closeForgetDialog,
     closeAllDialogs,
+    onDialogClosed,
   }
 })

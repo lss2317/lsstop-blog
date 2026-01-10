@@ -1,22 +1,40 @@
 <template>
-  <v-dialog v-model="dialogVisible" :fullscreen="isMobile" max-width="400">
+  <v-dialog
+    v-model="dialogVisible"
+    :fullscreen="isMobile"
+    max-width="400"
+    transition="dialog-bottom-transition"
+    @after-leave="onDialogClosed"
+  >
     <v-card class="login-container">
-      <v-icon class="close-btn" @click="closeAllDialogs"> mdi-close </v-icon>
+      <v-icon class="close-btn" @click="closeAllDialogs"> mdi-close</v-icon>
 
-      <transition name="fade" mode="out-in">
+      <transition :name="dialogVisible ? 'fade' : ''" mode="out-in">
         <!-- 密码登录 -->
         <div v-if="loginDialog" key="login" class="login-wrapper">
-          <v-text-field v-model="loginForm.email" label="邮箱" variant="underlined" hide-details />
-          <v-text-field
-            v-model="loginForm.password"
-            class="mt-8"
-            label="密码"
-            variant="underlined"
-            hide-details
-            :append-inner-icon="loginForm.showPwd ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="loginForm.showPwd ? 'text' : 'password'"
-            @click:append-inner="loginForm.showPwd = !loginForm.showPwd"
-          />
+          <div class="input-group">
+            <input
+              v-model="loginForm.email"
+              type="email"
+              class="form-input"
+              placeholder=" "
+              autocomplete="email"
+            />
+            <label class="form-label">邮箱</label>
+          </div>
+          <div class="input-group">
+            <input
+              v-model="loginForm.password"
+              :type="loginForm.showPwd ? 'text' : 'password'"
+              class="form-input"
+              placeholder=" "
+              autocomplete="current-password"
+            />
+            <label class="form-label">密码</label>
+            <span class="input-icon" @click="loginForm.showPwd = !loginForm.showPwd">
+              <v-icon size="20">{{ loginForm.showPwd ? 'mdi-eye' : 'mdi-eye-off' }}</v-icon>
+            </span>
+          </div>
           <v-btn
             class="mt-10 login-btn"
             block
@@ -35,7 +53,7 @@
               @click="openCodeLoginDialog"
               class="tip-link"
               style="margin-left: auto; margin-right: 12px"
-              >免密登录</span
+              >验证码登录</span
             >
             <span @click="openForgetDialog" class="tip-link">忘记密码?</span>
           </div>
@@ -46,21 +64,27 @@
           </div>
         </div>
 
-        <!-- 免密登录 -->
+        <!-- 验证码登录 -->
         <div v-else-if="codeLoginDialog" key="codeLogin" class="login-wrapper">
-          <v-text-field
-            v-model="codeLoginForm.email"
-            label="邮箱"
-            variant="underlined"
-            hide-details
-          />
-          <div class="code-input-wrapper mt-8">
-            <v-text-field
-              v-model="codeLoginForm.code"
-              label="验证码"
-              variant="underlined"
-              hide-details
+          <div class="input-group">
+            <input
+              v-model="codeLoginForm.email"
+              type="email"
+              class="form-input"
+              placeholder=" "
+              autocomplete="email"
             />
+            <label class="form-label">邮箱</label>
+          </div>
+          <div class="input-group">
+            <input
+              v-model="codeLoginForm.code"
+              type="text"
+              class="form-input"
+              placeholder=" "
+              autocomplete="one-time-code"
+            />
+            <label class="form-label">验证码</label>
             <span
               class="send-code-btn"
               :class="{ disabled: codeLoginForm.countdown > 0 }"
@@ -86,19 +110,25 @@
 
         <!-- 注册 -->
         <div v-else-if="registerDialog" key="register" class="login-wrapper">
-          <v-text-field
-            v-model="registerForm.email"
-            label="邮箱"
-            variant="underlined"
-            hide-details
-          />
-          <div class="code-input-wrapper mt-8">
-            <v-text-field
-              v-model="registerForm.code"
-              label="验证码"
-              variant="underlined"
-              hide-details
+          <div class="input-group">
+            <input
+              v-model="registerForm.email"
+              type="email"
+              class="form-input"
+              placeholder=" "
+              autocomplete="email"
             />
+            <label class="form-label">邮箱</label>
+          </div>
+          <div class="input-group">
+            <input
+              v-model="registerForm.code"
+              type="text"
+              class="form-input"
+              placeholder=" "
+              autocomplete="one-time-code"
+            />
+            <label class="form-label">验证码</label>
             <span
               class="send-code-btn"
               :class="{ disabled: registerForm.countdown > 0 }"
@@ -107,26 +137,37 @@
               {{ registerForm.countdown > 0 ? `${registerForm.countdown}s` : '发送' }}
             </span>
           </div>
-          <v-text-field
-            v-model="registerForm.password"
-            class="mt-8"
-            label="密码"
-            variant="underlined"
-            hide-details
-            :append-inner-icon="registerForm.showPwd ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="registerForm.showPwd ? 'text' : 'password'"
-            @click:append-inner="registerForm.showPwd = !registerForm.showPwd"
-          />
-          <v-text-field
-            v-model="registerForm.confirmPassword"
-            class="mt-8"
-            label="确认密码"
-            variant="underlined"
-            hide-details
-            :append-inner-icon="registerForm.showConfirmPwd ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="registerForm.showConfirmPwd ? 'text' : 'password'"
-            @click:append-inner="registerForm.showConfirmPwd = !registerForm.showConfirmPwd"
-          />
+          <div class="input-group">
+            <input
+              v-model="registerForm.password"
+              :type="registerForm.showPwd ? 'text' : 'password'"
+              class="form-input"
+              placeholder=" "
+              autocomplete="new-password"
+            />
+            <label class="form-label">密码</label>
+            <span class="input-icon" @click="registerForm.showPwd = !registerForm.showPwd">
+              <v-icon size="20">{{ registerForm.showPwd ? 'mdi-eye' : 'mdi-eye-off' }}</v-icon>
+            </span>
+          </div>
+          <div class="input-group">
+            <input
+              v-model="registerForm.confirmPassword"
+              :type="registerForm.showConfirmPwd ? 'text' : 'password'"
+              class="form-input"
+              placeholder=" "
+              autocomplete="new-password"
+            />
+            <label class="form-label">确认密码</label>
+            <span
+              class="input-icon"
+              @click="registerForm.showConfirmPwd = !registerForm.showConfirmPwd"
+            >
+              <v-icon size="20">{{
+                registerForm.showConfirmPwd ? 'mdi-eye' : 'mdi-eye-off'
+              }}</v-icon>
+            </span>
+          </div>
           <v-btn
             class="mt-10 login-btn"
             block
@@ -146,20 +187,25 @@
         <!-- 忘记密码 -->
         <div v-else-if="forgetDialog" key="forget" class="login-wrapper">
           <div class="title">找回密码</div>
-          <v-text-field
-            v-model="forgetForm.email"
-            class="mt-6"
-            label="邮箱"
-            variant="underlined"
-            hide-details
-          />
-          <div class="code-input-wrapper mt-8">
-            <v-text-field
-              v-model="forgetForm.code"
-              label="验证码"
-              variant="underlined"
-              hide-details
+          <div class="input-group mt-6">
+            <input
+              v-model="forgetForm.email"
+              type="email"
+              class="form-input"
+              placeholder=" "
+              autocomplete="email"
             />
+            <label class="form-label">邮箱</label>
+          </div>
+          <div class="input-group">
+            <input
+              v-model="forgetForm.code"
+              type="text"
+              class="form-input"
+              placeholder=" "
+              autocomplete="one-time-code"
+            />
+            <label class="form-label">验证码</label>
             <span
               class="send-code-btn"
               :class="{ disabled: forgetForm.countdown > 0 }"
@@ -168,26 +214,35 @@
               {{ forgetForm.countdown > 0 ? `${forgetForm.countdown}s` : '发送' }}
             </span>
           </div>
-          <v-text-field
-            v-model="forgetForm.password"
-            class="mt-8"
-            label="新密码"
-            variant="underlined"
-            hide-details
-            :append-inner-icon="forgetForm.showPwd ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="forgetForm.showPwd ? 'text' : 'password'"
-            @click:append-inner="forgetForm.showPwd = !forgetForm.showPwd"
-          />
-          <v-text-field
-            v-model="forgetForm.confirmPassword"
-            class="mt-8"
-            label="确认密码"
-            variant="underlined"
-            hide-details
-            :append-inner-icon="forgetForm.showConfirmPwd ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="forgetForm.showConfirmPwd ? 'text' : 'password'"
-            @click:append-inner="forgetForm.showConfirmPwd = !forgetForm.showConfirmPwd"
-          />
+          <div class="input-group">
+            <input
+              v-model="forgetForm.password"
+              :type="forgetForm.showPwd ? 'text' : 'password'"
+              class="form-input"
+              placeholder=" "
+              autocomplete="new-password"
+            />
+            <label class="form-label">新密码</label>
+            <span class="input-icon" @click="forgetForm.showPwd = !forgetForm.showPwd">
+              <v-icon size="20">{{ forgetForm.showPwd ? 'mdi-eye' : 'mdi-eye-off' }}</v-icon>
+            </span>
+          </div>
+          <div class="input-group">
+            <input
+              v-model="forgetForm.confirmPassword"
+              :type="forgetForm.showConfirmPwd ? 'text' : 'password'"
+              class="form-input"
+              placeholder=" "
+              autocomplete="new-password"
+            />
+            <label class="form-label">确认密码</label>
+            <span
+              class="input-icon"
+              @click="forgetForm.showConfirmPwd = !forgetForm.showConfirmPwd"
+            >
+              <v-icon size="20">{{ forgetForm.showConfirmPwd ? 'mdi-eye' : 'mdi-eye-off' }}</v-icon>
+            </span>
+          </div>
           <v-btn
             class="mt-10 login-btn"
             block
@@ -229,6 +284,7 @@ const {
   openCodeLoginDialog,
   openRegisterDialog,
   openForgetDialog,
+  onDialogClosed,
 } = loginStore
 
 // 登录loading状态
@@ -247,7 +303,7 @@ const loginForm = reactive({
   showPwd: false,
 })
 
-// 免密登录表单
+// 验证码登录表单
 const codeLoginForm = reactive({
   email: '',
   code: '',
@@ -443,31 +499,83 @@ const qqLogin = () => {
   cursor: default;
 }
 
-.code-input-wrapper {
+/* 自定义输入框样式 */
+.input-group {
   position: relative;
-  display: flex;
-  align-items: flex-end;
+  margin-top: 24px;
 }
 
-.code-input-wrapper .v-text-field {
-  flex: 1;
+.input-group:first-child {
+  margin-top: 0;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 0;
+  font-size: 16px;
+  color: #333;
+  border: none;
+  border-bottom: 1px solid #ddd;
+  outline: none;
+  background: transparent;
+  transition: border-color 0.3s ease;
+}
+
+.form-input:focus {
+  border-bottom-color: #1976d2;
+}
+
+.form-input:focus ~ .form-label,
+.form-input:not(:placeholder-shown) ~ .form-label {
+  top: -8px;
+  font-size: 12px;
+  color: #1976d2;
+}
+
+.form-label {
+  position: absolute;
+  left: 0;
+  top: 12px;
+  font-size: 16px;
+  color: #999;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.input-icon {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.input-icon:hover {
+  color: #666;
 }
 
 .send-code-btn {
   position: absolute;
   right: 0;
-  bottom: 8px;
-  color: #999;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #1976d2;
   font-size: 14px;
   cursor: pointer;
+  font-weight: 500;
 }
 
 .send-code-btn:hover:not(.disabled) {
-  color: #1976d2;
+  color: #1565c0;
 }
 
 .send-code-btn.disabled {
-  color: #ccc;
+  color: #bbb;
   cursor: not-allowed;
 }
 
@@ -516,7 +624,7 @@ const qqLogin = () => {
   opacity: 0.8;
 }
 
-/* 切换动画 */
+/* 内部切换动画 */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.15s ease;
