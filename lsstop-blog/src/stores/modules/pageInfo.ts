@@ -6,11 +6,13 @@ import { listPageInfo, type PageInfoVo } from '@/apis/pageInfo'
 /**
  * 生成封面背景样式
  * @param coverUrl 封面图片地址
- * @param position 背景位置，默认 'center 35%'
+ * @param position 背景位置，默认 'center center'
  */
-export function createCoverStyle(coverUrl?: string, position = 'center 35%') {
+export function createCoverStyle(coverUrl?: string, position = 'center center') {
   if (!coverUrl) return {}
-  return { background: `#49b1f5 url(${coverUrl}) ${position} / cover no-repeat` }
+  return {
+    background: `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), #49b1f5 url(${coverUrl}) ${position} / cover no-repeat`,
+  }
 }
 
 const usePageInfoStore = defineStore('pageInfo', () => {
@@ -27,7 +29,7 @@ const usePageInfoStore = defineStore('pageInfo', () => {
   function getCoverStyle(pageLabel: string): string {
     const page = pageList.value.find((item) => item.pageLabel === pageLabel)
     const cover = page?.pageCover || ''
-    return `background: #49b1f5 url(${cover}) center 35% / cover no-repeat`
+    return `background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), #49b1f5 url(${cover}) center center / cover no-repeat`
   }
 
   // 自动根据当前路由获取 cover 样式

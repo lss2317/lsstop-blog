@@ -11,14 +11,18 @@
         <v-skeleton-loader v-for="n in 6" :key="n" type="image" class="photo-skeleton" />
       </div>
       <!-- 图片列表 -->
-      <div v-else-if="photoList.length > 0" class="photo-wrap">
-        <img
+      <div v-else-if="photoList.length > 0" class="photo-grid">
+        <div
           v-for="(item, index) of photoList"
-          class="photo"
+          class="photo-item"
           :key="item.id"
-          :src="item.photoSrc"
           @click="preview(index)"
-        />
+        >
+          <img :src="item.photoSrc" alt="相册图片" />
+          <div class="photo-overlay">
+            <v-icon color="white" size="32">mdi-magnify-plus</v-icon>
+          </div>
+        </div>
       </div>
       <!-- 空状态 -->
       <div v-else class="empty-state">
@@ -86,29 +90,64 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.photo-wrap {
-  display: flex;
-  flex-wrap: wrap;
+.photo-grid {
+  columns: 3;
+  column-gap: 16px;
 }
 
-.photo {
-  margin: 3px;
+.photo-item {
+  position: relative;
+  break-inside: avoid;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
   cursor: pointer;
-  flex-grow: 1;
-  object-fit: cover;
-  height: 200px;
 }
 
-.photo-wrap::after {
-  content: '';
+.photo-item img {
+  width: 100%;
   display: block;
-  flex-grow: 9999;
+  transition: transform 0.3s ease;
+}
+
+.photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.photo-item:hover img {
+  transform: scale(1.05);
+}
+
+.photo-item:hover .photo-overlay {
+  opacity: 1;
+}
+
+@media (max-width: 1200px) {
+  .photo-grid {
+    columns: 2;
+  }
 }
 
 @media (max-width: 759px) {
-  .photo {
-    width: 100%;
+  .photo-grid {
+    columns: 1;
+    column-gap: 0;
   }
+  .photo-item {
+    margin-bottom: 12px;
+  }
+}
+
+.photo-wrap {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .photo-skeleton {

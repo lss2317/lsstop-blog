@@ -2,7 +2,7 @@
   <div>
     <!-- banner -->
     <div class="banner" :style="cover">
-      <h1 class="banner-title">说说</h1>
+      <h1 class="banner-title">说说详情</h1>
     </div>
     <!-- 说说内容 -->
     <v-card class="blog-container">

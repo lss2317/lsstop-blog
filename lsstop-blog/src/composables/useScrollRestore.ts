@@ -12,10 +12,7 @@ export function useScrollRestore(delay = 200) {
 
   // 保存滚动位置
   const saveScrollPosition = () => {
-    sessionStorage.setItem(
-      SCROLL_KEY,
-      JSON.stringify({ path: route.fullPath, y: window.scrollY }),
-    )
+    sessionStorage.setItem(SCROLL_KEY, JSON.stringify({ path: route.fullPath, y: window.scrollY }))
   }
 
   // 恢复滚动位置
