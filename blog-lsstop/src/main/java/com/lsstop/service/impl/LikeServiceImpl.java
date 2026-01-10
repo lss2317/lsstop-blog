@@ -34,6 +34,14 @@ public class LikeServiceImpl implements LikeService {
      */
     @Override
     public boolean toggleLike(String userId, Integer targetId, LikeTypeEnum type) {
+        // 前置校验，防止无效数据写入Redis
+        if (userId == null || userId.trim().isEmpty()) {
+            throw new IllegalArgumentException("用户id不能为空");
+        }
+        if (targetId == null) {
+            throw new IllegalArgumentException("目标id不能为空");
+        }
+
         String likeCountKey = getLikeCountKey(type, targetId);
         String userLikeKey = getUserLikeKey(type, userId);
         String pendingSyncKey = getPendingSyncKey(type);

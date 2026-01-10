@@ -190,16 +190,32 @@ public class TalkStatsTask {
 
         for (Map.Entry<Object, Object> entry : pendingRecords.entrySet()) {
             String field = (String) entry.getKey();
-            Integer status = (Integer) entry.getValue();
+            Object statusObj = entry.getValue();
+            int status = statusObj instanceof Number ? ((Number) statusObj).intValue() : 0;
 
             // 解析 field: userId:targetId
             String[] parts = field.split(":");
             if (parts.length != 2) {
+                processedFields.add(field);
                 continue;
             }
 
             String userId = parts[0];
-            Integer targetId = Integer.parseInt(parts[1]);
+            // 过滤空字符串的userId，避免脏数据写入数据库
+            if (userId == null || userId.trim().isEmpty()) {
+                log.warn("发现无效的点赞记录，userId为空，field: {}", field);
+                processedFields.add(field);
+                continue;
+            }
+
+            int targetId;
+            try {
+                targetId = Integer.parseInt(parts[1]);
+            } catch (NumberFormatException e) {
+                log.warn("发现无效的点赞记录，targetId解析失败，field: {}", field);
+                processedFields.add(field);
+                continue;
+            }
 
             LikeRecordDO record = LikeRecordDO.builder()
                     .userId(userId)
@@ -214,10 +230,11 @@ public class TalkStatsTask {
         if (!records.isEmpty()) {
             // 批量插入或更新
             likeMapper.batchInsertOrUpdate(records);
-            // 删除已处理的记录
-            redisUtils.hDelete(pendingKey, processedFields.toArray());
             log.info("同步{}点赞记录{}条", likeType.getDesc(), records.size());
         }
+
+        // 删除所有已处理的记录（包括无效记录）
+        redisUtils.hDelete(pendingKey, processedFields.toArray());
 
         return records.size();
     }

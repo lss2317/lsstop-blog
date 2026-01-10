@@ -61,6 +61,19 @@ public class GlobalExceptionControllerHandler {
     }
     
     /**
+     * 处理非法参数异常
+     *
+     * @param e 非法参数异常
+     * @return 统一错误响应
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Void> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.warn("非法参数: {}", e.getMessage());
+        return Result.failure(StatusEnum.PARAM_ERROR.getCode(), e.getMessage());
+    }
+
+    /**
      * 处理运行时异常
      *
      * @param e 运行时异常
