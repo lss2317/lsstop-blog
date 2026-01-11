@@ -14,7 +14,14 @@
       </v-row>
       <!-- 相册列表 -->
       <v-row v-else-if="photoAlbumList.length > 0">
-        <v-col :md="6" cols="12" v-for="item of photoAlbumList" :key="item.id">
+        <v-col
+          :md="6"
+          cols="12"
+          v-for="(item, index) of photoAlbumList"
+          :key="item.id"
+          class="album-col"
+          :style="{ '--delay': index * 0.1 + 's' }"
+        >
           <div class="album-item">
             <img class="album-cover" :src="item.photoAlbumCover" :alt="item.photoAlbumName" />
             <a class="album-wrapper" @click="goToAlbum(item.id)">
@@ -73,6 +80,24 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.album-col {
+  --delay: 0s;
+  animation: fadeInUp 0.5s ease forwards;
+  animation-delay: var(--delay);
+  opacity: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .skeleton-album {
   border-radius: 0.5rem;
 }

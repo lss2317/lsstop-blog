@@ -31,7 +31,7 @@
         </a>
       </div>
       <div class="blog-info-data">
-        <a @click="navigateTo('/tags')">
+        <a @click="navigateTo('/tag')">
           <div style="font-size: 0.875rem">标签</div>
           <div style="font-size: 1.125rem">
             {{ labelCount }}
@@ -58,7 +58,7 @@
         <a @click="navigateTo('/classification')"> <i class="iconfont iconfenlei" /> 分类 </a>
       </div>
       <div class="menus-item">
-        <a @click="navigateTo('/tags')"> <i class="iconfont iconbiaoqian" /> 标签 </a>
+        <a @click="navigateTo('/tag')"> <i class="iconfont iconbiaoqian" /> 标签 </a>
       </div>
       <div class="menus-item">
         <a @click="navigateTo('/friendLink')"> <i class="iconfont iconlianjie" /> 友链 </a>

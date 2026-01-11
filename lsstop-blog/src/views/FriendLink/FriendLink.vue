@@ -24,7 +24,14 @@
       </v-row>
       <!-- 友链列表 -->
       <v-row v-else-if="friendLinkList.length > 0" class="link-container">
-        <v-col md="4" cols="12" v-for="item of friendLinkList" :key="item.id">
+        <v-col
+          md="4"
+          cols="12"
+          v-for="(item, index) of friendLinkList"
+          :key="item.id"
+          class="link-col"
+          :style="{ '--delay': index * 0.08 + 's' }"
+        >
           <div class="link-wrapper">
             <a :href="item.linkAddress" target="_blank">
               <v-avatar size="65" class="link-avatar">
@@ -146,6 +153,24 @@ blockquote {
 
 .link-container {
   margin: 10px 0 0;
+}
+
+.link-col {
+  --delay: 0s;
+  animation: fadeInUp 0.5s ease forwards;
+  animation-delay: var(--delay);
+  opacity: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .link-wrapper {

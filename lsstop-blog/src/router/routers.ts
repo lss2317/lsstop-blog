@@ -1,5 +1,14 @@
 export const constantRouter = [
   {
+    path: '/tag',
+    name: 'Tag',
+    component: () => import('@/views/Tag/BlogTag.vue'),
+    meta: {
+      title: '标签',
+      pageLabel: 'tag',
+    },
+  },
+  {
     path: '/photoAlbum',
     name: 'PhotoAlbum',
     component: () => import('@/views/PhotoAlbum/PhotoAlbum.vue'),

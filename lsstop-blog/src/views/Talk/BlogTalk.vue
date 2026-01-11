@@ -12,7 +12,12 @@
         <p>暂无说说</p>
       </div>
       <!-- 说说列表 -->
-      <div v-for="item of talkList" :key="item.id" class="talk-item">
+      <div
+        v-for="(item, index) of talkList"
+        :key="item.id"
+        class="talk-item"
+        :style="{ '--delay': index * 0.08 + 's' }"
+      >
         <!-- 用户信息 -->
         <div class="user-info-wrapper">
           <v-avatar
@@ -253,11 +258,26 @@ onMounted(() => {
 }
 
 .talk-item {
+  --delay: 0s;
   padding: 12px 20px 16px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.1);
   box-shadow: 0 3px 8px 6px rgb(7 17 27 / 6%);
   transition: all 0.3s ease 0s;
+  animation: fadeInUp 0.5s ease forwards;
+  animation-delay: var(--delay);
+  opacity: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .talk-item:hover {

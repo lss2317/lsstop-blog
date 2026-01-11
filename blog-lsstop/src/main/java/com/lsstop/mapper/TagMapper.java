@@ -1,0 +1,22 @@
+package com.lsstop.mapper;
+
+import com.lsstop.domain.vo.TagVO;
+
+import java.util.List;
+
+/**
+ * 标签数据访问层
+ *
+ * @author lishusheng
+ * @date 2026/01/11
+ */
+public interface TagMapper {
+
+    /**
+     * 获取标签列表
+     *
+     * @return 标签列表
+     */
+    List<TagVO> getTagList();
+
+}

@@ -37,7 +37,7 @@
               <a @click="navigateTo('/classification')"> <i class="iconfont iconfenlei" /> 分类 </a>
             </li>
             <li>
-              <a @click="navigateTo('/tags')"><i class="iconfont iconbiaoqian" /> 标签</a>
+              <a @click="navigateTo('/tag')"><i class="iconfont iconbiaoqian" /> 标签</a>
             </li>
           </ul>
         </div>
