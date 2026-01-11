@@ -6,89 +6,109 @@
     </div>
     <!-- 说说内容 -->
     <v-card class="blog-container">
-      <!-- 空状态 -->
-      <div v-if="talkList.length === 0 && !loading" class="empty-state">
-        <v-icon size="48" color="grey">mdi-message-text-outline</v-icon>
-        <p>暂无说说</p>
-      </div>
-      <!-- 说说列表 -->
-      <div
-        v-for="(item, index) of talkList"
-        :key="item.id"
-        class="talk-item"
-        :style="{ '--delay': index * 0.08 + 's' }"
-      >
-        <!-- 用户信息 -->
-        <div class="user-info-wrapper">
-          <v-avatar
-            size="36"
-            class="user-avatar"
-            :class="{ deactivated: isUserDeactivated(item) }"
-            @click="previewAvatar(item)"
-          >
-            <v-img :src="getUserAvatar(item)" width="36" height="36" cover />
-          </v-avatar>
-          <div class="user-detail-wrapper">
-            <div class="user-nickname" :class="{ deactivated: isUserDeactivated(item) }">
-              {{ getUserNickname(item) }}
-              <v-icon v-if="!isUserDeactivated(item)" class="user-sign" size="20" color="#ffa51e">
-                mdi-check-decagram
-              </v-icon>
-            </div>
-            <!-- 发表时间 -->
-            <div class="time">
-              {{ dateFormat.datetime(item.createTime) }}
-              <span class="top" v-if="item.isTop === 1">
-                <v-icon size="14" color="#ff7242">mdi-pin</v-icon> 置顶
-              </span>
-            </div>
-            <!-- 说说信息 -->
-            <div class="talk-content" v-html="item.content" />
-            <!-- 图片列表 -->
-            <div class="talk-images" v-if="item.imgList">
-              <div
-                class="image-wrapper"
-                v-for="(img, index) of item.imgList"
-                :key="index"
-                @click.stop="previewImg(item, img)"
-              >
-                <img :src="img" class="images-items" />
-              </div>
-            </div>
-            <!-- 说说操作 -->
-            <div
-              class="talk-operation"
-              :class="{ 'no-images': !item.imgList || item.imgList.length === 0 }"
-            >
-              <div
-                :class="[
-                  'talk-operation-item',
-                  'like-item',
-                  likedTalkIds.has(item.id) ? 'liked' : '',
-                ]"
-                @click="like(item)"
-              >
-                <v-icon size="16" class="like-btn">
-                  {{ likedTalkIds.has(item.id) ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
-                </v-icon>
-                <span class="operation-count">
-                  {{ item.likeCount == null ? 0 : item.likeCount }}
-                </span>
-              </div>
-              <div class="talk-operation-item comment-btn" @click="goToTalkInfo(item.id)">
-                <v-icon size="16">mdi-chat-outline</v-icon>
-                <span class="operation-count">
-                  {{ item.commentCount == null ? 0 : item.commentCount }}
-                </span>
-              </div>
-              <div class="talk-operation-item share-btn" @click="share(item)">
-                <v-icon size="16">mdi-share-variant-outline</v-icon>
-                <span class="operation-count">分享</span>
+      <!-- 骨架屏 -->
+      <div v-if="loading" class="skeleton-list">
+        <div v-for="i in 3" :key="i" class="talk-item skeleton-item">
+          <div class="user-info-wrapper">
+            <v-skeleton-loader type="avatar" class="skeleton-avatar" />
+            <div class="user-detail-wrapper">
+              <v-skeleton-loader type="text" width="120" class="skeleton-name" />
+              <v-skeleton-loader type="text" width="80" class="skeleton-time" />
+              <v-skeleton-loader type="paragraph" class="skeleton-content" />
+              <div class="skeleton-actions">
+                <v-skeleton-loader type="button" width="60" />
+                <v-skeleton-loader type="button" width="60" />
+                <v-skeleton-loader type="button" width="60" />
               </div>
             </div>
           </div>
         </div>
       </div>
+      <!-- 空状态 -->
+      <div v-else-if="talkList.length === 0" class="empty-state">
+        <v-icon size="48" color="grey">mdi-message-text-outline</v-icon>
+        <p>暂无说说</p>
+      </div>
+      <!-- 说说列表 -->
+      <template v-else>
+        <div
+          v-for="(item, index) of talkList"
+          :key="item.id"
+          class="talk-item"
+          :style="{ '--delay': index * 0.08 + 's' }"
+        >
+          <!-- 用户信息 -->
+          <div class="user-info-wrapper">
+            <v-avatar
+              size="36"
+              class="user-avatar"
+              :class="{ deactivated: isUserDeactivated(item) }"
+              @click="previewAvatar(item)"
+            >
+              <v-img :src="getUserAvatar(item)" width="36" height="36" cover />
+            </v-avatar>
+            <div class="user-detail-wrapper">
+              <div class="user-nickname" :class="{ deactivated: isUserDeactivated(item) }">
+                {{ getUserNickname(item) }}
+                <v-icon v-if="!isUserDeactivated(item)" class="user-sign" size="20" color="#ffa51e">
+                  mdi-check-decagram
+                </v-icon>
+              </div>
+              <!-- 发表时间 -->
+              <div class="time">
+                {{ dateFormat.datetime(item.createTime) }}
+                <span class="top" v-if="item.isTop === 1">
+                  <v-icon size="14" color="#ff7242">mdi-pin</v-icon> 置顶
+                </span>
+              </div>
+              <!-- 说说信息 -->
+              <div class="talk-content" v-html="item.content" />
+              <!-- 图片列表 -->
+              <div class="talk-images" v-if="item.imgList">
+                <div
+                  class="image-wrapper"
+                  v-for="(img, index) of item.imgList"
+                  :key="index"
+                  @click.stop="previewImg(item, img)"
+                >
+                  <img :src="img" class="images-items" />
+                </div>
+              </div>
+              <!-- 说说操作 -->
+              <div
+                class="talk-operation"
+                :class="{ 'no-images': !item.imgList || item.imgList.length === 0 }"
+              >
+                <div
+                  :class="[
+                    'talk-operation-item',
+                    'like-item',
+                    likedTalkIds.has(item.id) ? 'liked' : '',
+                  ]"
+                  @click="like(item)"
+                >
+                  <v-icon size="16" class="like-btn">
+                    {{ likedTalkIds.has(item.id) ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
+                  </v-icon>
+                  <span class="operation-count">
+                    {{ item.likeCount == null ? 0 : item.likeCount }}
+                  </span>
+                </div>
+                <div class="talk-operation-item comment-btn" @click="goToTalkInfo(item.id)">
+                  <v-icon size="16">mdi-chat-outline</v-icon>
+                  <span class="operation-count">
+                    {{ item.commentCount == null ? 0 : item.commentCount }}
+                  </span>
+                </div>
+                <div class="talk-operation-item share-btn" @click="share(item)">
+                  <v-icon size="16">mdi-share-variant-outline</v-icon>
+                  <span class="operation-count">分享</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
     </v-card>
     <!-- 分享弹窗 -->
     <v-dialog v-model="shareDialogVisible" max-width="320" transition="dialog-bottom-transition">
@@ -488,6 +508,39 @@ onMounted(() => {
 .empty-state p {
   margin-top: 12px;
   font-size: 14px;
+}
+
+/* 骨架屏样式 */
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.skeleton-item {
+  opacity: 1 !important;
+  animation: none !important;
+}
+
+.skeleton-avatar {
+  flex-shrink: 0;
+}
+
+.skeleton-name {
+  margin-bottom: 4px;
+}
+
+.skeleton-time {
+  margin-bottom: 12px;
+}
+
+.skeleton-content {
+  margin-bottom: 16px;
+}
+
+.skeleton-actions {
+  display: flex;
+  gap: 16px;
 }
 
 /* 分享弹窗样式 */

@@ -322,6 +322,7 @@ p {
     max-width: 970px;
     padding: 50px 40px;
     margin: 440px auto 40px auto;
+    min-height: calc(100vh - 440px - 40px);
   }
   .article-container {
     animation: main 1s;
@@ -361,6 +362,7 @@ p {
     animation: main 1s;
     margin: 300px 5px 20px 5px;
     padding: 36px 14px;
+    min-height: calc(100vh - 300px - 20px);
   }
   .article-container {
     animation: main 1s;
@@ -703,4 +705,13 @@ pre.hljs code {
 }
 #nprogress .bar {
   background: #49b1f5 !important;
+}
+
+/* 滚动位置恢复期间隐藏 footer */
+body.scroll-restoring .v-footer {
+  opacity: 0;
+}
+
+.v-footer {
+  transition: opacity 0.3s ease-in;
 }

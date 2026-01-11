@@ -6,80 +6,97 @@
     </div>
     <!-- 说说内容 -->
     <v-card class="blog-container">
-      <!-- 空状态 -->
-      <div v-if="!talk && !loading" class="empty-state">
-        <v-icon size="48" color="grey">mdi-message-text-outline</v-icon>
-        <p>说说不存在</p>
-      </div>
-      <!-- 说说详情 -->
-      <div v-if="talk" class="talk-item">
-        <!-- 用户信息 -->
+      <!-- 骨架屏 -->
+      <div v-if="loading" class="talk-item skeleton-item">
         <div class="user-info-wrapper">
-          <v-avatar
-            size="36"
-            class="user-avatar"
-            :class="{ deactivated: isUserDeactivated(talk) }"
-            @click="previewAvatar"
-          >
-            <v-img :src="getUserAvatar(talk)" width="36" height="36" cover />
-          </v-avatar>
+          <v-skeleton-loader type="avatar" class="skeleton-avatar" />
           <div class="user-detail-wrapper">
-            <div class="user-nickname" :class="{ deactivated: isUserDeactivated(talk) }">
-              {{ getUserNickname(talk) }}
-              <v-icon v-if="!isUserDeactivated(talk)" class="user-sign" size="20" color="#ffa51e">
-                mdi-check-decagram
-              </v-icon>
-            </div>
-            <!-- 发表时间 -->
-            <div class="time">
-              {{ dateFormat.datetime(talk.createTime) }}
-            </div>
-            <!-- 说说信息 -->
-            <div class="talk-content" v-html="talk.content" />
-            <!-- 图片列表 -->
-            <div class="talk-images" v-if="talk.imgList">
-              <div
-                class="image-wrapper"
-                v-for="(img, index) of talk.imgList"
-                :key="index"
-                @click.stop="previewImg(img)"
-              >
-                <img :src="img" class="images-items" />
-              </div>
-            </div>
-            <!-- 说说操作 -->
-            <div
-              class="talk-operation"
-              :class="{ 'no-images': !talk.imgList || talk.imgList.length === 0 }"
-            >
-              <div
-                :class="['talk-operation-item', 'like-item', isLiked ? 'liked' : '']"
-                @click="like"
-              >
-                <v-icon size="16" class="like-btn">
-                  {{ isLiked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
-                </v-icon>
-                <span class="operation-count">
-                  {{ talk.likeCount == null ? 0 : talk.likeCount }}
-                </span>
-              </div>
-              <div class="talk-operation-item share-btn" @click="share">
-                <v-icon size="16">mdi-share-variant-outline</v-icon>
-                <span class="operation-count">分享</span>
-              </div>
+            <v-skeleton-loader type="text" width="120" class="skeleton-name" />
+            <v-skeleton-loader type="text" width="80" class="skeleton-time" />
+            <v-skeleton-loader type="paragraph" class="skeleton-content" />
+            <div class="skeleton-actions">
+              <v-skeleton-loader type="button" width="60" />
+              <v-skeleton-loader type="button" width="60" />
             </div>
           </div>
         </div>
       </div>
-      <!-- 评论分隔线 -->
-      <div class="comment-divider" v-if="talk">
-        <v-icon size="18" color="#8a919f">mdi-chat-processing-outline</v-icon>
-        <span>评论区</span>
+      <!-- 空状态 -->
+      <div v-else-if="!talk" class="empty-state">
+        <v-icon size="48" color="grey">mdi-message-text-outline</v-icon>
+        <p>说说不存在</p>
       </div>
-      <!-- 评论 -->
-      <div class="comment-wrapper" v-if="talk">
-        <Comment></Comment>
-      </div>
+      <!-- 说说详情 -->
+      <template v-else>
+        <div class="talk-item">
+          <!-- 用户信息 -->
+          <div class="user-info-wrapper">
+            <v-avatar
+              size="36"
+              class="user-avatar"
+              :class="{ deactivated: isUserDeactivated(talk) }"
+              @click="previewAvatar"
+            >
+              <v-img :src="getUserAvatar(talk)" width="36" height="36" cover />
+            </v-avatar>
+            <div class="user-detail-wrapper">
+              <div class="user-nickname" :class="{ deactivated: isUserDeactivated(talk) }">
+                {{ getUserNickname(talk) }}
+                <v-icon v-if="!isUserDeactivated(talk)" class="user-sign" size="20" color="#ffa51e">
+                  mdi-check-decagram
+                </v-icon>
+              </div>
+              <!-- 发表时间 -->
+              <div class="time">
+                {{ dateFormat.datetime(talk.createTime) }}
+              </div>
+              <!-- 说说信息 -->
+              <div class="talk-content" v-html="talk.content" />
+              <!-- 图片列表 -->
+              <div class="talk-images" v-if="talk.imgList">
+                <div
+                  class="image-wrapper"
+                  v-for="(img, index) of talk.imgList"
+                  :key="index"
+                  @click.stop="previewImg(img)"
+                >
+                  <img :src="img" class="images-items" />
+                </div>
+              </div>
+              <!-- 说说操作 -->
+              <div
+                class="talk-operation"
+                :class="{ 'no-images': !talk.imgList || talk.imgList.length === 0 }"
+              >
+                <div
+                  :class="['talk-operation-item', 'like-item', isLiked ? 'liked' : '']"
+                  @click="like"
+                >
+                  <v-icon size="16" class="like-btn">
+                    {{ isLiked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
+                  </v-icon>
+                  <span class="operation-count">
+                    {{ talk.likeCount == null ? 0 : talk.likeCount }}
+                  </span>
+                </div>
+                <div class="talk-operation-item share-btn" @click="share">
+                  <v-icon size="16">mdi-share-variant-outline</v-icon>
+                  <span class="operation-count">分享</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 评论分隔线 -->
+        <div class="comment-divider">
+          <v-icon size="18" color="#8a919f">mdi-chat-processing-outline</v-icon>
+          <span>评论区</span>
+        </div>
+        <!-- 评论 -->
+        <div class="comment-wrapper">
+          <Comment></Comment>
+        </div>
+      </template>
     </v-card>
     <!-- 分享弹窗 -->
     <v-dialog v-model="shareDialogVisible" max-width="320" transition="dialog-bottom-transition">
@@ -442,6 +459,32 @@ onMounted(() => {
 .empty-state p {
   margin-top: 12px;
   font-size: 14px;
+}
+
+/* 骨架屏样式 */
+.skeleton-item {
+  animation: none !important;
+}
+
+.skeleton-avatar {
+  flex-shrink: 0;
+}
+
+.skeleton-name {
+  margin-bottom: 4px;
+}
+
+.skeleton-time {
+  margin-bottom: 12px;
+}
+
+.skeleton-content {
+  margin-bottom: 16px;
+}
+
+.skeleton-actions {
+  display: flex;
+  gap: 16px;
 }
 
 /* 分享弹窗样式 */
