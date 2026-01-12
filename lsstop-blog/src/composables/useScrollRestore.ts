@@ -10,14 +10,18 @@ export function useScrollRestore() {
   const route = useRoute()
   const router = useRouter()
 
-  // 检查是否需要恢复
+  // 检查是否需要恢复（仅同页面刷新时恢复）
   const saved = sessionStorage.getItem(SCROLL_KEY)
   if (saved) {
-    const { y } = JSON.parse(saved)
-    if (y > 0) {
+    const { path, y } = JSON.parse(saved)
+    // 只有当前路径与保存的路径一致时才恢复滚动位置
+    if (
+      y > 0 &&
+      path === window.location.pathname + window.location.search + window.location.hash
+    ) {
       // 添加恢复中标记，隐藏 footer
       document.body.classList.add('scroll-restoring')
-      // 擐高页面，让页面一开始就有足够高度
+      // 撑高页面，让页面一开始就有足够高度
       document.body.style.minHeight = `${y + window.innerHeight}px`
       // 立即滚动到位置
       window.scrollTo(0, y)
