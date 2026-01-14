@@ -5,6 +5,7 @@ import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { tokenManager } from '@/utils/token'
 import useUserInfoStore from '@/stores/modules/userInfo'
+import useLikeStore from '@/stores/modules/like'
 
 // 统一响应结构
 export interface ApiResponse<T = unknown> {
@@ -110,6 +111,7 @@ instance.interceptors.response.use(
       if (originalRequest.url?.includes('/auth/refresh')) {
         tokenManager.clearTokens()
         useUserInfoStore().clearUserInfo()
+        useLikeStore().clearAll()
         return Promise.reject(error)
       }
 
@@ -131,6 +133,7 @@ instance.interceptors.response.use(
       if (!refreshTokenValue) {
         tokenManager.clearTokens()
         useUserInfoStore().clearUserInfo()
+        useLikeStore().clearAll()
         isRefreshing = false
         return Promise.reject(error)
       }
@@ -160,11 +163,13 @@ instance.interceptors.response.use(
         } else {
           tokenManager.clearTokens()
           useUserInfoStore().clearUserInfo()
+          useLikeStore().clearAll()
           return Promise.reject(error)
         }
       } catch (refreshError) {
         tokenManager.clearTokens()
         useUserInfoStore().clearUserInfo()
+        useLikeStore().clearAll()
         requestsQueue = []
         return Promise.reject(refreshError)
       } finally {

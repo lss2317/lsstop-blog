@@ -158,17 +158,21 @@ public class TalkStatsTask {
 
     /**
      * 定时同步点赞记录到数据库
-     * 每5分钟执行一次
+     * 每5分钟执行一次，首次延迟5分钟执行避免与初始化冲突
      */
-    @Scheduled(fixedRate = 5 * 60 * 1000)
+    @Scheduled(fixedDelay = 5 * 60 * 1000, initialDelay = 5 * 60 * 1000)
     public void syncLikeRecordsToDb() {
         log.info("开始同步点赞记录到数据库...");
         int totalCount = 0;
 
-        // 同步三种类型的点赞记录
-        totalCount += syncLikesByType(LikeTypeEnum.TALK);
-        totalCount += syncLikesByType(LikeTypeEnum.ARTICLE);
-        totalCount += syncLikesByType(LikeTypeEnum.COMMENT);
+        // 同步三种类型的点赞记录，单个类型失败不影响其他类型
+        for (LikeTypeEnum likeType : LikeTypeEnum.values()) {
+            try {
+                totalCount += syncLikesByType(likeType);
+            } catch (Exception e) {
+                log.error("同步{}点赞记录失败", likeType.getDesc(), e);
+            }
+        }
 
         log.info("点赞记录同步完成，共处理{}条", totalCount);
     }
