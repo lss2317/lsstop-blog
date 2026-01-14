@@ -1,8 +1,8 @@
 package com.lsstop.service.impl;
 
 import com.lsstop.constant.RedisConst;
-import com.lsstop.domain.dataObject.UserAuthDO;
-import com.lsstop.domain.dataObject.UserProfileDO;
+import com.lsstop.domain.entity.UserAuthEntity;
+import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
 import com.lsstop.domain.dto.WeiboLoginDTO;
@@ -45,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginVO emailLogin(EmailLoginDTO dto) {
         // 查询用户认证信息
-        UserAuthDO userAuth = authMapper.selectByIdentifierAndType(dto.getEmail(), LoginTypeEnum.EMAIL.getCode());
+        UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(dto.getEmail(), LoginTypeEnum.EMAIL.getCode());
         if (userAuth == null) {
             throw new BusinessException("用户不存在");
         }
@@ -69,7 +69,7 @@ public class AuthServiceImpl implements AuthService {
         // TODO: 调用QQ开放平台接口验证access_token
         // 1. 使用accessToken调用QQ接口获取openId
         // 2. 根据 openId 查询用户认证信息
-        // UserAuthDO userAuth = authMapper.selectByIdentifierAndType(openId, LoginTypeEnum.QQ.getCode());
+        // UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(openId, LoginTypeEnum.QQ.getCode());
         // 3. 如果用户不存在，可考虑自动注册
         // 4. 返回登录结果
         // return buildLoginVO(userAuth);
@@ -87,7 +87,7 @@ public class AuthServiceImpl implements AuthService {
         // TODO: 调用微博开放平台接口验证access_token
         // 1. 使用accessToken调用微博接口获取uid
         // 2. 根据 uid 查询用户认证信息
-        // UserAuthDO userAuth = authMapper.selectByIdentifierAndType(uid, LoginTypeEnum.WEIBO.getCode());
+        // UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(uid, LoginTypeEnum.WEIBO.getCode());
         // 3. 如果用户不存在，可考虑自动注册
         // 4. 返回登录结果
         // return buildLoginVO(userAuth);
@@ -100,10 +100,10 @@ public class AuthServiceImpl implements AuthService {
      * @param userAuth  用户认证信息
      * @return 登录结果
      */
-    private LoginVO buildLoginVO(UserAuthDO userAuth) {
+    private LoginVO buildLoginVO(UserAuthEntity userAuth) {
         // 查询用户资料
-        UserProfileDO userProfileDO = authMapper.selectProfileById(userAuth.getUserId());
-        LoginVO loginVO = userProfileDO.asViewObject(LoginVO.class);
+        UserProfileEntity userProfileEntity = authMapper.selectProfileById(userAuth.getUserId());
+        LoginVO loginVO = userProfileEntity.asViewObject(LoginVO.class);
 
         // 生成token
         JwtUtils.TokenPair tokenPair = jwtUtils.generateFrontTokenPair(userAuth.getUserId());

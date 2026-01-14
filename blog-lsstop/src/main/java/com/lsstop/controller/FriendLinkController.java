@@ -2,7 +2,7 @@ package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
-import com.lsstop.domain.dataObject.FriendLinkDO;
+import com.lsstop.domain.entity.FriendLinkEntity;
 import com.lsstop.domain.vo.FriendLinkVO;
 import com.lsstop.service.FriendLinkService;
 import jakarta.annotation.Resource;
@@ -31,7 +31,7 @@ public class FriendLinkController {
     @GetMapping("/front/friendLink/listFriendLink")
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<List<FriendLinkVO>> getFriendLinkList() {
-        List<FriendLinkDO> friendLinkList = friendLinkService.getFriendLinkList();
+        List<FriendLinkEntity> friendLinkList = friendLinkService.getFriendLinkList();
         List<FriendLinkVO> list = friendLinkList.stream().map(friendLink -> friendLink.asViewObject(FriendLinkVO.class)).toList();
         return Result.success(list);
     }

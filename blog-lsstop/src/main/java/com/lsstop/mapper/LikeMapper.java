@@ -1,7 +1,7 @@
 package com.lsstop.mapper;
 
-import com.lsstop.domain.dataObject.LikeCountDO;
-import com.lsstop.domain.dataObject.LikeRecordDO;
+import com.lsstop.domain.vo.LikeCountVO;
+import com.lsstop.domain.entity.LikeRecordEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -21,7 +21,7 @@ public interface LikeMapper {
      *
      * @return 点赞记录列表
      */
-    List<LikeRecordDO> listValidLikes();
+    List<LikeRecordEntity> listValidLikes();
 
     /**
      * 按类型统计各目标的点赞数
@@ -29,13 +29,13 @@ public interface LikeMapper {
      * @param type 点赞类型
      * @return 点赞统计列表
      */
-    List<LikeCountDO> countLikesByType(@Param("type") Integer type);
+    List<LikeCountVO> countLikesByType(@Param("type") Integer type);
 
     /**
      * 批量插入或更新点赞记录
      *
      * @param records 点赞记录列表
      */
-    void batchInsertOrUpdate(@Param("records") List<LikeRecordDO> records);
+    void batchInsertOrUpdate(@Param("records") List<LikeRecordEntity> records);
 
 }

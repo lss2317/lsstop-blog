@@ -2,7 +2,7 @@ package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
-import com.lsstop.domain.dataObject.PhotoAlbumDO;
+import com.lsstop.domain.entity.PhotoAlbumEntity;
 import com.lsstop.domain.vo.PhotoAlbumVO;
 import com.lsstop.domain.vo.PhotoAlbumInfoVO;
 import com.lsstop.service.PhotoAlbumService;
@@ -33,7 +33,7 @@ public class PhotoAlbumController {
     @GetMapping("/front/photoAlbum/listPhotoAlbum")
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<List<PhotoAlbumVO>> getPhotoAlbumList() {
-        List<PhotoAlbumDO> photoAlbumList = photoAlbumService.getPhotoAlbumList();
+        List<PhotoAlbumEntity> photoAlbumList = photoAlbumService.getPhotoAlbumList();
         List<PhotoAlbumVO> list = photoAlbumList.stream().map(photoAlbum -> photoAlbum.asViewObject(PhotoAlbumVO.class)).toList();
         return Result.success(list);
     }
@@ -47,7 +47,7 @@ public class PhotoAlbumController {
     @GetMapping("/front/photoAlbum/{id}")
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<PhotoAlbumInfoVO> getPhotoAlbumById(@PathVariable Integer id) {
-        PhotoAlbumDO photoAlbum = photoAlbumService.getPhotoAlbumById(id);
+        PhotoAlbumEntity photoAlbum = photoAlbumService.getPhotoAlbumById(id);
         if (photoAlbum == null) {
             return Result.success(null);
         }

@@ -1,9 +1,9 @@
 package com.lsstop.task;
 
 import com.lsstop.constant.RedisConst;
-import com.lsstop.domain.dataObject.CommentCountDO;
-import com.lsstop.domain.dataObject.LikeCountDO;
-import com.lsstop.domain.dataObject.LikeRecordDO;
+import com.lsstop.domain.vo.CommentCountVO;
+import com.lsstop.domain.vo.LikeCountVO;
+import com.lsstop.domain.entity.LikeRecordEntity;
 import com.lsstop.enums.CommentTypeEnum;
 import com.lsstop.enums.LikeTypeEnum;
 import com.lsstop.mapper.CommentMapper;
@@ -93,11 +93,11 @@ public class TalkStatsTask {
      * 按类型初始化点赞数
      */
     private int initLikeCountByType(Integer type, String keyPrefix) {
-        List<LikeCountDO> likeCounts = likeMapper.countLikesByType(type);
+        List<LikeCountVO> likeCounts = likeMapper.countLikesByType(type);
         if (likeCounts == null || likeCounts.isEmpty()) {
             return 0;
         }
-        for (LikeCountDO likeCount : likeCounts) {
+        for (LikeCountVO likeCount : likeCounts) {
             redisUtils.set(keyPrefix + likeCount.getTargetId(), likeCount.getLikeCount());
         }
         return likeCounts.size();
@@ -109,12 +109,12 @@ public class TalkStatsTask {
     private void initCommentCounts() {
         log.info("开始初始化说说评论数到Redis...");
         // 只有说说需要评论数
-        List<CommentCountDO> commentCounts = commentMapper.countCommentsByTargetType(CommentTypeEnum.TALK.getType());
+        List<CommentCountVO> commentCounts = commentMapper.countCommentsByTargetType(CommentTypeEnum.TALK.getType());
         if (commentCounts == null || commentCounts.isEmpty()) {
             log.info("没有说说评论数需要初始化");
             return;
         }
-        for (CommentCountDO commentCount : commentCounts) {
+        for (CommentCountVO commentCount : commentCounts) {
             redisUtils.set(RedisConst.TALK_COMMENT_COUNT + commentCount.getTargetId(), commentCount.getCommentCount());
         }
         log.info("说说评论数初始化完成，共{}条", commentCounts.size());
@@ -125,13 +125,13 @@ public class TalkStatsTask {
      */
     private void initUserLikes() {
         log.info("开始初始化用户点赞记录到Redis...");
-        List<LikeRecordDO> likeRecords = likeMapper.listValidLikes();
+        List<LikeRecordEntity> likeRecords = likeMapper.listValidLikes();
         if (likeRecords == null || likeRecords.isEmpty()) {
             log.info("没有点赞记录需要初始化");
             return;
         }
         int count = 0;
-        for (LikeRecordDO record : likeRecords) {
+        for (LikeRecordEntity record : likeRecords) {
             String userLikeKey = getUserLikeKey(record.getType(), record.getUserId());
             if (userLikeKey != null) {
                 redisUtils.sAdd(userLikeKey, record.getTargetId());
@@ -185,7 +185,7 @@ public class TalkStatsTask {
             return 0;
         }
 
-        List<LikeRecordDO> records = new ArrayList<>();
+        List<LikeRecordEntity> records = new ArrayList<>();
         List<Object> processedFields = new ArrayList<>();
 
         for (Map.Entry<Object, Object> entry : pendingRecords.entrySet()) {
@@ -217,7 +217,7 @@ public class TalkStatsTask {
                 continue;
             }
 
-            LikeRecordDO record = LikeRecordDO.builder()
+            LikeRecordEntity record = LikeRecordEntity.builder()
                     .userId(userId)
                     .targetId(targetId)
                     .type(likeType.getType())

@@ -1,6 +1,6 @@
 package com.lsstop.service.impl;
 
-import com.lsstop.domain.dataObject.MessageDO;
+import com.lsstop.domain.entity.MessageEntity;
 import com.lsstop.mapper.MessageMapper;
 import com.lsstop.service.MessageService;
 import jakarta.annotation.Resource;
@@ -26,7 +26,7 @@ public class MessageServiceImpl implements MessageService {
      * @return 留言列表
      */
     @Override
-    public List<MessageDO> getMessageList() {
+    public List<MessageEntity> getMessageList() {
         return messageMapper.getMessageList();
     }
 
@@ -36,7 +36,7 @@ public class MessageServiceImpl implements MessageService {
      * @param message 留言实体
      */
     @Override
-    public void insertMessage(MessageDO message) {
+    public void insertMessage(MessageEntity message) {
         messageMapper.insertMessage(message);
     }
 }

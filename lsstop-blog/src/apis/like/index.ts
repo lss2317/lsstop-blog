@@ -4,8 +4,6 @@ import http from '@/utils/http.ts'
  * 点赞请求参数
  */
 export interface LikeDto {
-  /** 用户id */
-  userId: number
   /** 目标id（说说id/文章id/评论id） */
   targetId: number
   /** 点赞类型（1说说 2文章 3评论） */

@@ -1,7 +1,7 @@
 package com.lsstop.mapper;
 
-import com.lsstop.domain.dataObject.UserAuthDO;
-import com.lsstop.domain.dataObject.UserProfileDO;
+import com.lsstop.domain.entity.UserAuthEntity;
+import com.lsstop.domain.entity.UserProfileEntity;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -20,7 +20,7 @@ public interface AuthMapper {
      * @param loginType  登录类型
      * @return 用户认证信息
      */
-    UserAuthDO selectByIdentifierAndType(@Param("identifier") String identifier, @Param("loginType") Integer loginType);
+    UserAuthEntity selectByIdentifierAndType(@Param("identifier") String identifier, @Param("loginType") Integer loginType);
 
     /**
      * 根据用户ID查询用户资料
@@ -28,6 +28,6 @@ public interface AuthMapper {
      * @param userId 用户ID
      * @return 用户资料信息
      */
-    UserProfileDO selectProfileById(@Param("userId") String userId);
+    UserProfileEntity selectProfileById(@Param("userId") String userId);
 
 }

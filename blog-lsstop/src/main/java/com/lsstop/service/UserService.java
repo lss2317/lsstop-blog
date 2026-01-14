@@ -1,7 +1,5 @@
 package com.lsstop.service;
 
-import com.lsstop.domain.dataObject.UserProfileDO;
-import com.lsstop.domain.vo.LoginVO;
 import com.lsstop.domain.vo.UserInfoVO;
 
 /**

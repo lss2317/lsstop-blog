@@ -3,7 +3,7 @@ package com.lsstop.controller;
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
 import com.lsstop.domain.dto.MessageDTO;
-import com.lsstop.domain.dataObject.MessageDO;
+import com.lsstop.domain.entity.MessageEntity;
 import com.lsstop.domain.vo.MessageVO;
 import com.lsstop.service.MessageService;
 import com.lsstop.utils.IpUtils;
@@ -35,7 +35,7 @@ public class MessageController {
     @PostMapping("/front/message/addMessage")
     @AccessLimit(seconds = 60, maxCount = 30)
     public Result<Void> addMessage(@RequestBody @Validated MessageDTO messageDTO, HttpServletRequest request) {
-        MessageDO message = messageDTO.asViewObject(MessageDO.class);
+        MessageEntity message = messageDTO.asViewObject(MessageEntity.class);
         message.setIpAddress(IpUtils.getIpAddress(request));
         message.setIpRegion(IpUtils.getIpLocation(message.getIpAddress()));
         messageService.insertMessage(message);

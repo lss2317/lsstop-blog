@@ -1,6 +1,6 @@
 package com.lsstop.service.impl;
 
-import com.lsstop.domain.dataObject.PhotoAlbumImageDO;
+import com.lsstop.domain.entity.PhotoAlbumImageEntity;
 import com.lsstop.mapper.PhotoAlbumImageMapper;
 import com.lsstop.service.PhotoAlbumImageService;
 import jakarta.annotation.Resource;
@@ -27,7 +27,7 @@ public class PhotoAlbumImageServiceImpl implements PhotoAlbumImageService {
      * @return 照片列表
      */
     @Override
-    public List<PhotoAlbumImageDO> getPhotoListByAlbumId(Integer albumId) {
+    public List<PhotoAlbumImageEntity> getPhotoListByAlbumId(Integer albumId) {
         return photoAlbumImageMapper.getPhotoListByAlbumId(albumId);
     }
 

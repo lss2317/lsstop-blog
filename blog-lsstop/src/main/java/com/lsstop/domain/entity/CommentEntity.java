@@ -1,4 +1,4 @@
-package com.lsstop.domain.dataObject;
+package com.lsstop.domain.entity;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 评论DO
+ * 评论实体
  *
  * @author lishusheng
  * @date 2026/01/02
@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentDO implements BaseData {
+public class CommentEntity implements BaseData {
 
     /**
      * id

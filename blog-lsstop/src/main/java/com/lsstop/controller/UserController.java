@@ -1,8 +1,6 @@
 package com.lsstop.controller;
 
 import com.lsstop.common.Result;
-import com.lsstop.domain.dataObject.UserProfileDO;
-import com.lsstop.domain.vo.LoginVO;
 import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.service.UserService;
 import jakarta.annotation.Resource;

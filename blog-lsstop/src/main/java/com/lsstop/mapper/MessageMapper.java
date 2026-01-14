@@ -1,6 +1,6 @@
 package com.lsstop.mapper;
 
-import com.lsstop.domain.dataObject.MessageDO;
+import com.lsstop.domain.entity.MessageEntity;
 
 import java.util.List;
 
@@ -17,12 +17,12 @@ public interface MessageMapper {
      *
      * @return 留言List集合
      */
-    List<MessageDO> getMessageList();
+    List<MessageEntity> getMessageList();
 
     /**
      * 新增留言
      *
      * @param message 留言实体
      */
-    void insertMessage(MessageDO message);
+    void insertMessage(MessageEntity message);
 }

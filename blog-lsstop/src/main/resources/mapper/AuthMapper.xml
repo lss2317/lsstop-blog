@@ -3,7 +3,7 @@
 <mapper namespace="com.lsstop.mapper.AuthMapper">
 
     <!-- 用户认证信息ResultMap -->
-    <resultMap id="UserAuthResultMap" type="com.lsstop.domain.dataObject.UserAuthDO">
+    <resultMap id="UserAuthResultMap" type="com.lsstop.domain.entity.UserAuthEntity">
         <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="loginType" column="login_type" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result property="identifier" column="identifier" jdbcType="VARCHAR" javaType="java.lang.String"/>
@@ -11,7 +11,7 @@
     </resultMap>
 
     <!-- 用户资料ResultMap -->
-    <resultMap id="UserProfileResultMap" type="com.lsstop.domain.dataObject.UserProfileDO">
+    <resultMap id="UserProfileResultMap" type="com.lsstop.domain.entity.UserProfileEntity">
         <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="nickname" column="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="avatar" column="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>

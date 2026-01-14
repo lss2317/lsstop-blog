@@ -1,4 +1,4 @@
-package com.lsstop.domain.dataObject;
+package com.lsstop.domain.entity;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,41 +9,46 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 用户基础DO
+ * 相册实体
  *
  * @author lishusheng
- * @date 2026/01/01
+ * @date 2025/12/27
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDO implements BaseData {
+public class PhotoAlbumEntity implements BaseData {
 
     /**
-     * 用户id
+     * id
      */
     private Integer id;
 
     /**
-     * 用户唯一标识
+     * 相册名
      */
-    private String userUid;
+    private String photoAlbumName;
 
     /**
-     * 状态 1正常 0禁用
+     * 相册描述
+     */
+    private String photoAlbumDesc;
+
+    /**
+     * 相册封面
+     */
+    private String photoAlbumCover;
+
+    /**
+     * 状态值 1公开 2私密
      */
     private Integer status;
 
     /**
-     * 是否删除 0否 1是
+     * 是否删除
      */
     private Integer isDelete;
-
-    /**
-     * 最近一次成功登录时间
-     */
-    private LocalDateTime lastLoginTime;
 
     /**
      * 创建时间
@@ -51,7 +56,7 @@ public class UserDO implements BaseData {
     private LocalDateTime createTime;
 
     /**
-     * 更新时间
+     * 修改时间
      */
     private LocalDateTime updateTime;
 }

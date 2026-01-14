@@ -1,6 +1,6 @@
 package com.lsstop.mapper;
 
-import com.lsstop.domain.dataObject.PhotoAlbumImageDO;
+import com.lsstop.domain.entity.PhotoAlbumImageEntity;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -19,6 +19,6 @@ public interface PhotoAlbumImageMapper {
      * @param albumId 相册id
      * @return 照片列表
      */
-    List<PhotoAlbumImageDO> getPhotoListByAlbumId(@Param("albumId") Integer albumId);
+    List<PhotoAlbumImageEntity> getPhotoListByAlbumId(@Param("albumId") Integer albumId);
 
 }

@@ -2,7 +2,6 @@ package com.lsstop.domain.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -14,12 +13,6 @@ import lombok.Data;
  */
 @Data
 public class LikeDTO {
-
-    /**
-     * 用户id
-     */
-    @NotBlank(message = "用户id不能为空")
-    private String userId;
 
     /**
      * 目标id（说说id/文章id/评论id）

@@ -1,4 +1,4 @@
-package com.lsstop.domain.dataObject;
+package com.lsstop.domain.entity;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,39 +9,34 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 说说图片DO
+ * 标签实体
  *
  * @author lishusheng
- * @date 2025/12/30
+ * @date 2026/01/11
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TalkImageDO implements BaseData {
+public class TagEntity implements BaseData {
 
     /**
-     * 图片id
+     * id
      */
     private Integer id;
 
     /**
-     * 说说id
+     * 标签名称
      */
-    private Integer talkId;
+    private String tagName;
 
     /**
-     * 图片地址
+     * 标签背景图URL
      */
-    private String imageUrl;
+    private String tagCover;
 
     /**
-     * 图片顺序
-     */
-    private Integer sort;
-
-    /**
-     * 是否删除
+     * 是否删除 1是0否
      */
     private Integer isDelete;
 
@@ -51,8 +46,7 @@ public class TalkImageDO implements BaseData {
     private LocalDateTime createTime;
 
     /**
-     * 更新时间
+     * 修改时间
      */
     private LocalDateTime updateTime;
-
 }

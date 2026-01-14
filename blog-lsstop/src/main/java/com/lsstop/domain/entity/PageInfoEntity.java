@@ -1,4 +1,4 @@
-package com.lsstop.domain.dataObject;
+package com.lsstop.domain.entity;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,51 +9,41 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 留言DO
+ * 页面信息实体
  *
  * @author lishusheng
- * @date 2025/12/21
+ * @date 2025/12/24
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageDO implements BaseData {
+public class PageInfoEntity implements BaseData {
 
     /**
-     * 主键id
+     * id
      */
     private Integer id;
 
     /**
-     * 用户ip
+     * 页面名称
      */
-    private String ipAddress;
+    private String pageName;
 
     /**
-     * IP所在地
+     * 页面标签
      */
-    private String ipRegion;
+    private String pageLabel;
 
     /**
-     * 昵称
+     * 页面封面
      */
-    private String nickname;
+    private String pageCover;
 
     /**
-     * 头像
+     * 是否删除
      */
-    private String avatar;
-
-    /**
-     * 留言内容
-     */
-    private String messageContent;
-
-    /**
-     * 是否要审核(0：否、1：是)
-     */
-    private Integer review;
+    private Boolean isDelete;
 
     /**
      * 创建时间
@@ -64,4 +54,5 @@ public class MessageDO implements BaseData {
      * 修改时间
      */
     private LocalDateTime updateTime;
+
 }

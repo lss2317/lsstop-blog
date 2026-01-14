@@ -1,6 +1,6 @@
 package com.lsstop.service.impl;
 
-import com.lsstop.domain.dataObject.PageInfoDO;
+import com.lsstop.domain.entity.PageInfoEntity;
 import com.lsstop.mapper.PageInfoMapper;
 import com.lsstop.service.PageInfoService;
 import jakarta.annotation.Resource;
@@ -26,7 +26,7 @@ public class PageInfoServiceImpl implements PageInfoService {
      * @return 页面信息列表
      */
     @Override
-    public List<PageInfoDO> getPageInfoList() {
+    public List<PageInfoEntity> getPageInfoList() {
         return pageManagementMapper.getPageInfoList();
     }
 }

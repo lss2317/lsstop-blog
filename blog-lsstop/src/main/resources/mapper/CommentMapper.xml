@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lsstop.mapper.CommentMapper">
 
-    <resultMap id="commentCountResultMap" type="com.lsstop.domain.dataObject.CommentCountDO">
+    <resultMap id="commentCountResultMap" type="com.lsstop.domain.vo.CommentCountVO">
         <result column="target_id" property="targetId" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result column="comment_count" property="commentCount" jdbcType="INTEGER" javaType="java.lang.Integer"/>
     </resultMap>

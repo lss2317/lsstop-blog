@@ -1,6 +1,6 @@
 package com.lsstop.service.impl;
 
-import com.lsstop.domain.dataObject.PhotoAlbumDO;
+import com.lsstop.domain.entity.PhotoAlbumEntity;
 import com.lsstop.mapper.PhotoAlbumMapper;
 import com.lsstop.service.PhotoAlbumService;
 import jakarta.annotation.Resource;
@@ -27,7 +27,7 @@ public class PhotoAlbumServiceImpl implements PhotoAlbumService {
      * @return 相册列表
      */
     @Override
-    public List<PhotoAlbumDO> getPhotoAlbumList() {
+    public List<PhotoAlbumEntity> getPhotoAlbumList() {
         return photoAlbumMapper.getPhotoAlbumList();
     }
 
@@ -38,7 +38,7 @@ public class PhotoAlbumServiceImpl implements PhotoAlbumService {
      * @return 相册信息
      */
     @Override
-    public PhotoAlbumDO getPhotoAlbumById(Integer id) {
+    public PhotoAlbumEntity getPhotoAlbumById(Integer id) {
         return photoAlbumMapper.getPhotoAlbumById(id);
     }
 }

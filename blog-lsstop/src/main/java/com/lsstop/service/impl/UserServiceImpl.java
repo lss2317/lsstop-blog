@@ -1,6 +1,6 @@
 package com.lsstop.service.impl;
 
-import com.lsstop.domain.dataObject.UserProfileDO;
+import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserInfoVO getUserProfile(String userId) {
-        UserProfileDO userProfile = authMapper.selectProfileById(userId);
+        UserProfileEntity userProfile = authMapper.selectProfileById(userId);
         if (userProfile == null) {
             throw new BusinessException("用户不存在");
         }

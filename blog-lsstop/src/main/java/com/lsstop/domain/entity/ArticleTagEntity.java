@@ -1,4 +1,4 @@
-package com.lsstop.domain.dataObject;
+package com.lsstop.domain.entity;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -7,29 +7,29 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 说说统计DO
+ * 文章标签关联实体
  *
  * @author lishusheng
- * @date 2026/01/02
+ * @date 2026/01/14
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TalkStatsDO implements BaseData {
+public class ArticleTagEntity implements BaseData {
 
     /**
-     * 说说id
+     * id
      */
     private Integer id;
 
     /**
-     * 点赞数
+     * 文章ID
      */
-    private Integer likeCount;
+    private Integer articleId;
 
     /**
-     * 评论数
+     * 标签ID
      */
-    private Integer commentCount;
+    private Integer tagId;
 }

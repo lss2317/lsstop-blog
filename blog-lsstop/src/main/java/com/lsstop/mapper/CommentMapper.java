@@ -1,6 +1,6 @@
 package com.lsstop.mapper;
 
-import com.lsstop.domain.dataObject.CommentCountDO;
+import com.lsstop.domain.vo.CommentCountVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -21,6 +21,6 @@ public interface CommentMapper {
      * @param targetType 目标类型（1文章 2友链 3说说）
      * @return 评论统计列表
      */
-    List<CommentCountDO> countCommentsByTargetType(@Param("targetType") Integer targetType);
+    List<CommentCountVO> countCommentsByTargetType(@Param("targetType") Integer targetType);
 
 }

@@ -1,6 +1,6 @@
 package com.lsstop.service.impl;
 
-import com.lsstop.domain.dataObject.WebsiteConfigDO;
+import com.lsstop.domain.entity.WebsiteConfigEntity;
 import com.lsstop.mapper.WebsiteConfigMapper;
 import com.lsstop.service.WebsiteConfigService;
 import jakarta.annotation.Resource;
@@ -24,7 +24,7 @@ public class WebsiteConfigServiceImpl implements WebsiteConfigService {
      * @return 网站配置实体对象
      */
     @Override
-    public WebsiteConfigDO getWebsiteConfig() {
+    public WebsiteConfigEntity getWebsiteConfig() {
         return websiteConfigMapper.getWebsiteConfig();
     }
 

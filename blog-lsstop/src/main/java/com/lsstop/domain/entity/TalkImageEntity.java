@@ -1,4 +1,4 @@
-package com.lsstop.domain.dataObject;
+package com.lsstop.domain.entity;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 说说DO
+ * 说说图片实体
  *
  * @author lishusheng
  * @date 2025/12/30
@@ -18,35 +18,30 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TalkDO implements BaseData {
+public class TalkImageEntity implements BaseData {
 
     /**
-     * id
+     * 图片id
      */
     private Integer id;
 
     /**
-     * 用户id
+     * 说说id
      */
-    private String userId;
+    private Integer talkId;
 
     /**
-     * 说说内容
+     * 图片地址
      */
-    private String content;
+    private String imageUrl;
 
     /**
-     * 是否置顶 1.是 0.否
+     * 图片顺序
      */
-    private Integer isTop;
+    private Integer sort;
 
     /**
-     * 状态 1.公开 2.私密
-     */
-    private Integer status;
-
-    /**
-     * 是否删除 1.是 0.否
+     * 是否删除
      */
     private Integer isDelete;
 

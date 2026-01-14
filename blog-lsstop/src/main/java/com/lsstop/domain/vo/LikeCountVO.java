@@ -1,16 +1,16 @@
-package com.lsstop.domain.dataObject;
+package com.lsstop.domain.vo;
 
 import com.lsstop.domain.BaseData;
 import lombok.Data;
 
 /**
- * 评论统计DO
+ * 点赞统计VO
  *
  * @author lishusheng
  * @date 2026/01/03
  */
 @Data
-public class CommentCountDO implements BaseData {
+public class LikeCountVO implements BaseData {
 
     /**
      * 目标id
@@ -18,8 +18,8 @@ public class CommentCountDO implements BaseData {
     private Integer targetId;
 
     /**
-     * 评论数
+     * 点赞数
      */
-    private Integer commentCount;
+    private Integer likeCount;
 
 }

@@ -1,6 +1,6 @@
 package com.lsstop.service;
 
-import com.lsstop.domain.dataObject.PageInfoDO;
+import com.lsstop.domain.entity.PageInfoEntity;
 
 import java.util.List;
 
@@ -17,5 +17,5 @@ public interface PageInfoService {
      *
      * @return 页面信息列表
      */
-    List<PageInfoDO> getPageInfoList();
+    List<PageInfoEntity> getPageInfoList();
 }

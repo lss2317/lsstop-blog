@@ -1,4 +1,4 @@
-package com.lsstop.domain.dataObject;
+package com.lsstop.domain.entity;
 
 import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
@@ -9,16 +9,16 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 友链DO
+ * 照片详情实体
  *
  * @author lishusheng
- * @date 2025/12/27
+ * @date 2026/01/08
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FriendLinkDO implements BaseData {
+public class PhotoAlbumImageEntity implements BaseData {
 
     /**
      * id
@@ -26,27 +26,27 @@ public class FriendLinkDO implements BaseData {
     private Integer id;
 
     /**
-     * 链接名
+     * 相册id
      */
-    private String linkName;
+    private Integer albumId;
 
     /**
-     * 链接头像
+     * 照片地址
      */
-    private String linkAvatar;
+    private String photoSrc;
 
     /**
-     * 链接地址
+     * 排序值，值越大越靠前
      */
-    private String linkAddress;
+    private Integer sort;
 
     /**
-     * 介绍
+     * 是否在回收站 1是0否
      */
-    private String linkIntro;
+    private Integer isRecycle;
 
     /**
-     * 是否删除
+     * 是否删除 1是0否
      */
     private Integer isDelete;
 
@@ -56,7 +56,7 @@ public class FriendLinkDO implements BaseData {
     private LocalDateTime createTime;
 
     /**
-     * 修改时间
+     * 更新时间
      */
     private LocalDateTime updateTime;
 }

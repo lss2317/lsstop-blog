@@ -1,6 +1,6 @@
 package com.lsstop.service;
 
-import com.lsstop.domain.dataObject.FriendLinkDO;
+import com.lsstop.domain.entity.FriendLinkEntity;
 
 import java.util.List;
 
@@ -17,6 +17,6 @@ public interface FriendLinkService {
      *
      * @return 友链列表
      */
-    List<FriendLinkDO> getFriendLinkList();
+    List<FriendLinkEntity> getFriendLinkList();
 
 }

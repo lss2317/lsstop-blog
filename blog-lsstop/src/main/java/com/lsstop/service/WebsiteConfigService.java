@@ -1,6 +1,6 @@
 package com.lsstop.service;
 
-import com.lsstop.domain.dataObject.WebsiteConfigDO;
+import com.lsstop.domain.entity.WebsiteConfigEntity;
 
 /**
  * 网站配置服务
@@ -15,5 +15,5 @@ public interface WebsiteConfigService {
      *
      * @return 网站配置实体对象
      */
-    WebsiteConfigDO getWebsiteConfig();
+    WebsiteConfigEntity getWebsiteConfig();
 }

@@ -59,7 +59,6 @@ const useLikeStore = defineStore('like', () => {
     // 发送点赞请求
     try {
       await toggleLikeApi({
-        userId: userId,
         targetId: Number(id),
         type,
       })
