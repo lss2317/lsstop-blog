@@ -34,7 +34,7 @@
               <a @click="navigateTo('/archives')"><i class="iconfont iconguidang" /> 归档</a>
             </li>
             <li>
-              <a @click="navigateTo('/classification')"> <i class="iconfont iconfenlei" /> 分类 </a>
+              <a @click="navigateTo('/category')"> <i class="iconfont iconfenlei" /> 分类 </a>
             </li>
             <li>
               <a @click="navigateTo('/tag')"><i class="iconfont iconbiaoqian" /> 标签</a>

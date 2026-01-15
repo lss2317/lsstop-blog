@@ -1,5 +1,14 @@
 export const constantRouter = [
   {
+    path: '/category',
+    name: 'Category',
+    component: () => import('@/views/Category/BlogCategory.vue'),
+    meta: {
+      title: '分类',
+      pageLabel: 'category',
+    },
+  },
+  {
     path: '/tag',
     name: 'Tag',
     component: () => import('@/views/Tag/BlogTag.vue'),

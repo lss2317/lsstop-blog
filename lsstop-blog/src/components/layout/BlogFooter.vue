@@ -80,3 +80,33 @@ const websiteAuthor = computed(() => config.value.websiteAuthor)
   }
 }
 </style>
+
+<style>
+/* 夜间模式样式 */
+.v-theme--dark .footer-wrap {
+  background: linear-gradient(-45deg, #5a3232, #4a1a3a, #0f4a5a, #0f5a4a);
+  background-size: 400% 400%;
+  animation: FooterGradient 10s ease infinite;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.v-theme--dark .footer-wrap a {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.v-theme--dark .footer-wrap a:hover {
+  color: var(--color-primary) !important;
+}
+
+@keyframes FooterGradient {
+  0% {
+    background-position: 0 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+</style>

@@ -62,10 +62,6 @@ const snackbarStore = useSnackbarStore()
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.2);
   flex-shrink: 0;
 }
 

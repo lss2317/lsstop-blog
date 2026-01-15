@@ -20,10 +20,10 @@ export const useSnackbarStore = defineStore('snackbar', () => {
   /** 根据类型计算对应的图标 */
   const icon = computed(() => {
     const icons: Record<SnackbarType, string> = {
-      error: 'mdi-alert-circle',
-      success: 'mdi-check-circle',
-      warning: 'mdi-alert',
-      info: 'mdi-information',
+      error: 'mdi-close-circle-outline',
+      success: 'mdi-checkbox-marked-circle-outline',
+      warning: 'mdi-alert-outline',
+      info: 'mdi-information-outline',
     }
     return icons[type.value]
   })

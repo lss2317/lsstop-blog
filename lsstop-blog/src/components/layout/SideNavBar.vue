@@ -55,7 +55,7 @@
         <a @click="navigateTo('/talk')"> <i class="iconfont iconpinglun" /> 说说 </a>
       </div>
       <div class="menus-item">
-        <a @click="navigateTo('/classification')"> <i class="iconfont iconfenlei" /> 分类 </a>
+        <a @click="navigateTo('/category')"> <i class="iconfont iconfenlei" /> 分类 </a>
       </div>
       <div class="menus-item">
         <a @click="navigateTo('/tag')"> <i class="iconfont iconbiaoqian" /> 标签 </a>
