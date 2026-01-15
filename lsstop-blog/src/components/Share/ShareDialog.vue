@@ -1,6 +1,11 @@
 <template>
   <!-- 分享弹窗 -->
-  <v-dialog v-model="shareDialogVisible" max-width="320" transition="dialog-bottom-transition" scroll-strategy="none">
+  <v-dialog
+    v-model="shareDialogVisible"
+    max-width="320"
+    transition="dialog-bottom-transition"
+    scroll-strategy="none"
+  >
     <v-card class="share-dialog">
       <v-card-title class="share-title">分享到</v-card-title>
       <v-card-text class="share-options">
@@ -24,7 +29,12 @@
     </v-card>
   </v-dialog>
   <!-- 微信二维码弹窗 -->
-  <v-dialog v-model="weixinQrcodeVisible" max-width="300" transition="dialog-bottom-transition" scroll-strategy="none">
+  <v-dialog
+    v-model="weixinQrcodeVisible"
+    max-width="300"
+    transition="dialog-bottom-transition"
+    scroll-strategy="none"
+  >
     <v-card class="qrcode-dialog">
       <v-card-title class="qrcode-title">微信扫一扫：分享</v-card-title>
       <v-card-text class="qrcode-content">
@@ -37,7 +47,12 @@
     </v-card>
   </v-dialog>
   <!-- QQ二维码弹窗 -->
-  <v-dialog v-model="qqQrcodeVisible" max-width="300" transition="dialog-bottom-transition" scroll-strategy="none">
+  <v-dialog
+    v-model="qqQrcodeVisible"
+    max-width="300"
+    transition="dialog-bottom-transition"
+    scroll-strategy="none"
+  >
     <v-card class="qrcode-dialog">
       <v-card-title class="qrcode-title">QQ扫一扫：分享</v-card-title>
       <v-card-text class="qrcode-content">

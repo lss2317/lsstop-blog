@@ -54,7 +54,7 @@ const loading = ref(true)
 
 // 相册封面样式：有封面用封面，没有则用默认封面
 const albumCover = computed(() =>
-  albumCoverUrl.value ? createCoverStyle(albumCoverUrl.value) : defaultCover.value
+  albumCoverUrl.value ? createCoverStyle(albumCoverUrl.value) : defaultCover.value,
 )
 
 // 从路由获取相册id

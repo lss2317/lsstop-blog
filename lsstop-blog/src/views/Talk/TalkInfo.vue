@@ -178,7 +178,10 @@ function share() {
 
 // 加载说说详情
 function loadTalkInfo() {
-  loading.value = true
+  if (!talkId) {
+    loading.value = false
+    return
+  }
   getTalk(talkId)
     .then((res) => {
       talk.value = res.data
