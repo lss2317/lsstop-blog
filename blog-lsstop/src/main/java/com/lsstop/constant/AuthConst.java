@@ -27,4 +27,14 @@ public class AuthConst {
      * 后台来源标识
      */
     public static final String SOURCE_ADMIN = "admin";
+
+    /**
+     * 用户状态：正常
+     */
+    public static final Integer USER_STATUS_NORMAL = 1;
+
+    /**
+     * 用户状态：禁用
+     */
+    public static final Integer USER_STATUS_DISABLED = 0;
 }

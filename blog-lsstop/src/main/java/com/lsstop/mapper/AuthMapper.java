@@ -1,6 +1,7 @@
 package com.lsstop.mapper;
 
 import com.lsstop.domain.entity.UserAuthEntity;
+import com.lsstop.domain.entity.UserEntity;
 import com.lsstop.domain.entity.UserProfileEntity;
 import org.apache.ibatis.annotations.Param;
 
@@ -29,5 +30,20 @@ public interface AuthMapper {
      * @return 用户资料信息
      */
     UserProfileEntity selectProfileById(@Param("userId") String userId);
+
+    /**
+     * 根据用户ID查询用户基础信息
+     *
+     * @param userId 用户ID
+     * @return 用户基础信息
+     */
+    UserEntity selectUserById(@Param("userId") String userId);
+
+    /**
+     * 更新用户最后登录时间
+     *
+     * @param userId 用户ID
+     */
+    void updateLastLoginTime(@Param("userId") String userId);
 
 }

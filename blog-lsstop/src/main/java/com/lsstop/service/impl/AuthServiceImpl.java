@@ -1,7 +1,9 @@
 package com.lsstop.service.impl;
 
+import com.lsstop.constant.AuthConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.entity.UserAuthEntity;
+import com.lsstop.domain.entity.UserEntity;
 import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
@@ -54,6 +56,15 @@ public class AuthServiceImpl implements AuthService {
         if (!PasswordUtils.verify(dto.getPassword(), userAuth.getCredential())) {
             throw new BusinessException("密码错误");
         }
+
+        // 检查用户是否被禁用
+        UserEntity user = authMapper.selectUserById(userAuth.getUserId());
+        if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
+            throw new BusinessException("该账号已被禁用");
+        }
+
+        // 更新最后登录时间
+        authMapper.updateLastLoginTime(userAuth.getUserId());
 
         return buildLoginVO(userAuth);
     }
