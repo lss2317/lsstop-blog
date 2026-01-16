@@ -21,7 +21,7 @@
                m.avatar,
                m.message_content
         from blog_message as m
-        where review = 0 and is_deleted = 0
+        where review = 0 and deleted_at = 0
     </select>
 
     <insert id="insertMessage" parameterType="com.lsstop.domain.entity.MessageEntity">

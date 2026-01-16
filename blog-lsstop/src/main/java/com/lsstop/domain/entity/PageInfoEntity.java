@@ -41,9 +41,9 @@ public class PageInfoEntity implements BaseData {
     private String pageCover;
 
     /**
-     * 是否删除
+     * 删除时间戳，0表示未删除
      */
-    private Boolean isDelete;
+    private Long deletedAt;
 
     /**
      * 创建时间

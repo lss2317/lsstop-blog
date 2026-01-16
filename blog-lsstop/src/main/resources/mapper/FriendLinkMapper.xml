@@ -8,7 +8,7 @@
         <result property="linkAvatar" column="link_avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="linkAddress" column="link_address" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="linkIntro" column="link_intro" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="isDelete" column="is_delete" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="deletedAt" column="deleted_at" jdbcType="BIGINT" javaType="java.lang.Long"/>
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
     </resultMap>
@@ -19,11 +19,11 @@
                link_avatar,
                link_address,
                link_intro,
-               is_delete,
+               deleted_at,
                create_time,
                update_time
         from blog_friend_link
-        where is_delete = 0
+        where deleted_at = 0
     </select>
 
 </mapper>

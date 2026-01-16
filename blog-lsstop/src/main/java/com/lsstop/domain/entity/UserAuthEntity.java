@@ -46,9 +46,9 @@ public class UserAuthEntity implements BaseData {
     private String credential;
 
     /**
-     * 是否删除：0否 1是
+     * 删除时间戳，0表示未删除
      */
-    private Integer isDelete;
+    private Long deletedAt;
 
     /**
      * 创建时间

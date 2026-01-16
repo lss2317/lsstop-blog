@@ -66,9 +66,9 @@ public class CommentEntity implements BaseData {
     private Integer status;
 
     /**
-     * 是否删除 1是 0否
+     * 删除时间戳，0表示未删除
      */
-    private Integer isDelete;
+    private Long deletedAt;
 
     /**
      * 创建时间

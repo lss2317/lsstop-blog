@@ -41,9 +41,9 @@ public class TalkImageEntity implements BaseData {
     private Integer sort;
 
     /**
-     * 是否删除
+     * 删除时间戳，0表示未删除
      */
-    private Integer isDelete;
+    private Long deletedAt;
 
     /**
      * 创建时间

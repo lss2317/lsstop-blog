@@ -25,7 +25,7 @@
         FROM blog_user_auth
         WHERE identifier = #{identifier}
           AND login_type = #{loginType}
-          AND is_delete = 0
+          AND deleted_at = 0
     </select>
 
     <!-- 用户基础信息ResultMap -->
@@ -33,7 +33,7 @@
         <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result property="userUid" column="user_uid" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="status" column="status" jdbcType="INTEGER" javaType="java.lang.Integer"/>
-        <result property="isDelete" column="is_delete" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="deletedAt" column="deleted_at" jdbcType="BIGINT" javaType="java.lang.Long"/>
         <result property="lastLoginTime" column="last_login_time" jdbcType="TIMESTAMP"
                 javaType="java.time.LocalDateTime"/>
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
@@ -49,15 +49,15 @@
                intro
         FROM blog_user_profile
         WHERE user_id = #{userId}
-          AND is_delete = 0
+          AND deleted_at = 0
     </select>
 
     <!-- 根据用户ID查询用户基础信息 -->
     <select id="selectUserById" parameterType="java.lang.String" resultMap="UserResultMap">
-        SELECT id, user_uid, status, is_delete, last_login_time, create_time, update_time
+        SELECT id, user_uid, status, deleted_at, last_login_time, create_time, update_time
         FROM blog_user
         WHERE user_uid = #{userId}
-          AND is_delete = 0
+          AND deleted_at = 0
     </select>
 
     <!-- 更新用户最后登录时间 -->

@@ -56,9 +56,9 @@ public class MessageEntity implements BaseData {
     private Integer review;
 
     /**
-     * 是否删除
+     * 删除时间戳，0表示未删除
      */
-    private Integer isDelete;
+    private Long deletedAt;
 
     /**
      * 创建时间

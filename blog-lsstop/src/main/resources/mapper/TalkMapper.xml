@@ -8,7 +8,7 @@
         <result column="content" property="content" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result column="is_top" property="isTop" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result column="status" property="status" jdbcType="INTEGER" javaType="java.lang.Integer"/>
-        <result column="is_delete" property="isDelete" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="deleted_at" property="deletedAt" jdbcType="BIGINT" javaType="java.lang.Long"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
     </resultMap>
@@ -34,9 +34,9 @@
                bt.create_time,
                bti.image_url
         from blog_talk bt
-                 left join blog_user_profile bup on bt.user_id = bup.user_id and bup.is_delete = 0
-                 left join blog_talk_image bti on bt.id = bti.talk_id and bti.is_delete = 0
-        where bt.is_delete = 0
+                 left join blog_user_profile bup on bt.user_id = bup.user_id and bup.deleted_at = 0
+                 left join blog_talk_image bti on bt.id = bti.talk_id and bti.deleted_at = 0
+        where bt.deleted_at = 0
           and bt.status = 1
         order by bt.is_top desc, bt.create_time desc, bti.sort
     </select>
@@ -50,9 +50,9 @@
                bt.create_time,
                bti.image_url
         from blog_talk bt
-                 left join blog_user_profile bup on bt.user_id = bup.user_id and bup.is_delete = 0
-                 left join blog_talk_image bti on bt.id = bti.talk_id and bti.is_delete = 0
-        where bt.is_delete = 0
+                 left join blog_user_profile bup on bt.user_id = bup.user_id and bup.deleted_at = 0
+                 left join blog_talk_image bti on bt.id = bti.talk_id and bti.deleted_at = 0
+        where bt.deleted_at = 0
           and bt.status = 1
           and bt.id = #{id}
         order by bti.sort

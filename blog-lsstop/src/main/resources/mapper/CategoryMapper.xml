@@ -15,8 +15,8 @@
                c.category_cover,
                count(a.id) as article_count
         from blog_category c
-                 left join blog_article a on c.id = a.category_id and a.is_delete = 0
-        where c.is_delete = 0
+                 left join blog_article a on c.id = a.category_id and a.deleted_at = 0
+        where c.deleted_at = 0
         group by c.id, c.category_name, c.category_cover
         order by article_count desc, c.id
     </select>

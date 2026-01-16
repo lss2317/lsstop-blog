@@ -12,7 +12,7 @@
         select target_id, count(*) as comment_count
         from blog_comment
         where target_type = #{targetType}
-          and is_delete = 0
+          and deleted_at = 0
           and status = 1
         group by target_id
     </select>

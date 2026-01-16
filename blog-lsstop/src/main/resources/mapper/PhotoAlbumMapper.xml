@@ -8,7 +8,7 @@
         <result column="photo_album_desc" property="photoAlbumDesc" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result column="photo_album_cover" property="photoAlbumCover" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result column="status" property="status" jdbcType="INTEGER" javaType="java.lang.Integer"/>
-        <result column="is_delete" property="isDelete" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="deleted_at" property="deletedAt" jdbcType="BIGINT" javaType="java.lang.Long"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
     </resultMap>
@@ -19,11 +19,11 @@
                photo_album_desc,
                photo_album_cover,
                status,
-               is_delete,
+               deleted_at,
                create_time,
                update_time
         from blog_photo_album
-        where is_delete = 0
+        where deleted_at = 0
         order by create_time desc
 
     </select>
@@ -34,7 +34,7 @@
                photo_album_cover
         from blog_photo_album
         where id = #{id}
-          and is_delete = 0
+          and deleted_at = 0
     </select>
 
 </mapper>

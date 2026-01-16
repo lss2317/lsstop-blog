@@ -19,7 +19,7 @@
                create_time,
                update_time
         from blog_page_info
-        where is_deleted = 0
+        where deleted_at = 0
     </select>
 
 </mapper>

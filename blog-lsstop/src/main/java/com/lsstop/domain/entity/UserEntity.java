@@ -36,14 +36,14 @@ public class UserEntity implements BaseData {
     private Integer status;
 
     /**
-     * 是否删除 0否 1是
-     */
-    private Integer isDelete;
-
-    /**
      * 最近一次成功登录时间
      */
     private LocalDateTime lastLoginTime;
+
+    /**
+     * 删除时间戳，0表示未删除
+     */
+    private Long deletedAt;
 
     /**
      * 创建时间

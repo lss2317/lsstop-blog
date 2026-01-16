@@ -8,7 +8,7 @@
         <result column="photo_src" property="photoSrc" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result column="sort" property="sort" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result column="is_recycle" property="isRecycle" jdbcType="INTEGER" javaType="java.lang.Integer"/>
-        <result column="is_delete" property="isDelete" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="deleted_at" property="deletedAt" jdbcType="BIGINT" javaType="java.lang.Long"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
     </resultMap>
@@ -19,12 +19,12 @@
                photo_src,
                sort,
                is_recycle,
-               is_delete,
+               deleted_at,
                create_time,
                update_time
         from blog_photo_album_image
         where album_id = #{albumId}
-          and is_delete = 0
+          and deleted_at = 0
           and is_recycle = 0
         order by sort desc, create_time desc
     </select>
