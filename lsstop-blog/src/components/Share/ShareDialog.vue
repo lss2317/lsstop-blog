@@ -182,4 +182,17 @@ defineExpose({
   text-align: center;
   line-height: 1.8;
 }
+
+/* 夜间模式样式 */
+:global(.v-theme--dark .share-item:hover) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:global(.v-theme--dark .share-item span) {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+:global(.v-theme--dark .qrcode-title) {
+  color: rgba(255, 255, 255, 0.9);
+}
 </style>

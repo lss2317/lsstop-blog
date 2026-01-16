@@ -1,4 +1,3 @@
-/* ===================== CSS变量定义 ===================== */
 :root {
   /* 主题色 */
   --color-primary: #49b1f5;
@@ -65,7 +64,6 @@
   --shadow-dropdown: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* ===================== 基础样式 ===================== */
 a,
 button,
 img {
@@ -204,6 +202,22 @@ ul {
 
 .v-theme--dark .v-navigation-drawer {
   background-color: #121212;
+}
+
+.v-theme--dark .v-icon {
+  background: transparent !important;
+}
+
+.v-theme--dark .v-icon::before {
+  background: transparent !important;
+}
+
+.v-theme--dark .v-overlay__scrim {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+.v-overlay__scrim {
+  transition: opacity 0.3s ease !important;
 }
 
 .v-application code {
@@ -458,18 +472,6 @@ p {
 
 .separator {
   margin: 0 6px;
-}
-
-.comment-textarea {
-  font-size: 0.875rem;
-  color: #555 !important;
-  outline: none;
-  padding: 10px 5px;
-  min-height: 122px;
-  resize: none;
-  width: 100%;
-  border-radius: 4px;
-  background: url(https://static.talkxj.com/config/commentBack.webp) 100% 100% no-repeat;
 }
 
 .upload-btn {
