@@ -1,6 +1,5 @@
 package com.lsstop.domain.entity;
 
-import com.lsstop.domain.BaseData;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,16 +8,16 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 用户登录认证与第三方账号绑定实体
+ * 登录日志实体
  *
  * @author lishusheng
- * @date 2026/01/01
+ * @date 2026/01/17
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserAuthEntity implements BaseData {
+public class LoginLogEntity {
 
     /**
      * id
@@ -26,7 +25,7 @@ public class UserAuthEntity implements BaseData {
     private Integer id;
 
     /**
-     * 用户id
+     * 用户ID
      */
     private String userId;
 
@@ -36,14 +35,44 @@ public class UserAuthEntity implements BaseData {
     private Integer loginType;
 
     /**
-     * 登录唯一标识（邮箱 / QQ openId / 微博uid）
+     * 登录时间
      */
-    private String identifier;
+    private LocalDateTime loginTime;
 
     /**
-     * 登录凭证（密码hash / access_token，第三方登录可为空）
+     * 登录ip
      */
-    private String credential;
+    private String ipAddress;
+
+    /**
+     * ip所在地
+     */
+    private String ipRegion;
+
+    /**
+     * 浏览器
+     */
+    private String browser;
+
+    /**
+     * 操作系统
+     */
+    private String os;
+
+    /**
+     * 登录来源：0前台 1后台 2非法
+     */
+    private Integer type;
+
+    /**
+     * 登录结果：0成功 1失败
+     */
+    private Integer state;
+
+    /**
+     * 登录信息
+     */
+    private String message;
 
     /**
      * 删除时间戳，0表示未删除
@@ -59,5 +88,4 @@ public class UserAuthEntity implements BaseData {
      * 更新时间
      */
     private LocalDateTime updateTime;
-
 }

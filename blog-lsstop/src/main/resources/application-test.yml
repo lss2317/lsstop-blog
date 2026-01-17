@@ -45,6 +45,27 @@ spring:
           # 获取连接最大等待时间（-1表示无限制）
           max-wait: -1ms
 
+  # RabbitMQ 配置
+  rabbitmq:
+    # RabbitMQ 服务器地址
+    host: localhost
+    # RabbitMQ 端口
+    port: 5672
+    # RabbitMQ 用户名
+    username: your-rabbitmq-username
+    # RabbitMQ 密码
+    password: your-rabbitmq-password
+    # 发布确认类型（correlated: 异步确认）
+    publisher-confirm-type: correlated
+    # 发布返回（消息无法路由时返回）
+    publisher-returns: true
+    listener:
+      simple:
+        # 消费者确认模式（manual: 手动确认）
+        acknowledge-mode: manual
+        # 每次从队列获取的消息数量
+        prefetch: 1
+
 # MyBatis-Plus 配置
 mybatis-plus:
   configuration:
