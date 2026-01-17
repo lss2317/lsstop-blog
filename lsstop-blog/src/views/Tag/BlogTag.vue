@@ -31,7 +31,7 @@
             <v-icon class="tag-icon" size="24">mdi-tag-outline</v-icon>
             <div class="tag-name">{{ item.tagName }}</div>
             <div class="tag-count" :class="{ 'tag-count-empty': item.articleCount === 0 }">
-              {{ item.articleCount > 0 ? item.articleCount + ' 篇' : '暂无文章' }}
+              {{ item.articleCount > 0 ? item.articleCount + ' 篇文章' : '暂无文章' }}
             </div>
           </router-link>
         </v-col>

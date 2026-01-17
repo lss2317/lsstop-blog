@@ -26,7 +26,7 @@ public class MessageEntity implements BaseData {
     private Integer id;
 
     /**
-     * 用户ip
+     * ip
      */
     private String ipAddress;
 

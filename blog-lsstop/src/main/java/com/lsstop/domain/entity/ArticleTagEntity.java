@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /**
  * 文章标签关联实体
  *
@@ -32,4 +34,19 @@ public class ArticleTagEntity implements BaseData {
      * 标签ID
      */
     private Integer tagId;
+
+    /**
+     * 删除时间戳，0表示未删除
+     */
+    private Long deletedAt;
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
+
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
 }

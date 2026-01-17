@@ -13,7 +13,6 @@ import java.util.Base64;
  * 密码加密工具类
  * <p>
  * 使用PBKDF2WithHmacSHA256算法进行密码加密，
- * 该算法是目前推荐的安全密码哈希算法之一
  * </p>
  *
  * @author lishusheng

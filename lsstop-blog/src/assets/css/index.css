@@ -380,7 +380,7 @@ p {
   }
   .article-container {
     animation: main 1s;
-    margin: 372.5px 0px 8px 0px !important;
+    margin: 372.5px 0 8px 0 !important;
   }
   .article-wrapper {
     padding: 36px 14px;
@@ -491,8 +491,7 @@ p {
 }
 
 .v-comment-btn {
-  border: 1px solid #ededed;
-  border-color: #fff;
+  border: 1px solid #fff;
   border-radius: 4px;
   text-align: center;
   padding: 6px 16px;
@@ -656,7 +655,7 @@ pre.hljs code {
 }
 
 .right-container ol {
-  padding-left: 0px !important;
+  padding-left: 0 !important;
 }
 .right-container .is-collapsible {
   padding-left: 8px !important;
