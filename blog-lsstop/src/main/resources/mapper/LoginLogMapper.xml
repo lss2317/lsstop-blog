@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.LoginLogMapper">
+
+    <!-- 登录日志ResultMap -->
+    <resultMap id="LoginLogResultMap" type="com.lsstop.domain.entity.LoginLogEntity">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="loginType" column="login_type" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="loginTime" column="login_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="ipAddress" column="ip_address" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="ipRegion" column="ip_region" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="browser" column="browser" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="os" column="os" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="type" column="type" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="state" column="state" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="message" column="message" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="deletedAt" column="deleted_at" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <!-- 插入登录日志 -->
+    <insert id="insert" parameterType="com.lsstop.domain.entity.LoginLogEntity">
+        INSERT INTO blog_login_log (user_id, login_type, login_time, ip_address, ip_region,
+                                    browser, os, type, state, message, deleted_at, create_time, update_time)
+        VALUES (#{userId}, #{loginType}, #{loginTime}, #{ipAddress}, #{ipRegion},
+                #{browser}, #{os}, #{type}, #{state}, #{message}, 0, NOW(), NOW())
+    </insert>
+
+</mapper>

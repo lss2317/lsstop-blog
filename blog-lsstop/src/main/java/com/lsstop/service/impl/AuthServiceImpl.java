@@ -10,10 +10,13 @@ import com.lsstop.domain.dto.QQLoginDTO;
 import com.lsstop.domain.dto.WeiboLoginDTO;
 import com.lsstop.domain.vo.LoginVO;
 import com.lsstop.domain.vo.TokenVO;
+import com.lsstop.enums.LoginResultEnum;
+import com.lsstop.enums.LoginSourceEnum;
 import com.lsstop.enums.LoginTypeEnum;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.service.AuthService;
+import com.lsstop.service.LoginLogService;
 import com.lsstop.utils.JwtUtils;
 import com.lsstop.utils.PasswordUtils;
 import com.lsstop.utils.RedisUtils;
@@ -38,6 +41,9 @@ public class AuthServiceImpl implements AuthService {
     @Resource
     private RedisUtils redisUtils;
 
+    @Resource
+    private LoginLogService loginLogService;
+
     /**
      * 邮箱密码登录
      *
@@ -46,27 +52,39 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public LoginVO emailLogin(EmailLoginDTO dto) {
-        // 查询用户认证信息
-        UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(dto.getEmail(), LoginTypeEnum.EMAIL.getCode());
-        if (userAuth == null) {
-            throw new BusinessException("用户不存在");
+        String userId = null;
+
+        try {
+            // 查询用户认证信息
+            UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(dto.getEmail(), LoginTypeEnum.EMAIL.getCode());
+            if (userAuth == null) {
+                throw new BusinessException(AuthConst.USER_NOT_FOUND);
+            }
+            userId = userAuth.getUserId();
+
+            // 验证密码
+            if (!PasswordUtils.verify(dto.getPassword(), userAuth.getCredential())) {
+                throw new BusinessException(AuthConst.PASSWORD_ERROR);
+            }
+
+            // 检查用户是否被禁用
+            UserEntity user = authMapper.selectUserById(userAuth.getUserId());
+            if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
+                throw new BusinessException(AuthConst.ACCOUNT_DISABLED);
+            }
+
+            // 更新最后登录时间
+            authMapper.updateLastLoginTime(userAuth.getUserId());
+
+            // 发送登录成功日志到MQ
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthConst.LOGIN_SUCCESS);
+
+            return buildLoginVO(userAuth);
+        } catch (BusinessException e) {
+            // 发送登录失败日志到MQ
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), e.getMessage());
+            throw e;
         }
-
-        // 验证密码
-        if (!PasswordUtils.verify(dto.getPassword(), userAuth.getCredential())) {
-            throw new BusinessException("密码错误");
-        }
-
-        // 检查用户是否被禁用
-        UserEntity user = authMapper.selectUserById(userAuth.getUserId());
-        if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
-            throw new BusinessException("该账号已被禁用");
-        }
-
-        // 更新最后登录时间
-        authMapper.updateLastLoginTime(userAuth.getUserId());
-
-        return buildLoginVO(userAuth);
     }
 
     /**

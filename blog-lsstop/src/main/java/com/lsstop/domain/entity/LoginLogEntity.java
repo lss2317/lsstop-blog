@@ -30,7 +30,7 @@ public class LoginLogEntity {
     private String userId;
 
     /**
-     * 登录方式：1邮箱 2QQ 3微博
+     * 登录方式
      */
     private Integer loginType;
 
@@ -60,12 +60,12 @@ public class LoginLogEntity {
     private String os;
 
     /**
-     * 登录来源：0前台 1后台 2非法
+     * 登录来源
      */
     private Integer type;
 
     /**
-     * 登录结果：0成功 1失败
+     * 登录结果
      */
     private Integer state;
 

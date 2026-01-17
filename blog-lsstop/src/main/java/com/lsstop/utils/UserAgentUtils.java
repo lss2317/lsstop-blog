@@ -15,24 +15,28 @@ public class UserAgentUtils {
     private static final String USER_AGENT_HEADER = "User-Agent";
 
     /**
-     * 获取浏览器名称
+     * 获取浏览器名称（带版本号）
      *
      * @param request 请求对象
-     * @return 浏览器名称
+     * @return 浏览器名称和版本
      */
     public static String getBrowser(HttpServletRequest request) {
         UserAgent ua = UserAgentUtil.parse(request.getHeader(USER_AGENT_HEADER));
-        return ua.getBrowser().getName();
+        String name = ua.getBrowser().getName();
+        String version = ua.getVersion();
+        return version != null ? name + " " + version : name;
     }
 
     /**
-     * 获取操作系统名称
+     * 获取操作系统名称（带版本号）
      *
      * @param request 请求对象
-     * @return 操作系统名称
+     * @return 操作系统名称和版本
      */
     public static String getOS(HttpServletRequest request) {
         UserAgent ua = UserAgentUtil.parse(request.getHeader(USER_AGENT_HEADER));
-        return ua.getOs().getName();
+        String name = ua.getOs().getName();
+        String osVersion = ua.getOsVersion();
+        return osVersion != null ? name + " " + osVersion : name;
     }
 }

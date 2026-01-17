@@ -44,4 +44,14 @@ public class RabbitMQConst {
      * 登录日志路由键
      */
     public static final String LOGIN_LOG_ROUTING_KEY = "blog.login.log";
+
+    /**
+     * 消息重试次数头
+     */
+    public static final String RETRY_COUNT_HEADER = "x-retry-count";
+
+    /**
+     * 最大重试次数
+     */
+    public static final int MAX_RETRY = 3;
 }
