@@ -31,7 +31,7 @@
           </a>
           <ul class="menus-submenu">
             <li>
-              <a @click="navigateTo('/archives')"><i class="iconfont iconguidang" /> 归档</a>
+              <a @click="navigateTo('/archive')"><i class="iconfont iconguidang" /> 归档</a>
             </li>
             <li>
               <a @click="navigateTo('/category')"> <i class="iconfont iconfenlei" /> 分类 </a>

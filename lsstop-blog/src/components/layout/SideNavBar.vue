@@ -15,7 +15,7 @@
     <!-- 博客信息 -->
     <div class="blog-info-wrapper">
       <div class="blog-info-data">
-        <a @click="navigateTo('/archives')">
+        <a @click="navigateTo('/archive')">
           <div style="font-size: 0.875rem">文章</div>
           <div style="font-size: 1.125rem">
             {{ articleCount }}
@@ -46,7 +46,7 @@
         <a @click="navigateTo('/')"> <i class="iconfont iconzhuye" /> 首页 </a>
       </div>
       <div class="menus-item">
-        <a @click="navigateTo('/archives')"> <i class="iconfont iconguidang" /> 归档 </a>
+        <a @click="navigateTo('/archive')"> <i class="iconfont iconguidang" /> 归档 </a>
       </div>
       <div class="menus-item">
         <a @click="navigateTo('/photoAlbum')"> <i class="iconfont iconxiangce1" /> 相册 </a>

@@ -12,9 +12,21 @@ export const dateFormat = {
   datetime(value: DateValue): string {
     return dayjs(value).format('YYYY-MM-DD HH:mm:ss')
   },
+  monthDay(value: DateValue): string {
+    return dayjs(value).format('MM-DD')
+  },
 }
 
-// 格式化时间显示（用于评论等场景）
+/** 获取年份数字 */
+export const getYear = (value: DateValue): number => {
+  return dayjs(value).year()
+}
+
+/** 获取月份数字 (1-12) */
+export const getMonth = (value: DateValue): number => {
+  return dayjs(value).month() + 1
+}
+
 export const formatTime = (time: DateValue): string => {
   if (!time) return ''
   const date = dayjs(time)

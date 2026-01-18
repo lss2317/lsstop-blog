@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.ArticleMapper">
+
+    <resultMap id="archiveVoResult" type="com.lsstop.domain.vo.ArticleArchiveVO">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="articleTitle" column="article_title" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <select id="getArchiveList" resultMap="archiveVoResult">
+        select id,
+               article_title,
+               create_time
+        from blog_article
+        where deleted_at = 0
+          and status = 1
+        order by create_time desc
+    </select>
+
+</mapper>

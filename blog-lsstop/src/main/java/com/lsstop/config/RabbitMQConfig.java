@@ -33,8 +33,6 @@ public class RabbitMQConfig {
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(messageConverter);
-        // 消息发送失败返回队列
-        rabbitTemplate.setMandatory(true);
         return rabbitTemplate;
     }
 

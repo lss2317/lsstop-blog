@@ -57,8 +57,6 @@ spring:
     password: your-rabbitmq-password
     # 发布确认类型（correlated: 异步确认）
     publisher-confirm-type: correlated
-    # 发布返回（消息无法路由时返回）
-    publisher-returns: true
     listener:
       simple:
         # 消费者确认模式（manual: 手动确认）
