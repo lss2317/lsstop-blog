@@ -75,10 +75,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.tag-banner {
-  background: #49b1f5;
-}
-
 .tag-container {
   margin: 10px 0 0;
 }
@@ -122,23 +118,22 @@ onMounted(() => {
 .tag-wrapper:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-card-hover);
-  background: var(--color-primary);
-  color: #fff;
 }
 
 .tag-wrapper:hover .tag-icon,
-.tag-wrapper:hover .tag-count {
-  color: rgba(255, 255, 255, 0.9);
+.tag-wrapper:hover .tag-name {
+  color: var(--color-primary);
 }
 
 .tag-icon {
-  color: var(--color-primary);
+  color: var(--color-text-tertiary);
   margin-bottom: 8px;
   transition: all 0.3s ease;
 }
 
 .tag-wrapper:hover .tag-icon {
-  transform: rotate(15deg) scale(1.1);
+  color: var(--color-primary);
+  transform: scale(1.1);
 }
 
 .tag-name {
@@ -195,8 +190,7 @@ onMounted(() => {
 }
 
 .v-theme--dark .tag-wrapper:hover {
-  background: var(--color-primary);
-  color: #fff;
+  box-shadow: var(--shadow-card-hover);
 }
 
 .v-theme--dark .tag-count {
