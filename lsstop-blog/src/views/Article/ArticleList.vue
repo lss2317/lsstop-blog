@@ -340,6 +340,15 @@ function goToTag(tagId: number) {
   background: transparent;
 }
 
+.v-theme--dark .tag-btn {
+  opacity: 0.85;
+  background: linear-gradient(to right, #e05550 0%, #5fb3a3 100%);
+}
+
+.v-theme--dark .tag-btn:hover {
+  opacity: 1;
+}
+
 .v-theme--dark .empty-state {
   color: var(--color-text-tertiary, #666);
 }
