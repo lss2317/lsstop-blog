@@ -23,7 +23,7 @@
           class="category-col"
           :style="{ '--delay': index * 0.1 + 's' }"
         >
-          <router-link :to="'/categories/' + item.id" class="category-item">
+          <a class="category-item" @click="goToCategory(item.id)">
             <img class="category-cover" :src="item.categoryCover" :alt="item.categoryName" />
             <div class="category-overlay">
               <div class="category-info">
@@ -36,7 +36,7 @@
                 </span>
               </div>
             </div>
-          </router-link>
+          </a>
         </v-col>
       </v-row>
       <!-- 空状态 -->
@@ -50,6 +50,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { listCategory, type Category } from '@/apis/category'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
@@ -58,6 +59,7 @@ import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
 const pageInfoStore = usePageInfoStore()
 const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 
+const router = useRouter()
 const snackbarStore = useSnackbarStore()
 
 const categoryList = ref<Category[]>([])
@@ -75,6 +77,12 @@ onMounted(() => {
       loading.value = false
     })
 })
+
+function goToCategory(id: number) {
+  router.push('/category/' + id).then(() => {
+    window.scrollTo(0, 0)
+  })
+}
 </script>
 
 <style scoped>

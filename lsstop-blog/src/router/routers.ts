@@ -27,6 +27,24 @@ export const constantRouter = [
     },
   },
   {
+    path: '/tag/:tagId',
+    name: 'TagArticles',
+    component: () => import('@/views/Article/ArticleList.vue'),
+    meta: {
+      title: '标签文章',
+      pageLabel: 'tag',
+    },
+  },
+  {
+    path: '/category/:categoryId',
+    name: 'CategoryArticles',
+    component: () => import('@/views/Article/ArticleList.vue'),
+    meta: {
+      title: '分类文章',
+      pageLabel: 'category',
+    },
+  },
+  {
     path: '/photoAlbum',
     name: 'PhotoAlbum',
     component: () => import('@/views/PhotoAlbum/PhotoAlbum.vue'),

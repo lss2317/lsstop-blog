@@ -27,13 +27,13 @@
           class="tag-col"
           :style="{ '--delay': index * 0.05 + 's' }"
         >
-          <router-link :to="'/tags/' + item.id" class="tag-wrapper">
+          <a class="tag-wrapper" @click="goToTag(item.id)">
             <v-icon class="tag-icon" size="24">mdi-tag-outline</v-icon>
             <div class="tag-name">{{ item.tagName }}</div>
             <div class="tag-count" :class="{ 'tag-count-empty': item.articleCount === 0 }">
               {{ item.articleCount > 0 ? item.articleCount + ' 篇文章' : '暂无文章' }}
             </div>
-          </router-link>
+          </a>
         </v-col>
       </v-row>
       <!-- 空状态 -->
@@ -47,6 +47,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { listTag, type Tag } from '@/apis/tag'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
@@ -55,6 +56,7 @@ import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
 const pageInfoStore = usePageInfoStore()
 const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 
+const router = useRouter()
 const snackbarStore = useSnackbarStore()
 
 const tagList = ref<Tag[]>([])
@@ -72,6 +74,12 @@ onMounted(() => {
       loading.value = false
     })
 })
+
+function goToTag(id: number) {
+  router.push('/tag/' + id).then(() => {
+    window.scrollTo(0, 0)
+  })
+}
 </script>
 
 <style scoped>
