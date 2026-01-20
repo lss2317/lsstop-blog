@@ -320,3 +320,27 @@ function goToTag(tagId: number) {
   font-size: 15px;
 }
 </style>
+
+<style>
+/* 夜间模式样式 */
+.v-theme--dark .article-item-card {
+  background: var(--color-bg-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.v-theme--dark .article-item-card a {
+  color: var(--color-text-primary);
+}
+
+.v-theme--dark .category-link {
+  color: var(--color-text-secondary);
+}
+
+.v-theme--dark .tag-wrapper {
+  background: transparent;
+}
+
+.v-theme--dark .empty-state {
+  color: var(--color-text-tertiary, #666);
+}
+</style>

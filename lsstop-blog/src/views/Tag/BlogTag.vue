@@ -121,6 +121,7 @@ function goToTag(id: number) {
   color: var(--color-text-primary);
   transition: all 0.3s ease;
   min-height: 100px;
+  cursor: pointer;
 }
 
 .tag-wrapper:hover {
