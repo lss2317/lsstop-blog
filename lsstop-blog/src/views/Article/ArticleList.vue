@@ -34,7 +34,7 @@
                 </router-link>
               </div>
               <div class="article-meta">
-                <v-icon size="20">mdi-clock-outline</v-icon>
+                <v-icon size="20" class="meta-icon">mdi-clock-outline</v-icon>
                 {{ formatTime(item.createTime) }}
                 <a class="category-link" @click="goToCategory(item.categoryId)">
                   <v-icon>mdi-bookmark</v-icon>
@@ -42,14 +42,9 @@
                 </a>
               </div>
             </div>
-            <v-divider />
+            <div class="divider-line"></div>
             <div class="tag-wrapper">
-              <a
-                class="tag-btn"
-                v-for="tag of item.tags"
-                :key="tag.id"
-                @click="goToTag(tag.id)"
-              >
+              <a class="tag-btn" v-for="tag of item.tags" :key="tag.id" @click="goToTag(tag.id)">
                 {{ tag.tagName }}
               </a>
             </div>
@@ -255,6 +250,10 @@ function goToTag(tagId: number) {
   align-items: center;
 }
 
+.meta-icon {
+  margin-right: 4px;
+}
+
 .category-link {
   margin-left: auto;
   display: flex;
@@ -272,6 +271,10 @@ function goToTag(tagId: number) {
   white-space: nowrap;
 }
 
+.divider-line {
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
 .tag-wrapper {
   padding: 10px 15px 10px 18px;
   min-height: 42px;
@@ -279,6 +282,8 @@ function goToTag(tagId: number) {
   white-space: nowrap;
   text-overflow: ellipsis;
   margin-top: auto;
+  display: flex;
+  align-items: center;
 }
 
 .tag-wrapper a {
@@ -334,6 +339,10 @@ function goToTag(tagId: number) {
 
 .v-theme--dark .category-link {
   color: var(--color-text-secondary);
+}
+
+.v-theme--dark .divider-line {
+  border-top-color: #444;
 }
 
 .v-theme--dark .tag-wrapper {
