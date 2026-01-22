@@ -14,21 +14,24 @@
       <textarea class="lc-textarea" v-model="commentContent" placeholder="请输入评论..." />
       <div class="lc-input-toolbar">
         <div class="lc-toolbar-left">
-          <span
-            :class="['lc-tool-icon', showEmoji ? 'active' : '']"
-            title="表情"
-            @click="showEmoji = !showEmoji"
-          >
-            <i class="iconfont iconbiaoqing" />
-          </span>
+          <div class="lc-emoji-trigger-wrapper">
+            <span
+              ref="emojiTriggerRef"
+              :class="['lc-tool-icon', showEmoji ? 'active' : '']"
+              title="表情"
+              @click="toggleEmoji"
+            >
+              <i class="iconfont iconbiaoqing" />
+            </span>
+            <!-- 表情框 -->
+            <div :class="['lc-emoji-panel', emojiDirection]" v-show="showEmoji">
+              <CommentEmoji @addEmoji="addEmoji" />
+            </div>
+          </div>
         </div>
         <button class="lc-submit-btn" :disabled="!commentContent.trim()" @click="insertComment">
           评论
         </button>
-      </div>
-      <!-- 表情框 -->
-      <div class="lc-emoji-panel" v-show="showEmoji">
-        <CommentEmoji @addEmoji="addEmoji" />
       </div>
     </div>
 
@@ -282,84 +285,59 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import CommentEmoji from '@/components/Emoji/CommentEmoji.vue'
 import { formatTime } from '@/utils/date'
-import useLikeStore from '@/stores/modules/like.ts'
+import { formatCount } from '@/utils/format'
+import useLikeStore from '@/stores/modules/like'
+import useUserInfoStore from '@/stores/modules/userInfo'
+import { useSnackbarStore } from '@/stores/modules/snackbar'
 import { LikeTypeEnum } from '@/constants/likeType'
+import type { CommentVO, ReplyVO } from '@/apis/comment'
+import { useEmoji } from '@/composables/useEmoji'
 
-// 回复类型
-interface Reply {
-  id: string
-  avatar: string
-  nickname: string
-  webSite?: string
-  userId: string
-  location?: string
-  createTime: string
-  commentContent: string
-  likeCount: number
-  replyUserId?: string
-  replyNickname?: string
-}
-
-// 评论类型
-interface Comment {
-  id: string
-  avatar: string
-  nickname: string
-  webSite?: string
-  userId: string
-  location?: string
-  createTime: string
-  commentContent: string
-  likeCount: number
-  replyCount: number
-  replyDTOList?: Reply[]
-}
-
-// 评论输入内容
-const commentContent = ref('')
-// 回复内容
-const replyContent = ref('')
-// 评论数量
-const count = ref(0)
-// 评论列表
-const commentList = ref<Comment[]>([])
-// 博主 ID
-const postUserId = ref('')
-// 当前正在回复的评论索引
-const replyingTo = ref<number | null>(null)
-// 当前正在回复的子评论ID
-const replyingToReplyId = ref<string | null>(null)
-// 控制每个评论的回复列表显示状态
-const showReplies = reactive<Record<number, boolean>>({})
-// 当前用户头像
-const currentUserAvatar = ref('https://assets.leetcode.cn/aliyun-lc-upload/default_avatar.png')
-// 点赞状态管理
+// stores
 const likeStore = useLikeStore()
-// 排序类型
-const sortType = ref<'hot' | 'new'>('hot')
-// 是否显示排序菜单
-const showSortMenu = ref(false)
-// 是否显示表情框
-const showEmoji = ref(false)
+const userInfoStore = useUserInfoStore()
+const snackbarStore = useSnackbarStore()
 
-// 格式化数量显示
-const formatCount = (num: number): string => {
-  if (num >= 10000) {
-    return (num / 1000).toFixed(1) + 'K'
-  }
-  return num.toString()
-}
+// 评论状态
+const commentContent = ref('')
+const replyContent = ref('')
+const count = ref(0)
+const commentList = ref<CommentVO[]>([])
+const postUserId = ref('')
+const replyingTo = ref<number | null>(null)
+const replyingToReplyId = ref<string | null>(null)
+const showReplies = reactive<Record<number, boolean>>({})
+const sortType = ref<'hot' | 'new'>('hot')
+const showSortMenu = ref(false)
+
+// 当前用户头像
+const currentUserAvatar = computed(() => userInfoStore.userInfo.avatar ?? '')
+
+// 表情相关
+const {
+  showEmoji,
+  emojiDirection,
+  emojiTriggerRef,
+  toggleEmoji,
+  closeEmoji,
+  registerClickOutside,
+  unregisterClickOutside,
+} = useEmoji()
 
 // 提交评论
 const insertComment = () => {
-  if (!commentContent.value.trim()) return
+  if (!userInfoStore.checkLogin('评论')) return
+  if (!commentContent.value.trim()) {
+    snackbarStore.error('评论内容不能为空')
+    return
+  }
   // TODO: 实现提交评论逻辑
   console.log('提交评论:', commentContent.value)
   commentContent.value = ''
-  showEmoji.value = false
+  closeEmoji()
 }
 
 // 添加表情
@@ -368,15 +346,10 @@ const addEmoji = (key: string) => {
 }
 
 // 点赞
-const like = async (item: Comment | Reply) => {
+const like = async (item: CommentVO | ReplyVO) => {
   const isLiked = await likeStore.toggleLike(LikeTypeEnum.COMMENT, item.id)
-  // 请求失败时不更新点赞数
   if (isLiked === null) return
-  if (isLiked) {
-    item.likeCount++
-  } else {
-    item.likeCount--
-  }
+  item.likeCount += isLiked ? 1 : -1
 }
 
 // 判断是否已点赞
@@ -386,6 +359,7 @@ const isLike = (id: string): boolean => {
 
 // 回复评论
 const replyComment = (index: number) => {
+  if (!userInfoStore.checkLogin('回复')) return
   if (replyingTo.value === index && replyingToReplyId.value === null) {
     cancelReply()
   } else {
@@ -396,7 +370,8 @@ const replyComment = (index: number) => {
 }
 
 // 回复子评论
-const replyToReply = (index: number, reply: Reply) => {
+const replyToReply = (index: number, reply: ReplyVO) => {
+  if (!userInfoStore.checkLogin('回复')) return
   replyingTo.value = index
   replyingToReplyId.value = reply.id
   replyContent.value = ''
@@ -409,16 +384,13 @@ const cancelReply = () => {
   replyContent.value = ''
 }
 
-// 自动调整textarea高度
-const autoResize = (event: Event) => {
-  const textarea = event.target as HTMLTextAreaElement
-  textarea.style.height = 'auto'
-  textarea.style.height = textarea.scrollHeight + 'px'
-}
-
 // 提交回复
-const submitReply = (item: Comment) => {
-  if (!replyContent.value.trim()) return
+const submitReply = (item: CommentVO) => {
+  if (!userInfoStore.checkLogin('回复')) return
+  if (!replyContent.value.trim()) {
+    snackbarStore.error('回复内容不能为空')
+    return
+  }
   console.log('回复:', replyContent.value, '到:', item)
   // TODO: 实现提交回复逻辑
   cancelReply()
@@ -441,25 +413,29 @@ const selectSort = (type: 'hot' | 'new') => {
   // TODO: 根据排序方式重新加载评论
 }
 
-// 点击外部关闭下拉菜单和表情框
+// 自动调整textarea高度
+const autoResize = (event: Event) => {
+  const textarea = event.target as HTMLTextAreaElement
+  textarea.style.height = 'auto'
+  textarea.style.height = textarea.scrollHeight + 'px'
+}
+
+// 点击外部关闭下拉菜单
 const handleClickOutside = (event: MouseEvent) => {
   const target = event.target as HTMLElement
-  // 关闭排序菜单
   if (!target.closest('.lc-sort-dropdown-wrapper')) {
     showSortMenu.value = false
-  }
-  // 关闭表情框（点击表情按钮或表情面板内部不关闭）
-  if (!target.closest('.lc-emoji-panel') && !target.closest('.lc-tool-icon')) {
-    showEmoji.value = false
   }
 }
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  registerClickOutside()
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  unregisterClickOutside()
 })
 </script>
 
@@ -520,7 +496,6 @@ onUnmounted(() => {
   border: 1px solid #e5e5e5;
   border-radius: 8px;
   margin: 16px 0;
-  position: relative;
   background: #fff;
 }
 
@@ -556,6 +531,10 @@ onUnmounted(() => {
 .lc-toolbar-left {
   display: flex;
   gap: 20px;
+}
+
+.lc-emoji-trigger-wrapper {
+  position: relative;
 }
 
 .lc-tool-icon {
@@ -596,8 +575,7 @@ onUnmounted(() => {
 
 .lc-emoji-panel {
   position: absolute;
-  top: calc(100% + 1px);
-  left: 0;
+  left: -5px;
   z-index: 1000;
   background: #fff;
   border-radius: 8px;
@@ -605,18 +583,44 @@ onUnmounted(() => {
   padding: 10px;
 }
 
-.lc-emoji-panel::before {
+/* 向下展开（默认） */
+.lc-emoji-panel.down {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+
+.lc-emoji-panel.down::before {
   content: '';
   position: absolute;
-  top: -8px;
-  left: 20px;
-  width: 14px;
-  height: 14px;
+  top: -7px;
+  left: 10px;
+  width: 12px;
+  height: 12px;
   background: #fff;
   border-left: 1px solid #e5e5e5;
   border-top: 1px solid #e5e5e5;
   transform: rotate(45deg);
   box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* 向上展开 */
+.lc-emoji-panel.up {
+  bottom: calc(100% + 8px);
+  top: auto;
+}
+
+.lc-emoji-panel.up::before {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 10px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-right: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5;
+  transform: rotate(45deg);
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.03);
 }
 
 /* 排序 */
@@ -1108,9 +1112,16 @@ onUnmounted(() => {
   box-shadow: var(--shadow-dropdown);
 }
 
-.v-theme--dark .lc-emoji-panel::before {
+.v-theme--dark .lc-emoji-panel.down::before {
   background: #2a2a2a;
-  border-color: var(--color-border-light);
+  border-left-color: #3d3d4a;
+  border-top-color: #3d3d4a;
+}
+
+.v-theme--dark .lc-emoji-panel.up::before {
+  background: #2a2a2a;
+  border-right-color: #3d3d4a;
+  border-bottom-color: #3d3d4a;
 }
 
 .v-theme--dark .lc-tool-icon {

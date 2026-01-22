@@ -77,10 +77,7 @@ const barrageList = ref<MessageVo[]>([])
 // 发送留言
 function addBlogMessage() {
   // 未登录时提示用户登录
-  if (!userInfoStore.userInfo.userId) {
-    snackbarStore.info('登录后即可留言哦~')
-    return
-  }
+  if (!userInfoStore.checkLogin('留言')) return
 
   if (messageContent.value.trim() === '') {
     snackbarStore.error('留言不能为空')

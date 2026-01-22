@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
 import { getUserInfo } from '@/apis/user'
+import { useSnackbarStore } from './snackbar'
 
 export interface UserInfo {
   /** 用户id */
@@ -60,6 +61,21 @@ const useUserInfoStore = defineStore('userInfo', () => {
     }
   }
 
+  // 检查登录状态，未登录则提示
+  function checkLogin(action: string): boolean {
+    if (!userInfo.value.userId) {
+      const snackbarStore = useSnackbarStore()
+      snackbarStore.info(`登录后即可${action}哦~`)
+      return false
+    }
+    return true
+  }
+
+  // 是否已登录
+  function isLoggedIn(): boolean {
+    return !!userInfo.value.userId
+  }
+
   return {
     userInfo,
     blogInfo,
@@ -67,6 +83,8 @@ const useUserInfoStore = defineStore('userInfo', () => {
     clearUserInfo,
     setBlogInfo,
     fetchUserInfo,
+    checkLogin,
+    isLoggedIn,
   }
 })
 
