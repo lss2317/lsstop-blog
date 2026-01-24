@@ -15,6 +15,11 @@ import java.util.List;
 public class ArticleVO {
 
     /**
+     * 文章ID
+     */
+    private Integer id;
+
+    /**
      * 文章封面图URL
      */
     private String articleCover;
@@ -58,6 +63,11 @@ public class ArticleVO {
      * 创建时间
      */
     private LocalDateTime createTime;
+
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
 
     /**
      * 上一篇文章

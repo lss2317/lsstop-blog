@@ -2,6 +2,7 @@ package com.lsstop.service;
 
 import com.lsstop.domain.vo.ArticleArchiveVO;
 import com.lsstop.domain.vo.ArticleListVO;
+import com.lsstop.domain.vo.ArticleVO;
 
 import java.util.List;
 
@@ -35,5 +36,14 @@ public interface ArticleService {
      * @return 文章列表
      */
     List<ArticleListVO> getArticleListByTag(Integer tagId);
+
+    /**
+     * 根据ID获取文章详情
+     *
+     * @param id 文章ID
+     * @param ip 客户端IP
+     * @return 文章详情
+     */
+    ArticleVO getArticleById(Integer id, String ip);
 
 }

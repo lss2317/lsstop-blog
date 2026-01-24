@@ -27,15 +27,17 @@ export const markdownToHtml = (content: string): string => {
         linesNum += '<span></span>'
       }
       linesNum += '</span>'
+      // 复制按钮
+      const copyBtn = `<button class="copy-btn" data-clipboard-text="${escapeHtml(str)}"><i class="iconfont iconfuzhi"></i></button>`
       if (lang && hljs.getLanguage(lang)) {
         const preCode = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value
         let html = preCode
         if (linesLength) {
           html += '<b class="name">' + lang + '</b>'
         }
-        return `<pre class="hljs"><code>${html}</code>${linesNum}</pre>`
+        return `<pre class="hljs">${copyBtn}<code>${html}</code>${linesNum}</pre>`
       }
-      return `<pre class="hljs"><code>${escapeHtml(str)}</code>${linesNum}</pre>`
+      return `<pre class="hljs">${copyBtn}<code>${escapeHtml(str)}</code>${linesNum}</pre>`
     },
   })
   return md.render(content)

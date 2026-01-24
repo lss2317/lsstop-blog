@@ -4,8 +4,11 @@ import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
 import com.lsstop.domain.vo.ArticleArchiveVO;
 import com.lsstop.domain.vo.ArticleListVO;
+import com.lsstop.domain.vo.ArticleVO;
 import com.lsstop.service.ArticleService;
+import com.lsstop.utils.IpUtils;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,6 +60,19 @@ public class ArticleController {
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<List<ArticleListVO>> getArticleListByTag(@PathVariable Integer tagId) {
         return Result.success(articleService.getArticleListByTag(tagId));
+    }
+
+    /**
+     * 根据ID获取文章详情
+     *
+     * @param id 文章ID
+     * @return 文章详情
+     */
+    @GetMapping("/front/article/{id}")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<ArticleVO> getArticleById(@PathVariable Integer id, HttpServletRequest request) {
+        String ip = IpUtils.getIpAddress(request);
+        return Result.success(articleService.getArticleById(id, ip));
     }
 
 }

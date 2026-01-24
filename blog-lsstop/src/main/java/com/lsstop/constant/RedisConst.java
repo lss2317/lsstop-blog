@@ -44,6 +44,16 @@ public class RedisConst {
     public static final String ARTICLE_LIKE_COUNT = PREFIX + "article:like:count:";
 
     /**
+     * 最新文章列表缓存
+     */
+    public static final String NEWEST_ARTICLES = PREFIX + "article:newest";
+
+    /**
+     * 文章浏览记录（防刷）
+     */
+    public static final String ARTICLE_VIEW_RECORD = PREFIX + "article:view:record:";
+
+    /**
      * 说说点赞数
      */
     public static final String TALK_LIKE_COUNT = PREFIX + "talk:like:count:";

@@ -22,16 +22,16 @@
           :style="{ '--delay': index * 0.1 + 's' }"
         >
           <v-card class="animated zoomIn article-item-card">
-            <div class="article-item-cover">
-              <router-link :to="'/article/' + item.id">
+            <div class="article-item-cover" @click="navigateToArticle(item.id)">
+              <a>
                 <v-img class="on-hover" width="100%" height="220" :src="item.articleCover" cover />
-              </router-link>
+              </a>
             </div>
             <div class="article-item-info">
               <div class="article-title">
-                <router-link :to="'/article/' + item.id">
+                <a @click="navigateToArticle(item.id)">
                   {{ item.articleTitle }}
-                </router-link>
+                </a>
               </div>
               <div class="article-meta">
                 <v-icon size="20" class="meta-icon">mdi-clock-outline</v-icon>
@@ -68,18 +68,20 @@ import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import usePageInfoStore from '@/stores/modules/pageInfo'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
-import { getArticleListByCategory, getArticleListByTag, type ArticleListVO } from '@/apis/article'
+import { getArticleListByCategory, getArticleListByTag, type ArticleList } from '@/apis/article'
 import { listCategory } from '@/apis/category'
 import { listTag } from '@/apis/tag'
 import { formatTime } from '@/utils/date'
+import { useNavigate } from '@/composables/useNavigate'
 
 const route = useRoute()
 const router = useRouter()
+const { navigateToArticle } = useNavigate()
 const pageInfoStore = usePageInfoStore()
 const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 const snackbarStore = useSnackbarStore()
 
-const articleList = ref<ArticleListVO[]>([])
+const articleList = ref<ArticleList[]>([])
 const loading = ref(true)
 const name = ref('')
 

@@ -53,20 +53,20 @@
 
             <!-- 文章列表 -->
             <div class="article-list">
-              <router-link
+              <a
                 v-for="(article, articleIndex) in monthGroup.articles"
                 :key="article.id"
-                :to="'/articles/' + article.id"
                 class="article-item"
                 :style="{
                   '--article-delay':
                     yearIndex * 0.15 + monthIndex * 0.08 + articleIndex * 0.05 + 's',
                 }"
+                @click="navigateToArticle(article.id)"
               >
                 <span class="article-dot"></span>
                 <span class="article-title">{{ article.articleTitle }}</span>
                 <span class="article-date">{{ dateFormat.monthDay(article.createTime) }}</span>
-              </router-link>
+              </a>
             </div>
           </div>
         </div>
@@ -88,10 +88,12 @@ import { listArchives, type ArticleArchive } from '@/apis/archive'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
 import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
 import { dateFormat, getYear, getMonth } from '@/utils/date'
+import { useNavigate } from '@/composables/useNavigate'
 
 const pageInfoStore = usePageInfoStore()
 const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 
+const { navigateToArticle } = useNavigate()
 const snackbarStore = useSnackbarStore()
 
 const archives = ref<ArticleArchive[]>([])
@@ -293,6 +295,7 @@ onMounted(() => {
   text-decoration: none;
   color: var(--color-text-primary);
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .article-item:last-child {
