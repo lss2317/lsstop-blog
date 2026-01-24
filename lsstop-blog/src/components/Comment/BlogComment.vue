@@ -1,14 +1,5 @@
 <template>
   <div class="lc-comment-container">
-    <!-- 标题 -->
-    <div class="lc-comment-header">
-      <div class="lc-header-left">
-        <i class="iconfont iconpinglunzu lc-icon" />
-        <span class="lc-comment-title">评论</span>
-        <span class="lc-comment-count" v-if="count > 0">({{ formatCount(count) }})</span>
-      </div>
-    </div>
-
     <!-- 评论输入框 -->
     <div class="lc-input-box">
       <textarea class="lc-textarea" v-model="commentContent" placeholder="请输入评论..." />
@@ -444,51 +435,6 @@ onUnmounted(() => {
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background: #fff;
-}
-
-/* 图标 */
-.lc-icon {
-  color: #3c3c3c;
-}
-
-/* 标题 */
-.lc-comment-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 16px;
-}
-
-.lc-header-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.lc-header-left .lc-icon {
-  font-size: 1.5rem;
-}
-
-.lc-header-right {
-  cursor: pointer;
-}
-
-.lc-collapse-icon {
-  color: #8c8c8c;
-}
-
-.lc-comment-title {
-  font-size: 21px;
-  font-weight: bold;
-  color: #344c67;
-  line-height: 2;
-}
-
-.lc-comment-count {
-  font-size: 21px;
-  color: #344c67;
-  font-weight: bold;
-  line-height: 2;
 }
 
 /* 输入框 */

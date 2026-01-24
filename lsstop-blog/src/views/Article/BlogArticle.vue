@@ -17,6 +17,15 @@
       </v-row>
     </template>
 
+    <!-- 空状态 -->
+    <template v-else-if="!article">
+      <div class="banner" :style="defaultCover" />
+      <v-card class="blog-container empty-state">
+        <v-icon size="64" color="grey">mdi-file-document-outline</v-icon>
+        <p>文章不存在</p>
+      </v-card>
+    </template>
+
     <!-- 内容 -->
     <template v-else>
       <!-- 封面图 -->
@@ -104,7 +113,7 @@
                   {{ tag.tagName }}
                 </router-link>
               </div>
-              <v-icon class="share-icon" @click="openShare">mdi-share-variant</v-icon>
+              <ShareButtons :url="articleHref" :title="article.articleTitle" />
             </div>
             <!-- 点赞打赏等 -->
             <div class="article-reward">
@@ -188,8 +197,11 @@
                 </div>
               </div>
             </div>
-            <!-- 分割线 -->
-            <hr />
+            <!-- 评论分隔线 -->
+            <div class="comment-divider">
+              <v-icon size="18" color="#8a919f">mdi-chat-processing-outline</v-icon>
+              <span>评论区</span>
+            </div>
             <!-- 评论 -->
             <BlogComment />
           </v-card>
@@ -228,8 +240,7 @@
           </div>
         </v-col>
       </v-row>
-      <!-- 分享弹窗 -->
-      <ShareDialog ref="shareDialogRef" />
+
     </template>
   </div>
 </template>
@@ -237,7 +248,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { getArticleById, type Article } from '@/apis/article'
+import usePageInfoStore from '@/stores/modules/pageInfo'
 import { dateFormat } from '@/utils/date'
 import { markdownToHtml } from '@/utils/markdown'
 import { previewImages } from '@/utils/photoPreview'
@@ -247,13 +260,17 @@ import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
 import useLikeStore from '@/stores/modules/like'
 import { LikeTypeEnum } from '@/constants/likeType'
 import BlogComment from '@/components/Comment/BlogComment.vue'
-import ShareDialog from '@/components/Share/ShareDialog.vue'
+import ShareButtons from '@/components/Share/ShareButtons.vue'
 import tocbot from 'tocbot'
 import Clipboard from 'clipboard'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
 
 const route = useRoute()
 const { navigateToArticle } = useNavigate()
+
+// 获取默认封面样式
+const pageInfoStore = usePageInfoStore()
+const { currentCoverStyle: defaultCover } = storeToRefs(pageInfoStore)
 const websiteConfigStore = useWebsiteConfigStore()
 const likeStore = useLikeStore()
 const snackbarStore = useSnackbarStore()
@@ -268,46 +285,32 @@ const loading = ref(true)
 let likeDebounce = false
 
 // 文章数据
-const article = ref<Article>({
-  id: 0,
-  articleCover: '',
-  articleTitle: '',
-  articleContent: '',
-  categoryId: 0,
-  categoryName: '',
-  tags: [],
-  viewCount: 0,
-  likeCount: 0,
-  createTime: '',
-  updateTime: '',
-  preArticle: null,
-  nextArticle: null,
-  newestArticles: [],
-  recommendArticles: [],
-})
+const article = ref<Article | null>(null)
 
 // refs
 const articleRef = ref<HTMLElement | null>(null)
-const shareDialogRef = ref<InstanceType<typeof ShareDialog> | null>(null)
 
 // 网站配置
 const websiteConfig = computed(() => websiteConfigStore.config)
 
 // 封面图样式
-const bannerStyle = computed(() => ({
-  backgroundImage: `url(${article.value.articleCover})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-}))
+const bannerStyle = computed(() => {
+  if (!article.value) return {}
+  return {
+    backgroundImage: `url(${article.value.articleCover})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  }
+})
 
 // 文章HTML内容
-const articleHtml = computed(() => markdownToHtml(article.value.articleContent))
+const articleHtml = computed(() => markdownToHtml(article.value?.articleContent || ''))
 
 // 文章链接
 const articleHref = computed(() => window.location.href)
 
 // 字数统计
-const wordNum = computed(() => article.value.articleContent.length)
+const wordNum = computed(() => article.value?.articleContent.length || 0)
 
 // 阅读时长
 const readTime = computed(() => {
@@ -317,13 +320,13 @@ const readTime = computed(() => {
 
 // 点赞样式
 const likeClass = computed(() =>
-  likeStore.isLiked(LikeTypeEnum.ARTICLE, article.value.id) ? 'like-btn-active' : 'like-btn',
+  likeStore.isLiked(LikeTypeEnum.ARTICLE, article.value?.id || 0) ? 'like-btn-active' : 'like-btn',
 )
 
 // 上下篇文章样式
 const postClass = computed(() => {
-  const hasPre = !!article.value.preArticle
-  const hasNext = !!article.value.nextArticle
+  const hasPre = !!article.value?.preArticle
+  const hasNext = !!article.value?.nextArticle
   return hasPre && hasNext ? 'post' : 'post full'
 })
 
@@ -332,7 +335,7 @@ const formatDate = (date: string) => dateFormat.datetime(date).slice(0, 10)
 
 // 点赞
 const handleLike = async () => {
-  if (likeDebounce) return
+  if (!article.value || likeDebounce) return
   likeDebounce = true
   try {
     const result = await likeStore.toggleLike(LikeTypeEnum.ARTICLE, article.value.id)
@@ -342,11 +345,6 @@ const handleLike = async () => {
   } finally {
     setTimeout(() => (likeDebounce = false), 500)
   }
-}
-
-// 打开分享
-const openShare = () => {
-  shareDialogRef.value?.openShareDialog(articleHref.value, article.value.articleTitle)
 }
 
 // 生成目录
@@ -401,19 +399,30 @@ onUnmounted(() => {
 
 // 获取文章详情
 const fetchArticle = async (id: number) => {
+  // 验证 ID 是否为有效数字
+  if (isNaN(id) || id <= 0) {
+    loading.value = false
+    return
+  }
+
   loading.value = true
   try {
     const res = await getArticleById(id)
+    // 检查是否返回了有效数据
+    if (!res.data || !res.data.id) {
+      article.value = null
+      return
+    }
     article.value = res.data
     // SEO: 设置页面标题
     document.title = res.data.articleTitle
-  } catch (error) {
-    console.error('获取文章失败', error)
-    snackbarStore.error('文章加载失败')
-  } finally {
-    loading.value = false
     // DOM 渲染后再生成目录
     generateToc()
+  } catch (error) {
+    console.error('获取文章失败', error)
+    article.value = null
+  } finally {
+    loading.value = false
   }
 }
 
@@ -801,11 +810,34 @@ watch(
   color: #fff;
 }
 
-hr {
+/* 评论区分隔线 */
+.comment-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 40px 0 10px;
+  padding: 16px 0;
   position: relative;
-  margin: 40px auto;
-  border: 2px dashed #d2ebfd;
-  width: calc(100% - 4px);
+  color: #8a919f;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.comment-divider::before,
+.comment-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e4e6eb, transparent);
+}
+
+.comment-divider::before {
+  background: linear-gradient(to left, #e4e6eb, transparent);
+}
+
+.comment-divider::after {
+  background: linear-gradient(to right, #e4e6eb, transparent);
 }
 
 .full {
@@ -934,18 +966,6 @@ hr {
   line-height: 2;
 }
 
-/* 分享图标 */
-.share-icon {
-  margin-left: auto;
-  cursor: pointer;
-  color: #49b1f5;
-  transition: color 0.3s;
-}
-
-.share-icon:hover {
-  color: #1890ff;
-}
-
 /* 目录样式 */
 #toc :deep(.toc-list) {
   list-style: none;
@@ -973,6 +993,21 @@ hr {
 
 #toc :deep(.toc-list .toc-list) {
   padding-left: 12px;
+}
+
+/* 空状态样式 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #999;
+}
+
+.empty-state p {
+  margin: 16px 0 24px;
+  font-size: 16px;
 }
 </style>
 

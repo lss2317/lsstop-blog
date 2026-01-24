@@ -63,6 +63,11 @@
       <blockquote class="mb-10">
         友链信息展示需要，你的信息格式要包含：名称、介绍、链接、头像
       </blockquote>
+      <!-- 评论分隔线 -->
+      <div class="comment-divider">
+        <v-icon size="18" color="#8a919f">mdi-chat-processing-outline</v-icon>
+        <span>评论区</span>
+      </div>
       <!-- 评论 -->
       <Comment></Comment>
     </v-card>
@@ -311,6 +316,36 @@ blockquote {
 .empty-state p {
   margin-top: 12px;
   font-size: 14px;
+}
+
+/* 评论区分隔线 */
+.comment-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 30px 0 10px;
+  padding: 16px 0;
+  position: relative;
+  color: #8a919f;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.comment-divider::before,
+.comment-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e4e6eb, transparent);
+}
+
+.comment-divider::before {
+  background: linear-gradient(to left, #e4e6eb, transparent);
+}
+
+.comment-divider::after {
+  background: linear-gradient(to right, #e4e6eb, transparent);
 }
 </style>
 
