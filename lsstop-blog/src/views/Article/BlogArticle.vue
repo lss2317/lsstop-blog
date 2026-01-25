@@ -240,7 +240,6 @@
           </div>
         </v-col>
       </v-row>
-
     </template>
   </div>
 </template>
@@ -617,7 +616,9 @@ watch(
   font-size: 0.875rem;
   line-height: 2;
   padding: 0.625rem 1rem;
-  border: 1px solid #eee;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 3px 8px 6px rgb(7 17 27 / 6%);
 }
 
 .aritcle-copyright span {
@@ -648,7 +649,8 @@ watch(
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 0.5em;
-  background: #fff;
+  background: currentColor;
+  opacity: 0.3;
   content: '';
 }
 
@@ -690,8 +692,9 @@ watch(
   margin: 0 0 0 -110px;
   padding: 20px 10px 8px !important;
   width: 320px;
-  border-radius: 4px;
-  background: #f5f5f5;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 3px 8px 6px rgb(7 17 27 / 6%);
 }
 
 .reward-all:before {
@@ -712,7 +715,7 @@ watch(
   margin: 0 auto;
   width: 0;
   height: 0;
-  border-top: 13px solid #f5f5f5;
+  border-top: 13px solid rgba(255, 255, 255, 0.1);
   border-right: 13px solid transparent;
   border-left: 13px solid transparent;
 }
@@ -920,7 +923,7 @@ watch(
 }
 
 .article-item:not(:last-child) {
-  border-bottom: 1px dashed #f5f5f5;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
 }
 
 .article-item img {
