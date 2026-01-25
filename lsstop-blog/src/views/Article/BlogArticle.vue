@@ -106,40 +106,23 @@
                 许可协议。转载请注明文章出处。
               </div>
             </div>
-            <!-- 标签和分享 -->
+            <!-- 标签、点赞和分享 -->
             <div class="article-operation">
               <div class="tag-container">
                 <router-link v-for="tag of article.tags" :key="tag.id" :to="'/tags/' + tag.id">
                   {{ tag.tagName }}
                 </router-link>
               </div>
-              <ShareButtons :url="articleHref" :title="article.articleTitle" />
-            </div>
-            <!-- 点赞打赏等 -->
-            <div class="article-reward">
-              <!-- 点赞按钮 -->
-              <a :class="likeClass" @click="handleLike">
-                <v-icon size="14" color="#fff">mdi-thumb-up</v-icon>
-                点赞
-                <span v-show="article.likeCount > 0">{{ article.likeCount }}</span>
-              </a>
-              <a v-if="websiteConfig.reward === 1" class="reward-btn">
-                <!-- 打赏按钮 -->
-                <i class="iconfont iconerweima" /> 打赏
-                <!-- 二维码 -->
-                <div class="animated fadeInDown reward-main">
-                  <ul class="reward-all">
-                    <li class="reward-item">
-                      <img class="reward-img" :src="websiteConfig.weixinQrcode" />
-                      <div class="reward-desc">微信</div>
-                    </li>
-                    <li class="reward-item">
-                      <img class="reward-img" :src="websiteConfig.alipayQrcode" />
-                      <div class="reward-desc">支付宝</div>
-                    </li>
-                  </ul>
+              <div class="operation-right">
+                <!-- 点赞按钮 -->
+                <div :class="['like-btn-inline', isLiked ? 'liked' : '']" @click="handleLike">
+                  <v-icon size="16" class="like-icon">
+                    {{ isLiked ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
+                  </v-icon>
+                  <span class="like-count">{{ article.likeCount || 0 }}</span>
                 </div>
-              </a>
+                <ShareButtons :url="articleHref" :title="article.articleTitle" />
+              </div>
             </div>
             <div class="pagination-post">
               <!-- 上一篇 -->
@@ -317,9 +300,9 @@ const readTime = computed(() => {
   return minutes < 1 ? '1 分钟' : `${minutes} 分钟`
 })
 
-// 点赞样式
-const likeClass = computed(() =>
-  likeStore.isLiked(LikeTypeEnum.ARTICLE, article.value?.id || 0) ? 'like-btn-active' : 'like-btn',
+// 是否已点赞
+const isLiked = computed(() =>
+  likeStore.isLiked(LikeTypeEnum.ARTICLE, article.value?.id || 0),
 )
 
 // 上下篇文章样式
@@ -576,6 +559,65 @@ watch(
 .article-operation {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.operation-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.like-btn-inline {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #666;
+  background: rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.like-btn-inline:hover {
+  background: rgba(235, 80, 85, 0.1);
+  color: #eb5055;
+}
+
+.like-btn-inline:active {
+  transform: scale(0.95);
+}
+
+.like-btn-inline:hover :deep(.v-icon) {
+  color: #eb5055 !important;
+  transform: scale(1.15);
+}
+
+.like-btn-inline .like-icon {
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.like-btn-inline.liked {
+  color: #fff;
+  background: #eb5055;
+}
+
+.like-btn-inline.liked .like-icon {
+  color: #fff !important;
+}
+
+.like-btn-inline.liked:hover {
+  background: #d64549;
+  color: #fff;
+}
+
+.like-count {
+  margin-left: 6px;
+  font-weight: 500;
 }
 
 .article-category {
@@ -649,114 +691,11 @@ watch(
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 0.5em;
-  background: currentColor;
-  opacity: 0.3;
+  background: #fff;
   content: '';
 }
 
-.article-reward {
-  margin-top: 5rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 
-.reward-btn {
-  position: relative;
-  display: inline-block;
-  width: 100px;
-  background: #49b1f5;
-  margin: 0 1rem;
-  color: #fff !important;
-  text-align: center;
-  line-height: 36px;
-  font-size: 0.875rem;
-}
-
-.reward-btn:hover .reward-main {
-  display: block;
-}
-
-.reward-main {
-  display: none;
-  position: absolute;
-  bottom: 40px;
-  left: 0;
-  margin: 0;
-  padding: 0 0 15px;
-  width: 100%;
-}
-
-.reward-all {
-  display: inline-block;
-  margin: 0 0 0 -110px;
-  padding: 20px 10px 8px !important;
-  width: 320px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 3px 8px 6px rgb(7 17 27 / 6%);
-}
-
-.reward-all:before {
-  position: absolute;
-  bottom: -10px;
-  left: 0;
-  width: 100%;
-  height: 20px;
-  content: '';
-}
-
-.reward-all:after {
-  content: '';
-  position: absolute;
-  right: 0;
-  bottom: 2px;
-  left: 0;
-  margin: 0 auto;
-  width: 0;
-  height: 0;
-  border-top: 13px solid rgba(255, 255, 255, 0.1);
-  border-right: 13px solid transparent;
-  border-left: 13px solid transparent;
-}
-
-.reward-item {
-  display: inline-block;
-  padding: 0 8px;
-  list-style-type: none;
-}
-
-.reward-img {
-  width: 130px;
-  height: 130px;
-  display: block;
-}
-
-.reward-desc {
-  margin: -5px 0;
-  color: #858585;
-  text-align: center;
-}
-
-.like-btn {
-  display: inline-block;
-  width: 100px;
-  background: #969696;
-  color: #fff !important;
-  text-align: center;
-  line-height: 36px;
-  font-size: 0.875rem;
-}
-
-.like-btn-active {
-  display: inline-block;
-  width: 100px;
-  background: #ec7259;
-  color: #fff !important;
-  text-align: center;
-  line-height: 36px;
-  font-size: 0.875rem;
-}
 
 .pagination-post {
   margin-top: 40px;

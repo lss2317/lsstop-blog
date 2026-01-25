@@ -47,10 +47,6 @@ function addEmoji(key: string): void {
   background: #dddddd;
 }
 
-:global(.v-theme--dark) .emoji :deep(img) {
-  background-color: #2d2d3a;
-}
-
 .emoji-wrapper {
   width: 275px;
   height: 200px;
