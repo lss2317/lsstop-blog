@@ -18,7 +18,8 @@ const theme = useTheme()
 
 const isShow = ref('')
 const isOut = ref('rightside-out')
-const icon = ref('iconyueliang')
+// 根据当前主题初始化图标
+const icon = ref(theme.global.current.value.dark ? 'icontaiyang' : 'iconyueliang')
 
 const backTop = () => {
   window.scrollTo({
@@ -43,9 +44,12 @@ const show = () => {
 }
 
 const check = () => {
-  const flagValue = icon.value === 'iconyueliang'
-  icon.value = flagValue ? 'icontaiyang' : 'iconyueliang'
-  theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
+  const isDark = theme.global.current.value.dark
+  const newTheme = isDark ? 'light' : 'dark'
+  theme.global.name.value = newTheme
+  icon.value = isDark ? 'iconyueliang' : 'icontaiyang'
+  // 保存到 localStorage
+  localStorage.setItem('theme', newTheme)
 }
 
 onMounted(() => {

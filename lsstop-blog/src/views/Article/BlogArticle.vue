@@ -132,7 +132,12 @@
                 @click="navigateToArticle(article.preArticle.id)"
               >
                 <a>
-                  <img class="post-cover" :src="article.preArticle.articleCover" loading="lazy" />
+                  <img
+                    class="post-cover"
+                    :src="article.preArticle.articleCover"
+                    :alt="article.preArticle.articleTitle"
+                    loading="lazy"
+                  />
                   <div class="post-info">
                     <div class="label">上一篇</div>
                     <div class="post-title">{{ article.preArticle.articleTitle }}</div>
@@ -146,7 +151,12 @@
                 @click="navigateToArticle(article.nextArticle.id)"
               >
                 <a>
-                  <img class="post-cover" :src="article.nextArticle.articleCover" loading="lazy" />
+                  <img
+                    class="post-cover"
+                    :src="article.nextArticle.articleCover"
+                    :alt="article.nextArticle.articleTitle"
+                    loading="lazy"
+                  />
                   <div class="post-info" style="text-align: right">
                     <div class="label">下一篇</div>
                     <div class="post-title">{{ article.nextArticle.articleTitle }}</div>
@@ -168,13 +178,18 @@
                   @click="navigateToArticle(item.id)"
                 >
                   <a>
-                    <img class="recommend-cover" :src="item.articleCover" loading="lazy" />
+                    <img
+                      class="recommend-cover"
+                      :src="item.articleCover"
+                      :alt="item.articleTitle"
+                      loading="lazy"
+                    />
                     <div class="recommend-info">
                       <div class="recommend-date">
                         <i class="iconfont iconrili" />
                         {{ formatDate(item.createTime) }}
                       </div>
-                      <div>{{ item.articleTitle }}</div>
+                      <div class="recommend-article-title">{{ item.articleTitle }}</div>
                     </div>
                   </a>
                 </div>
@@ -195,7 +210,7 @@
             <!-- 文章目录 -->
             <v-card class="right-container">
               <div class="right-title">
-                <i class="iconfont iconhanbao" style="font-size: 16.8px" />
+                <i class="iconfont iconhanbao" style="font-size: 16px" />
                 <span style="margin-left: 10px">目录</span>
               </div>
               <div id="toc" />
@@ -203,13 +218,13 @@
             <!-- 最新文章 -->
             <v-card class="right-container" style="margin-top: 20px">
               <div class="right-title">
-                <i class="iconfont icongengxinshijian" style="font-size: 16.8px" />
+                <i class="iconfont icongengxinshijian" style="font-size: 16px" />
                 <span style="margin-left: 10px">最新文章</span>
               </div>
               <div class="article-list">
                 <div v-for="item of article.newestArticles" :key="item.id" class="article-item">
                   <a class="content-cover" @click="navigateToArticle(item.id)">
-                    <img :src="item.articleCover" loading="lazy" />
+                    <img :src="item.articleCover" :alt="item.articleTitle" loading="lazy" />
                   </a>
                   <div class="content">
                     <div class="content-title">
@@ -301,9 +316,7 @@ const readTime = computed(() => {
 })
 
 // 是否已点赞
-const isLiked = computed(() =>
-  likeStore.isLiked(LikeTypeEnum.ARTICLE, article.value?.id || 0),
-)
+const isLiked = computed(() => likeStore.isLiked(LikeTypeEnum.ARTICLE, article.value?.id || 0))
 
 // 上下篇文章样式
 const postClass = computed(() => {
@@ -547,7 +560,6 @@ watch(
     position: relative;
     display: inline-block;
     overflow: hidden;
-    margin: 3px;
     width: calc(100% - 4px);
     height: 150px;
     margin: 2px;
@@ -695,8 +707,6 @@ watch(
   content: '';
 }
 
-
-
 .pagination-post {
   margin-top: 40px;
   overflow: hidden;
@@ -750,6 +760,9 @@ watch(
 .post-title {
   font-weight: 500;
   color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 评论区分隔线 */
@@ -795,7 +808,7 @@ watch(
   display: flex;
   align-items: center;
   line-height: 2;
-  font-size: 16.8px;
+  font-size: 16px;
   margin-bottom: 6px;
 }
 
@@ -836,6 +849,12 @@ watch(
 
 .recommend-date {
   font-size: 90%;
+}
+
+.recommend-article-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .recommend-item:hover .recommend-cover {
@@ -886,10 +905,16 @@ watch(
 }
 
 .content-cover {
-  width: 58.8px;
-  height: 58.8px;
+  width: 60px;
+  height: 60px;
   overflow: hidden;
   cursor: pointer;
+}
+
+.content-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .content-title a {
