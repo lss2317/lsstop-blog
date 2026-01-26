@@ -100,6 +100,16 @@ public class RedisUtils {
     }
 
     /**
+     * 根据模式获取所有键
+     *
+     * @param pattern 模式（如 "prefix:*"）
+     * @return 键集合
+     */
+    public Set<String> keys(String pattern) {
+        return redisTemplate.keys(pattern);
+    }
+
+    /**
      * 设置值
      *
      * @param key   键

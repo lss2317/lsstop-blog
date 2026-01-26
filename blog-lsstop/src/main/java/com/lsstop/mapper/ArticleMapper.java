@@ -4,6 +4,7 @@ import com.lsstop.domain.vo.ArticleArchiveVO;
 import com.lsstop.domain.vo.ArticleListVO;
 import com.lsstop.domain.vo.ArticleSimpleVO;
 import com.lsstop.domain.vo.ArticleVO;
+import com.lsstop.domain.vo.ArticleViewCountVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDateTime;
@@ -93,5 +94,19 @@ public interface ArticleMapper {
      */
     List<ArticleSimpleVO> getHotArticles(@Param("excludeIds") List<Integer> excludeIds,
                                          @Param("limit") Integer limit);
+
+    /**
+     * 查询所有文章的访问量（用于启动时初始化到Redis）
+     *
+     * @return 文章访问量列表
+     */
+    List<ArticleViewCountVO> listAllArticleViewCounts();
+
+    /**
+     * 批量更新文章访问量
+     *
+     * @param viewCounts 访问量列表
+     */
+    void batchUpdateViewCounts(@Param("list") List<ArticleViewCountVO> viewCounts);
 
 }

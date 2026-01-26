@@ -1,12 +1,9 @@
 package com.lsstop.task;
 
 import com.lsstop.constant.RedisConst;
-import com.lsstop.domain.vo.CommentCountVO;
-import com.lsstop.domain.vo.LikeCountVO;
 import com.lsstop.domain.entity.LikeRecordEntity;
-import com.lsstop.enums.CommentTypeEnum;
+import com.lsstop.domain.vo.LikeCountVO;
 import com.lsstop.enums.LikeTypeEnum;
-import com.lsstop.mapper.CommentMapper;
 import com.lsstop.mapper.LikeMapper;
 import com.lsstop.utils.RedisUtils;
 import jakarta.annotation.PostConstruct;
@@ -22,54 +19,47 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 统计数据初始化任务
- * <p>项目启动时从数据库统计点赞数和评论数到Redis</p>
+ * 点赞统计任务
+ * <p>项目启动时初始化点赞数据到Redis，定时同步点赞记录到数据库</p>
  *
  * @author lishusheng
- * @date 2026/01/02
+ * @date 2026/01/26
  */
 @Component
-public class TalkStatsTask {
+public class LikeStatsTask {
 
-    private static final Logger log = LoggerFactory.getLogger(TalkStatsTask.class);
+    private static final Logger log = LoggerFactory.getLogger(LikeStatsTask.class);
 
     @Resource
     private LikeMapper likeMapper;
 
     @Resource
-    private CommentMapper commentMapper;
-
-    @Resource
     private RedisUtils redisUtils;
 
     /**
-     * 项目启动时初始化统计数据到Redis
+     * 项目启动时初始化点赞数据到Redis
      */
     @PostConstruct
     public void init() {
-        // 先清理旧数据，再初始化
         clearOldData();
         initLikeCounts();
-        initCommentCounts();
         initUserLikes();
     }
 
     /**
-     * 清理Redis中的旧统计数据
+     * 清理Redis中的旧点赞数据
      */
     private void clearOldData() {
-        log.info("开始清理Redis中的旧统计数据...");
+        log.info("开始清理Redis中的旧点赞数据...");
         // 清理点赞数
         redisUtils.deleteByPrefix(RedisConst.TALK_LIKE_COUNT);
         redisUtils.deleteByPrefix(RedisConst.ARTICLE_LIKE_COUNT);
         redisUtils.deleteByPrefix(RedisConst.COMMENT_LIKE_COUNT);
-        // 清理评论数
-        redisUtils.deleteByPrefix(RedisConst.TALK_COMMENT_COUNT);
         // 清理用户点赞记录
         redisUtils.deleteByPrefix(RedisConst.USER_TALK_LIKE);
         redisUtils.deleteByPrefix(RedisConst.USER_ARTICLE_LIKE);
         redisUtils.deleteByPrefix(RedisConst.USER_COMMENT_LIKE);
-        log.info("旧统计数据清理完成");
+        log.info("旧点赞数据清理完成");
     }
 
     /**
@@ -101,23 +91,6 @@ public class TalkStatsTask {
             redisUtils.set(keyPrefix + likeCount.getTargetId(), likeCount.getLikeCount());
         }
         return likeCounts.size();
-    }
-
-    /**
-     * 初始化说说评论数
-     */
-    private void initCommentCounts() {
-        log.info("开始初始化说说评论数到Redis...");
-        // 只有说说需要评论数
-        List<CommentCountVO> commentCounts = commentMapper.countCommentsByTargetType(CommentTypeEnum.TALK.getType());
-        if (commentCounts == null || commentCounts.isEmpty()) {
-            log.info("没有说说评论数需要初始化");
-            return;
-        }
-        for (CommentCountVO commentCount : commentCounts) {
-            redisUtils.set(RedisConst.TALK_COMMENT_COUNT + commentCount.getTargetId(), commentCount.getCommentCount());
-        }
-        log.info("说说评论数初始化完成，共{}条", commentCounts.size());
     }
 
     /**

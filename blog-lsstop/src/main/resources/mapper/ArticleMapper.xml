@@ -181,4 +181,18 @@
         limit #{limit}
     </select>
 
+    <select id="listAllArticleViewCounts" resultType="com.lsstop.domain.vo.ArticleViewCountVO">
+        select id, view_count as viewCount
+        from blog_article
+        where deleted_at = 0
+    </select>
+
+    <update id="batchUpdateViewCounts">
+        <foreach collection="list" item="item" separator=";">
+            update blog_article
+            set view_count = #{item.viewCount}
+            where id = #{item.id}
+        </foreach>
+    </update>
+
 </mapper>
