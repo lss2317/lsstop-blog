@@ -59,7 +59,32 @@ public class AuthConst {
     public static final String LOGIN_SUCCESS = "登录成功";
 
     /**
-     * 未知
+     * refreshToken无效
      */
-    public static final String UNKNOWN = "unknown";
+    public static final String REFRESH_TOKEN_INVALID = "refreshToken无效";
+
+    /**
+     * refreshToken已过期
+     */
+    public static final String REFRESH_TOKEN_EXPIRED = "refreshToken已过期";
+
+    /**
+     * 未登录或Token缺失
+     */
+    public static final String TOKEN_MISSING = "未登录或Token已过期";
+
+    /**
+     * Token无效或已过期
+     */
+    public static final String TOKEN_INVALID = "Token无效或已过期";
+
+    /**
+     * 无权限访问后台接口
+     */
+    public static final String NO_ADMIN_ACCESS = "无权限访问后台接口";
+
+    /**
+     * 请使用前台账号访问
+     */
+    public static final String FRONT_ACCOUNT_REQUIRED = "请使用前台账号访问";
 }

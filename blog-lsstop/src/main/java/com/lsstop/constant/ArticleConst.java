@@ -28,4 +28,9 @@ public class ArticleConst {
      */
     public static final long VIEW_RECORD_EXPIRE = 60 * 60;
 
+    /**
+     * 文章不存在
+     */
+    public static final String ARTICLE_NOT_FOUND = "文章不存在";
+
 }

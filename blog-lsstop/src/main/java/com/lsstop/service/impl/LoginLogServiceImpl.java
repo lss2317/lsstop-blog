@@ -1,6 +1,6 @@
 package com.lsstop.service.impl;
 
-import com.lsstop.constant.AuthConst;
+import com.lsstop.constant.CommonConst;
 import com.lsstop.constant.RabbitMQConst;
 import com.lsstop.domain.entity.LoginLogEntity;
 import com.lsstop.mapper.LoginLogMapper;
@@ -53,12 +53,12 @@ public class LoginLogServiceImpl implements LoginLogService {
     @Override
     public void sendLoginLog(String userId, Integer loginType, Integer source, Integer state, String message) {
         HttpServletRequest request = getRequest();
-        String ipAddress = request != null ? IpUtils.getIpAddress(request) : AuthConst.UNKNOWN;
-        String browser = request != null ? UserAgentUtils.getBrowser(request) : AuthConst.UNKNOWN;
-        String os = request != null ? UserAgentUtils.getOS(request) : AuthConst.UNKNOWN;
+        String ipAddress = request != null ? IpUtils.getIpAddress(request) : CommonConst.UNKNOWN;
+        String browser = request != null ? UserAgentUtils.getBrowser(request) : CommonConst.UNKNOWN;
+        String os = request != null ? UserAgentUtils.getOS(request) : CommonConst.UNKNOWN;
 
         LoginLogEntity loginLog = LoginLogEntity.builder()
-                .userId(userId != null ? userId : AuthConst.UNKNOWN)
+                .userId(userId != null ? userId : CommonConst.UNKNOWN)
                 .loginType(loginType)
                 .loginTime(LocalDateTime.now())
                 .ipAddress(ipAddress)

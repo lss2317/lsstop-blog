@@ -32,12 +32,12 @@ public class FrontAuthInterceptor implements HandlerInterceptor {
         String token = extractToken(request);
 
         if (token == null) {
-            unauthorized(response, "未登录或Token已过期");
+            unauthorized(response, AuthConst.TOKEN_MISSING);
             return false;
         }
 
         if (!jwtUtils.validateAccessToken(token)) {
-            unauthorized(response, "Token无效或已过期");
+            unauthorized(response, AuthConst.TOKEN_INVALID);
             return false;
         }
 
@@ -70,6 +70,6 @@ public class FrontAuthInterceptor implements HandlerInterceptor {
     private void forbidden(HttpServletResponse response) throws Exception {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"code\":403,\"msg\":\"" + "请使用前台账号访问" + "\"}");
+        response.getWriter().write("{\"code\":403,\"msg\":\"" + AuthConst.FRONT_ACCOUNT_REQUIRED + "\"}");
     }
 }

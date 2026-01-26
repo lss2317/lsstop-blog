@@ -20,8 +20,11 @@ import com.lsstop.service.LoginLogService;
 import com.lsstop.utils.JwtUtils;
 import com.lsstop.utils.PasswordUtils;
 import com.lsstop.utils.RedisUtils;
+import com.lsstop.config.JwtConfig;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 认证服务实现类
@@ -43,6 +46,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Resource
     private LoginLogService loginLogService;
+
+    @Resource
+    private JwtConfig jwtConfig;
 
     /**
      * 邮箱密码登录
@@ -139,8 +145,11 @@ public class AuthServiceImpl implements AuthService {
         loginVO.setAccessToken(tokenPair.getAccessToken());
         loginVO.setRefreshToken(tokenPair.getRefreshToken());
 
-        // 存储refreshToken到Redis
-        redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userAuth.getUserId(), tokenPair.getRefreshToken());
+        // 存储refreshToken到Redis（设置与JWT相同的过期时间）
+        redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userAuth.getUserId(), 
+                tokenPair.getRefreshToken(), 
+                jwtConfig.getFront().getRefreshTokenExpiration(), 
+                TimeUnit.MILLISECONDS);
 
         return loginVO;
     }
@@ -175,19 +184,22 @@ public class AuthServiceImpl implements AuthService {
     public TokenVO refreshToken(String refreshToken) {
         // 验证refreshToken
         if (!jwtUtils.validateRefreshToken(refreshToken)) {
-            throw new BusinessException("refreshToken无效");
+            throw new BusinessException(AuthConst.REFRESH_TOKEN_INVALID);
         }
         // 获取用户ID
         String userId = jwtUtils.getSubject(refreshToken);
         // 检查Redis中的refreshToken是否一致
         String storedToken = redisUtils.get(RedisConst.FRONT_REFRESH_TOKEN + userId, String.class);
         if (storedToken == null || !storedToken.equals(refreshToken)) {
-            throw new BusinessException("refreshToken已过期");
+            throw new BusinessException(AuthConst.REFRESH_TOKEN_EXPIRED);
         }
         // 生成新token
         JwtUtils.TokenPair tokenPair = jwtUtils.generateFrontTokenPair(userId);
-        // 更新Redis中的refreshToken
-        redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userId, tokenPair.getRefreshToken());
+        // 更新Redis中的refreshToken（设置与JWT相同的过期时间）
+        redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userId, 
+                tokenPair.getRefreshToken(), 
+                jwtConfig.getFront().getRefreshTokenExpiration(), 
+                TimeUnit.MILLISECONDS);
         // 返回新token
         return TokenVO.builder()
                 .accessToken(tokenPair.getAccessToken())

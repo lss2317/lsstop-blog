@@ -1,5 +1,6 @@
 package com.lsstop.utils;
 
+import com.lsstop.constant.CommonConst;
 import jakarta.annotation.PreDestroy;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -31,17 +32,23 @@ public class IpUtils {
     private static final String UNKNOWN = "unknown";
     private static final String PLACEHOLDER = "0";
 
-    /** 本地IP */
+    /**
+     * 本地IP
+     */
     private static final String LOCAL_IPV4 = "127.0.0.1";
     private static final String LOCAL_IPV6 = "0:0:0:0:0:0:0:1";
     private static final String LOCAL_LABEL = "本地";
 
-    /** 地区解析 */
+    /**
+     * 地区解析
+     */
     private static final String COUNTRY_CHINA = "中国";
     private static final String SUFFIX_PROVINCE = "省";
     private static final String SUFFIX_CITY = "市";
 
-    /** IP请求头（按优先级排序） */
+    /**
+     * IP请求头（按优先级排序）
+     */
     private static final String[] IP_HEADERS = {
             "X-Forwarded-For", "x-forwarded-for", "Proxy-Client-IP",
             "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR", "X-Real-IP"
@@ -109,7 +116,7 @@ public class IpUtils {
      */
     public static String getIpAddress(HttpServletRequest request) {
         if (request == null) {
-            return UNKNOWN;
+            return CommonConst.UNKNOWN;
         }
         String ip = getIpFromHeaders(request);
         if (!isValidIp(ip)) {
@@ -133,7 +140,7 @@ public class IpUtils {
         }
         if (SEARCHER == null) {
             log.debug("Searcher未初始化，无法解析IP: {}. 错误: {}", ipAddress, initErrorMsg);
-            return UNKNOWN;
+            return CommonConst.UNKNOWN;
         }
         try {
             String region = SEARCHER.search(ipAddress);
@@ -143,7 +150,7 @@ public class IpUtils {
         } catch (Exception e) {
             log.warn("IP地址解析失败: {}, 错误: {}", ipAddress, e.getMessage());
         }
-        return UNKNOWN;
+        return CommonConst.UNKNOWN;
     }
 
     private static String getIpFromHeaders(HttpServletRequest request) {
@@ -178,7 +185,7 @@ public class IpUtils {
      */
     private static String parseProvince(String region) {
         if (StringUtils.isBlank(region) || PLACEHOLDER.equals(region)) {
-            return UNKNOWN;
+            return CommonConst.UNKNOWN;
         }
         String[] parts = region.split("\\|");
         String country = getPart(parts, 0);
@@ -193,7 +200,7 @@ public class IpUtils {
             return trimSuffix(province);
         }
         // 省份无效时，返回国家
-        return isValidPart(country) ? country : UNKNOWN;
+        return isValidPart(country) ? country : CommonConst.UNKNOWN;
     }
 
     private static String getPart(String[] parts, int index) {

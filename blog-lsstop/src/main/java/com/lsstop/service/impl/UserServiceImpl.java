@@ -1,5 +1,6 @@
 package com.lsstop.service.impl;
 
+import com.lsstop.constant.AuthConst;
 import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.exception.BusinessException;
@@ -30,7 +31,7 @@ public class UserServiceImpl implements UserService {
     public UserInfoVO getUserProfile(String userId) {
         UserProfileEntity userProfile = authMapper.selectProfileById(userId);
         if (userProfile == null) {
-            throw new BusinessException("用户不存在");
+            throw new BusinessException(AuthConst.USER_NOT_FOUND);
         }
         return userProfile.asViewObject(UserInfoVO.class);
     }

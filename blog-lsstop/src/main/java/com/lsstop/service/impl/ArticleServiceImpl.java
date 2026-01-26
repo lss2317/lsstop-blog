@@ -74,7 +74,7 @@ public class ArticleServiceImpl implements ArticleService {
     public ArticleVO getArticleById(Integer id, String ip) {
         ArticleVO articleVO = articleMapper.getArticleById(id);
         if (articleVO == null) {
-            throw new BusinessException("文章不存在");
+            throw new BusinessException(ArticleConst.ARTICLE_NOT_FOUND);
         }
         // 浏览量防刷：同一IP 1小时内不重复计数
         String viewRecordKey = RedisConst.ARTICLE_VIEW_RECORD + id + ":" + ip;
