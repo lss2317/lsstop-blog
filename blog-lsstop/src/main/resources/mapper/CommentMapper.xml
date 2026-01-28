@@ -17,4 +17,12 @@
         group by target_id
     </select>
 
+    <!-- 新增评论 -->
+    <insert id="insertComment" parameterType="com.lsstop.domain.entity.CommentEntity">
+        insert into blog_comment (user_id, target_id, target_type, content, parent_id,
+                                  reply_user_id, ip_region, status, deleted_at, create_time, update_time)
+        values (#{userId}, #{targetId}, #{targetType}, #{content}, #{parentId},
+                #{replyUserId}, #{ipRegion}, #{status}, 0, NOW(), NOW())
+    </insert>
+
 </mapper>
