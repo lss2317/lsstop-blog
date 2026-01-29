@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import QRCode from 'qrcode'
-import { DEACTIVATED_USER } from '@/constants/user'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
+import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
 
 // 说说数据接口
 export interface TalkItem {
@@ -16,6 +16,9 @@ export interface TalkItem {
   commentCount: number | null
 }
 
+// 已注销用户默认昵称
+const DEACTIVATED_NICKNAME = '该用户已注销'
+
 // 判断用户是否已注销
 export function isUserDeactivated(item: TalkItem): boolean {
   return !item.nickname || !item.avatar
@@ -23,12 +26,12 @@ export function isUserDeactivated(item: TalkItem): boolean {
 
 // 获取用户头像
 export function getUserAvatar(item: TalkItem): string {
-  return item.avatar || DEACTIVATED_USER.avatar
+  return item.avatar || useWebsiteConfigStore().config.defaultUserAvatar
 }
 
 // 获取用户昵称
 export function getUserNickname(item: TalkItem): string {
-  return item.nickname || DEACTIVATED_USER.nickname
+  return item.nickname || DEACTIVATED_NICKNAME
 }
 
 /**

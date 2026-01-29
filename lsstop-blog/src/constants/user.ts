@@ -18,14 +18,5 @@ export enum CodeType {
   FORGOT_PASSWORD = 3,
 }
 
-// 默认头像
-export const DEFAULT_AVATAR = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
-
 // 默认昵称
 export const DEFAULT_NICKNAME = '游客'
-
-// 已注销用户默认信息
-export const DEACTIVATED_USER = {
-  avatar: DEFAULT_AVATAR,
-  nickname: '该用户已注销',
-}

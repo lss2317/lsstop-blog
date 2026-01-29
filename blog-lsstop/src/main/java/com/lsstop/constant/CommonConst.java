@@ -11,17 +11,17 @@ public class CommonConst {
     /**
      * 未知
      */
-    public static final String UNKNOWN = "未知";
+    public static final String UNKNOWN = "IP未知";
 
     /**
-     * 状态：正常
+     * 审核状态：正常
      */
-    public static final Integer STATUS_NORMAL = 1;
+    public static final Integer REVIEW_NORMAL = 0;
 
     /**
-     * 状态：待审核
+     * 审核状态：待审核
      */
-    public static final Integer STATUS_PENDING = 0;
+    public static final Integer REVIEW_PENDING = 1;
 
     /**
      * 无效的评论目标类型

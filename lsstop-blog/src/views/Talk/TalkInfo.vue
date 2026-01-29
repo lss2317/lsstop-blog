@@ -244,7 +244,6 @@ onMounted(() => {
 
 .user-nickname.deactivated {
   color: #999;
-  font-style: italic;
 }
 
 .user-detail-wrapper {

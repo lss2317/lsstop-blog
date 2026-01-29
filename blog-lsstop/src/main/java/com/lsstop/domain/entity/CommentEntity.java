@@ -61,9 +61,9 @@ public class CommentEntity implements BaseData {
     private String ipRegion;
 
     /**
-     * 状态 1正常 0待审核
+     * 审核状态(0:正常 1:待审核)
      */
-    private Integer status;
+    private Integer review;
 
     /**
      * 删除时间戳，0表示未删除

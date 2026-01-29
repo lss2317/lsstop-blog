@@ -9,6 +9,7 @@ import com.lsstop.enums.CommentTypeEnum;
 import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.service.CommentService;
+import com.lsstop.service.WebsiteConfigService;
 import com.lsstop.utils.IpUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +29,9 @@ public class CommentController {
 
     @Resource
     private CommentService commentService;
+
+    @Resource
+    private WebsiteConfigService websiteConfigService;
 
     /**
      * 新增评论
@@ -50,7 +54,7 @@ public class CommentController {
         CommentEntity comment = commentDTO.asViewObject(CommentEntity.class);
         comment.setUserId(userId);
         comment.setIpRegion(IpUtils.getIpLocation(IpUtils.getIpAddress(request)));
-        comment.setStatus(CommonConst.STATUS_NORMAL);
+        comment.setReview(websiteConfigService.getWebsiteConfig().getEnableCommentReview());
         commentService.insertComment(comment);
         return Result.success();
     }

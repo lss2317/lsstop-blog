@@ -82,7 +82,6 @@ import { listFriendLink, type FriendLink } from '@/apis/friendLink'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig.ts'
 import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
-import { DEFAULT_AVATAR } from '@/constants/user'
 
 const pageInfoStore = usePageInfoStore()
 const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
@@ -98,7 +97,7 @@ const loading = ref(true)
 // 图片加载失败处理
 const handleImageError = (e: Event) => {
   const target = e.target as HTMLImageElement
-  target.src = DEFAULT_AVATAR
+  target.src = websiteConfig.value.defaultUserAvatar
 }
 
 onMounted(() => {

@@ -51,7 +51,7 @@ public class MessageEntity implements BaseData {
     private String messageContent;
 
     /**
-     * 是否要审核(0：否、1：是)
+     * 审核状态(0:正常 1:待审核)
      */
     private Integer review;
 

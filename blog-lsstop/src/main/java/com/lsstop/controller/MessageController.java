@@ -2,6 +2,7 @@ package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
+import com.lsstop.constant.CommonConst;
 import com.lsstop.domain.dto.MessageDTO;
 import com.lsstop.domain.entity.MessageEntity;
 import com.lsstop.domain.vo.MessageVO;
@@ -42,7 +43,6 @@ public class MessageController {
         MessageEntity message = messageDTO.asViewObject(MessageEntity.class);
         message.setIpAddress(IpUtils.getIpAddress(request));
         message.setIpRegion(IpUtils.getIpLocation(message.getIpAddress()));
-        // 从系统配置获取留言审核配置
         message.setReview(websiteConfigService.getWebsiteConfig().getEnableMessageReview());
         messageService.insertMessage(message);
         return Result.success();
