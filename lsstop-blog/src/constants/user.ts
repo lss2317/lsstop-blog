@@ -17,6 +17,3 @@ export enum CodeType {
   /** 忘记密码 */
   FORGOT_PASSWORD = 3,
 }
-
-// 默认昵称
-export const DEFAULT_NICKNAME = '游客'

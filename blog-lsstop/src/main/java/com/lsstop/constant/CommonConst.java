@@ -9,6 +9,36 @@ package com.lsstop.constant;
 public class CommonConst {
 
     /**
+     * 禁用
+     */
+    public static final Integer DISABLED = 0;
+
+    /**
+     * 启用
+     */
+    public static final Integer ENABLED = 1;
+
+    /**
+     * 用户状态：禁用
+     */
+    public static final Integer USER_STATUS_DISABLED = 0;
+
+    /**
+     * 用户状态：正常
+     */
+    public static final Integer USER_STATUS_NORMAL = 1;
+
+    /**
+     * 点赞状态：取消
+     */
+    public static final Integer LIKE_STATUS_CANCEL = 0;
+
+    /**
+     * 点赞状态：点赞
+     */
+    public static final Integer LIKE_STATUS_LIKED = 1;
+
+    /**
      * 未知
      */
     public static final String UNKNOWN = "IP未知";
