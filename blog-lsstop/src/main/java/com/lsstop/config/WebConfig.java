@@ -29,6 +29,7 @@ public class WebConfig implements WebMvcConfigurer {
         // 前台拦截器 - 拦截需要登录的 /front/** 路径
         registry.addInterceptor(frontAuthInterceptor)
                 .addPathPatterns("/front/like/**",
+                        "/front/comment/addComment",
                         "/front/message/addMessage",
                         "/front/user/info");
     }

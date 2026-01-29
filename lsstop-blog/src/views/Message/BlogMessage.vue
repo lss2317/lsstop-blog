@@ -57,13 +57,10 @@ import { listMessage, addMessage, type MessageVo, type AddMessageDto } from '@/a
 import useUserInfoStore from '@/stores/modules/userInfo'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
-import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
-import { DEFAULT_NICKNAME } from '@/constants/user'
 
 const userInfoStore = useUserInfoStore()
 const snackbarStore = useSnackbarStore()
 const pageInfoStore = usePageInfoStore()
-const websiteConfigStore = useWebsiteConfigStore()
 const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 
 // 状态
@@ -85,10 +82,9 @@ function addBlogMessage() {
   }
 
   const message: AddMessageDto = {
-    avatar: userInfoStore.userInfo.avatar ?? websiteConfigStore.config.touristAvatar,
-    nickname: userInfoStore.userInfo.nickname ?? DEFAULT_NICKNAME,
+    avatar: userInfoStore.userInfo.avatar!,
+    nickname: userInfoStore.userInfo.nickname!,
     messageContent: messageContent.value,
-    review: websiteConfigStore.config.commentReview ?? 0,
   }
 
   addMessage(message)

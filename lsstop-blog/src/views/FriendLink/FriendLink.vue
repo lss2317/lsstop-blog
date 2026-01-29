@@ -55,9 +55,9 @@
         添加友链
       </div>
       <blockquote>
-        <div>名称：{{ websiteConfig.websiteName }}</div>
-        <div>简介：{{ websiteConfig.websiteIntro }}</div>
-        <div>头像：{{ websiteConfig.websiteAvatar }}</div>
+        <div>名称：{{ websiteConfig.siteName }}</div>
+        <div>简介：{{ websiteConfig.siteIntro }}</div>
+        <div>头像：{{ websiteConfig.siteAvatar }}</div>
       </blockquote>
       <div class="mt-5 mb-5">需要交换友链的可在下方留言💖</div>
       <blockquote class="mb-10">

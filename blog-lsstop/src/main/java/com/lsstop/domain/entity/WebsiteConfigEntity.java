@@ -21,104 +21,79 @@ import java.time.LocalDateTime;
 public class WebsiteConfigEntity implements BaseData {
 
     /**
-     * id
+     * 主键id
      */
     private Integer id;
 
     /**
      * 网站头像
      */
-    private String websiteAvatar;
+    private String siteAvatar;
 
     /**
      * 网站名称
      */
-    private String websiteName;
+    private String siteName;
 
     /**
      * 网站作者
      */
-    private String websiteAuthor;
+    private String siteAuthor;
 
     /**
      * 网站介绍
      */
-    private String websiteIntro;
+    private String siteIntro;
 
     /**
-     * 网站公告
+     * 关于我
      */
-    private String websiteNotice;
+    private String about;
 
     /**
      * 网站创建时间
      */
-    private LocalDateTime websiteCreateTime;
+    private LocalDateTime siteStartTime;
 
     /**
-     * 网站备案号
+     * QQ链接
      */
-    private String websiteRecordNo;
+    private String qqUrl;
 
     /**
-     * qq
+     * GitHub链接
      */
-    private String qq;
+    private String githubUrl;
 
     /**
-     * github
+     * Gitee链接
      */
-    private String github;
+    private String giteeUrl;
 
     /**
-     * gitee
+     * 用户默认头像
      */
-    private String gitee;
+    private String defaultUserAvatar;
 
     /**
-     * 游客头像
+     * 评论审核(1:是、0:否)
      */
-    private String touristAvatar;
-
-    /**
-     * 用户头像
-     */
-    private String userAvatar;
+    private Integer enableCommentReview;
 
     /**
      * 留言审核(1:是、0:否)
      */
-    private Integer commentReview;
+    private Integer enableMessageReview;
 
     /**
-     * 是否邮箱通知
+     * 是否开启聊天室(1:是、0:否)
      */
-    private Integer emailNotice;
+    private Integer enableChatRoom;
 
     /**
-     * 是否打赏
+     * 是否开启音乐播放器(1:是、0:否)
      */
-    private Integer reward;
-
-    /**
-     * 微信二维码
-     */
-    private String weixinQrcode;
-
-    /**
-     * 支付宝二维码
-     */
-    private String alipayQrcode;
-
-    /**
-     * 是否开启聊天室
-     */
-    private Integer chatRoom;
-
-    /**
-     * 是否开启音乐
-     */
-    private Integer musicPlayer;
+    private Integer enableMusicPlayer;
 
     /**
      * websocket地址
@@ -126,9 +101,24 @@ public class WebsiteConfigEntity implements BaseData {
     private String websocketUrl;
 
     /**
-     * 关于我信息
+     * 评论通知(1:是、0:否)
      */
-    private String about;
+    private Integer enableCommentEmailNotice;
+
+    /**
+     * 评论审核通知(1:是、0:否)
+     */
+    private Integer enableCommentReviewNotice;
+
+    /**
+     * 留言通知(1:是、0:否)
+     */
+    private Integer enableMessageEmailNotice;
+
+    /**
+     * 留言审核通知(1:是、0:否)
+     */
+    private Integer enableMessageReviewNotice;
 
     /**
      * 创建时间

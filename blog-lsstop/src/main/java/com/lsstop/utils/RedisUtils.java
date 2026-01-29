@@ -1,5 +1,6 @@
 package com.lsstop.utils;
 
+import com.alibaba.fastjson2.JSON;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
@@ -160,10 +161,13 @@ public class RedisUtils {
      * @param <T>   泛型
      * @return 值
      */
-    @SuppressWarnings("unchecked")
     public <T> T get(String key, Class<T> clazz) {
         Object value = get(key);
-        return value == null ? null : (T) value;
+        if (value == null) {
+            return null;
+        }
+        // 处理JSON反序列化
+        return JSON.to(clazz, value);
     }
 
     /**
@@ -187,7 +191,6 @@ public class RedisUtils {
      * @param <T>   泛型
      * @return 值列表（顺序与 keys 一致，不存在的 key 对应位置为 null）
      */
-    @SuppressWarnings("unchecked")
     public <T> List<T> mGet(Collection<String> keys, Class<T> clazz) {
         List<Object> values = mGet(keys);
         if (values == null) {
@@ -195,7 +198,7 @@ public class RedisUtils {
         }
         List<T> result = new ArrayList<>(values.size());
         for (Object value : values) {
-            result.add(value == null ? null : (T) value);
+            result.add(value == null ? null : JSON.to(clazz, value));
         }
         return result;
     }
@@ -208,10 +211,12 @@ public class RedisUtils {
      * @param <T>   泛型
      * @return List
      */
-    @SuppressWarnings("unchecked")
     public <T> List<T> getList(String key, Class<T> clazz) {
         Object value = get(key);
-        return value == null ? null : (List<T>) value;
+        if (value == null) {
+            return null;
+        }
+        return JSON.parseArray(JSON.toJSONString(value), clazz);
     }
 
     /**
@@ -222,10 +227,13 @@ public class RedisUtils {
      * @param <T>   泛型
      * @return Set
      */
-    @SuppressWarnings("unchecked")
     public <T> Set<T> getSet(String key, Class<T> clazz) {
         Object value = get(key);
-        return value == null ? null : (Set<T>) value;
+        if (value == null) {
+            return null;
+        }
+        List<T> list = JSON.parseArray(JSON.toJSONString(value), clazz);
+        return new HashSet<>(list);
     }
 
     /**
@@ -241,7 +249,11 @@ public class RedisUtils {
     @SuppressWarnings("unchecked")
     public <K, V> Map<K, V> getMap(String key, Class<K> keyClass, Class<V> valueClass) {
         Object value = get(key);
-        return value == null ? null : (Map<K, V>) value;
+        if (value == null) {
+            return null;
+        }
+        // Map类型直接转换，key通常是String
+        return (Map<K, V>) JSON.parseObject(JSON.toJSONString(value), Map.class);
     }
 
     /**
@@ -351,10 +363,12 @@ public class RedisUtils {
      * @param <T>   泛型
      * @return 值
      */
-    @SuppressWarnings("unchecked")
     public <T> T hGet(String key, String field, Class<T> clazz) {
         Object value = hGet(key, field);
-        return value == null ? null : (T) value;
+        if (value == null) {
+            return null;
+        }
+        return JSON.to(clazz, value);
     }
 
     /**

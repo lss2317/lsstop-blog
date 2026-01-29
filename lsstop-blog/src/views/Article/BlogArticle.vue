@@ -91,7 +91,7 @@
               <div>
                 <span>文章作者：</span>
                 <router-link to="/">
-                  {{ websiteConfig.websiteAuthor }}
+                  {{ websiteConfig.siteAuthor }}
                 </router-link>
               </div>
               <div>

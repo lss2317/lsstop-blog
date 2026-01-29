@@ -3,47 +3,29 @@ import http from '@/utils/http.ts'
 /** 网站配置信息 */
 export interface WebsiteConfigVo {
   /** 网站头像 */
-  websiteAvatar: string
+  siteAvatar: string
   /** 网站名称 */
-  websiteName: string
+  siteName: string
   /** 网站作者 */
-  websiteAuthor: string
+  siteAuthor: string
   /** 网站介绍 */
-  websiteIntro: string
-  /** 网站公告 */
-  websiteNotice: string
-  /** 网站创建时间 */
-  websiteCreateTime: string
-  /** 网站备案号 */
-  websiteRecordNo: string
-  /** QQ号 */
-  qq: string
-  /** GitHub地址 */
-  github: string
-  /** Gitee地址 */
-  gitee: string
-  /** 游客头像 */
-  touristAvatar: string
-  /** 用户默认头像 */
-  userAvatar: string
-  /** 评论审核 */
-  commentReview: number
-  /** 邮件提醒 */
-  emailNotice: number
-  /** 打赏状态 */
-  reward: number
-  /** 微信二维码 */
-  weixinQrcode: string
-  /** 支付宝二维码 */
-  alipayQrcode: string
-  /** 聊天室状态 */
-  chatRoom: number
-  /** 音乐播放器状态 */
-  musicPlayer: number
-  /** WebSocket地址 */
-  websocketUrl: string
-  /** 关于信息 */
+  siteIntro: string
+  /** 关于我 */
   about: string
+  /** 网站创建时间 */
+  siteStartTime: string
+  /** QQ链接 */
+  qqUrl: string
+  /** GitHub链接 */
+  githubUrl: string
+  /** Gitee链接 */
+  giteeUrl: string
+  /** 用户默认头像 */
+  defaultUserAvatar: string
+  /** 是否开启聊天室(1:是、0:否) */
+  enableChatRoom: number
+  /** 是否开启音乐播放器(1:是、0:否) */
+  enableMusicPlayer: number
 }
 
 // 获取网站配置信息

@@ -31,7 +31,7 @@ const websiteConfigStore = useWebsiteConfigStore()
 const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 const { config } = storeToRefs(websiteConfigStore)
 
-const avatar = computed(() => config.value.websiteAvatar)
+const avatar = computed(() => config.value.siteAvatar)
 const aboutContent = computed(() => {
   return config.value.about ? markdownToHtml(config.value.about) : ''
 })

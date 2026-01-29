@@ -3,27 +3,18 @@ import { shallowRef } from 'vue'
 import { getWebsiteConfig, type WebsiteConfigVo } from '@/apis/websiteConfig'
 
 const defaultConfig: WebsiteConfigVo = {
-  websiteAvatar: '',
-  websiteName: '',
-  websiteAuthor: '',
-  websiteIntro: '',
-  websiteNotice: '',
-  websiteCreateTime: '',
-  websiteRecordNo: '',
-  qq: '',
-  github: '',
-  gitee: '',
-  touristAvatar: '',
-  userAvatar: '',
-  commentReview: 0,
-  emailNotice: 0,
-  reward: 0,
-  weixinQrcode: '',
-  alipayQrcode: '',
-  chatRoom: 0,
-  musicPlayer: 0,
-  websocketUrl: '',
+  siteAvatar: '',
+  siteName: '',
+  siteAuthor: '',
+  siteIntro: '',
   about: '',
+  siteStartTime: '',
+  qqUrl: '',
+  githubUrl: '',
+  giteeUrl: '',
+  defaultUserAvatar: '',
+  enableChatRoom: 0,
+  enableMusicPlayer: 0,
 }
 
 const useWebsiteConfigStore = defineStore('websiteConfig', () => {

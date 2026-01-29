@@ -11,14 +11,14 @@
       <div style="width: 300px; margin: 0 auto">
         <a
           target="_blank"
-          href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=46900602000153"
+          href="https://beian.mps.gov.cn/#/query/webSearch?code=46900602000153"
           style="display: inline-block; text-decoration: none; height: 20px; line-height: 20px"
           ><img
             src="https://blog-1307541812.cos.ap-shanghai.myqcloud.com/7f5188e4-7b16-4cbe-9efa-0f3ffc17090c.png"
             style="float: left"
           />
           <p style="float: left; height: 20px; line-height: 20px; margin: 0 0 0 5px">
-            琼公网安备 46900602000153号
+            琼公网安备46900602000153号
           </p>
         </a>
       </div>
@@ -37,9 +37,9 @@ const route = useRoute()
 const websiteConfigStore = useWebsiteConfigStore()
 const { config } = storeToRefs(websiteConfigStore)
 
-const websiteCreateTime = computed(() => config.value.websiteCreateTime)
+const websiteCreateTime = computed(() => config.value.siteStartTime)
 const isMessage = computed(() => route.path === '/message')
-const websiteAuthor = computed(() => config.value.websiteAuthor)
+const websiteAuthor = computed(() => config.value.siteAuthor)
 </script>
 
 <style scoped>

@@ -8,8 +8,6 @@ export interface MessageVo {
   nickname: string
   /** 留言内容 */
   messageContent: string
-  /** 审核状态 */
-  review: number
 }
 
 /** 添加留言请求参数 */
@@ -20,8 +18,6 @@ export interface AddMessageDto {
   nickname: string
   /** 留言内容 */
   messageContent: string
-  /** 审核状态 */
-  review: number
 }
 
 // 查询留言板列表

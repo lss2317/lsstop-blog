@@ -6,6 +6,7 @@ import com.lsstop.domain.dto.MessageDTO;
 import com.lsstop.domain.entity.MessageEntity;
 import com.lsstop.domain.vo.MessageVO;
 import com.lsstop.service.MessageService;
+import com.lsstop.service.WebsiteConfigService;
 import com.lsstop.utils.IpUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +27,9 @@ public class MessageController {
     @Resource
     MessageService messageService;
 
+    @Resource
+    WebsiteConfigService websiteConfigService;
+
     /**
      * 前台新增留言
      *
@@ -38,6 +42,8 @@ public class MessageController {
         MessageEntity message = messageDTO.asViewObject(MessageEntity.class);
         message.setIpAddress(IpUtils.getIpAddress(request));
         message.setIpRegion(IpUtils.getIpLocation(message.getIpAddress()));
+        // 从系统配置获取留言审核配置
+        message.setReview(websiteConfigService.getWebsiteConfig().getEnableMessageReview());
         messageService.insertMessage(message);
         return Result.success();
     }

@@ -104,7 +104,7 @@ const { openLoginDialog } = loginStore
 
 const websiteConfigStore = useWebsiteConfigStore()
 const { config } = storeToRefs(websiteConfigStore)
-const avatar = computed(() => config.value.websiteAvatar)
+const avatar = computed(() => config.value.siteAvatar)
 
 const userInfoStore = useUserInfoStore()
 const authStore = useAuthStore()
