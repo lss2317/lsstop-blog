@@ -1,8 +1,13 @@
 package com.lsstop.service.impl;
 
+import com.lsstop.constant.CommonConst;
 import com.lsstop.domain.entity.MessageEntity;
+import com.lsstop.domain.entity.WebsiteConfigEntity;
+import com.lsstop.enums.IllegalPolicyEnum;
 import com.lsstop.mapper.MessageMapper;
 import com.lsstop.service.MessageService;
+import com.lsstop.service.WebsiteConfigService;
+import com.lsstop.utils.SensitiveWordUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +24,9 @@ public class MessageServiceImpl implements MessageService {
 
     @Resource
     private MessageMapper messageMapper;
+
+    @Resource
+    private WebsiteConfigService websiteConfigService;
 
     /**
      * 前台获取留言数据
@@ -37,6 +45,19 @@ public class MessageServiceImpl implements MessageService {
      */
     @Override
     public void insertMessage(MessageEntity message) {
+        // 获取敏感词处理策略
+        WebsiteConfigEntity config = websiteConfigService.getWebsiteConfig();
+        IllegalPolicyEnum policy = IllegalPolicyEnum.of(config.getMessageIllegalPolicy());
+
+        // 敏感词处理
+        SensitiveWordUtils.Result result = SensitiveWordUtils.process(message.getMessageContent(), policy);
+        message.setMessageContent(result.content());
+
+        // 转审核策略且命中敏感词，设置待审核状态
+        if (result.hasSensitive() && IllegalPolicyEnum.REVIEW == policy) {
+            message.setReview(CommonConst.REVIEW_PENDING);
+        }
+
         messageMapper.insertMessage(message);
     }
 }

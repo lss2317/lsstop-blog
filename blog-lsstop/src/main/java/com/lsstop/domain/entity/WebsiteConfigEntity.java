@@ -111,14 +111,19 @@ public class WebsiteConfigEntity implements BaseData {
     private Integer enableCommentReviewNotice;
 
     /**
-     * 留言通知(1:是、0:否)
-     */
-    private Integer enableMessageEmailNotice;
-
-    /**
      * 留言审核通知(1:是、0:否)
      */
     private Integer enableMessageReviewNotice;
+
+    /**
+     * 评论命中敏感词处理(0:拦截,1:转审核,2:替换发布)
+     */
+    private Integer commentIllegalPolicy;
+
+    /**
+     * 留言命中敏感词处理(0:拦截,1:转审核,2:替换发布)
+     */
+    private Integer messageIllegalPolicy;
 
     /**
      * 创建时间

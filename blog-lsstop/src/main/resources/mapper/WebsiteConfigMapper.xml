@@ -21,8 +21,9 @@
         <result column="websocket_url" property="websocketUrl" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result column="enable_comment_email_notice" property="enableCommentEmailNotice" jdbcType="TINYINT" javaType="java.lang.Integer"/>
         <result column="enable_comment_review_notice" property="enableCommentReviewNotice" jdbcType="TINYINT" javaType="java.lang.Integer"/>
-        <result column="enable_message_email_notice" property="enableMessageEmailNotice" jdbcType="TINYINT" javaType="java.lang.Integer"/>
         <result column="enable_message_review_notice" property="enableMessageReviewNotice" jdbcType="TINYINT" javaType="java.lang.Integer"/>
+        <result column="comment_illegal_policy" property="commentIllegalPolicy" jdbcType="TINYINT" javaType="java.lang.Integer"/>
+        <result column="message_illegal_policy" property="messageIllegalPolicy" jdbcType="TINYINT" javaType="java.lang.Integer"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
     </resultMap>
@@ -46,8 +47,9 @@
                websocket_url,
                enable_comment_email_notice,
                enable_comment_review_notice,
-               enable_message_email_notice,
                enable_message_review_notice,
+               comment_illegal_policy,
+               message_illegal_policy,
                create_time,
                update_time
         from blog_website_config

@@ -62,4 +62,9 @@ public class CommonConst {
      * 无效的点赞类型
      */
     public static final String INVALID_LIKE_TYPE = "无效的点赞类型";
+
+    /**
+     * 敏感词检测异常消息
+     */
+    public static final String SENSITIVE_WORD_DETECTED = "内容包含敏感词，请修改后重试";
 }
