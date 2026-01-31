@@ -57,7 +57,7 @@
               <!-- 发表时间 -->
               <div class="time">
                 {{ dateFormat.datetime(item.createTime) }}
-                <span class="top" v-if="item.isTop === 1">
+                <span class="top" v-if="item.isTop === TopStatusEnum.TOP">
                   <v-icon size="14" color="#ff7242">mdi-pin</v-icon> 置顶
                 </span>
               </div>
@@ -126,6 +126,7 @@ import { dateFormat } from '@/utils/date'
 import { type TalkItem, isUserDeactivated, getUserAvatar, getUserNickname } from '@/utils/talk'
 import ShareDialog from '@/components/Share/ShareDialog.vue'
 import { LikeTypeEnum } from '@/constants/likeType'
+import { TopStatusEnum } from '@/constants/topStatus'
 import { previewImages } from '@/utils/photoPreview'
 
 // 获取路由实例

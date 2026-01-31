@@ -23,6 +23,7 @@ public interface MessageService {
      * 新增留言
      *
      * @param message 留言实体
+     * @return 新增的留言实体（含过滤后内容）
      */
-    void insertMessage(MessageEntity message);
+    MessageEntity insertMessage(MessageEntity message);
 }

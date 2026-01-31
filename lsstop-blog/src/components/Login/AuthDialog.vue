@@ -271,6 +271,7 @@ import useUserInfoStore from '@/stores/modules/userInfo'
 import useLikeStore from '@/stores/modules/like'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
 import { tokenManager } from '@/utils/token'
+import { ResponseCode } from '@/constants/http'
 
 const loginStore = useLoginStore()
 const userInfoStore = useUserInfoStore()
@@ -385,7 +386,7 @@ const login = async () => {
       password: loginForm.password,
     })
     // 判断业务状态码
-    if (res.code !== 200) {
+    if (res.code !== ResponseCode.SUCCESS) {
       snackbar.error(res.msg || '登录失败')
       return
     }

@@ -168,9 +168,9 @@
           <!-- 回复列表 -->
           <div
             class="lc-reply-list"
-            v-if="item.replyDTOList && item.replyDTOList.length && showReplies[index]"
+            v-if="item.replyList && item.replyList.length && showReplies[index]"
           >
-            <template v-for="reply of item.replyDTOList" :key="reply.id">
+            <template v-for="reply of item.replyList" :key="reply.id">
               <div class="lc-reply-item">
                 <div class="lc-avatar small">
                   <img :src="reply.avatar" alt="用户头像" />
@@ -284,7 +284,7 @@ import useLikeStore from '@/stores/modules/like'
 import useUserInfoStore from '@/stores/modules/userInfo'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
 import { LikeTypeEnum } from '@/constants/likeType'
-import type { CommentVO, ReplyVO } from '@/apis/comment'
+import type { Comment, Reply } from '@/apis/comment'
 import { useEmoji } from '@/composables/useEmoji'
 
 // stores
@@ -296,7 +296,7 @@ const snackbarStore = useSnackbarStore()
 const commentContent = ref('')
 const replyContent = ref('')
 const count = ref(0)
-const commentList = ref<CommentVO[]>([])
+const commentList = ref<Comment[]>([])
 const postUserId = ref('')
 const replyingTo = ref<number | null>(null)
 const replyingToReplyId = ref<string | null>(null)
@@ -337,7 +337,7 @@ const addEmoji = (key: string) => {
 }
 
 // 点赞
-const like = async (item: CommentVO | ReplyVO) => {
+const like = async (item: Comment | Reply) => {
   const isLiked = await likeStore.toggleLike(LikeTypeEnum.COMMENT, item.id)
   if (isLiked === null) return
   item.likeCount += isLiked ? 1 : -1
@@ -361,7 +361,7 @@ const replyComment = (index: number) => {
 }
 
 // 回复子评论
-const replyToReply = (index: number, reply: ReplyVO) => {
+const replyToReply = (index: number, reply: Reply) => {
   if (!userInfoStore.checkLogin('回复')) return
   replyingTo.value = index
   replyingToReplyId.value = reply.id
@@ -376,7 +376,7 @@ const cancelReply = () => {
 }
 
 // 提交回复
-const submitReply = (item: CommentVO) => {
+const submitReply = (item: Comment) => {
   if (!userInfoStore.checkLogin('回复')) return
   if (!replyContent.value.trim()) {
     snackbarStore.error('回复内容不能为空')

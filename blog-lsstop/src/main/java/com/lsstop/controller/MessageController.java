@@ -5,6 +5,7 @@ import com.lsstop.common.Result;
 import com.lsstop.constant.CommonConst;
 import com.lsstop.domain.dto.MessageDTO;
 import com.lsstop.domain.entity.MessageEntity;
+import com.lsstop.domain.vo.AddMessageVO;
 import com.lsstop.domain.vo.MessageVO;
 import com.lsstop.service.MessageService;
 import com.lsstop.service.WebsiteConfigService;
@@ -39,13 +40,13 @@ public class MessageController {
      */
     @PostMapping("/front/message/addMessage")
     @AccessLimit(seconds = 60, maxCount = 30)
-    public Result<Void> addMessage(@RequestBody @Validated MessageDTO messageDTO, HttpServletRequest request) {
+    public Result<AddMessageVO> addMessage(@RequestBody @Validated MessageDTO messageDTO, HttpServletRequest request) {
         MessageEntity message = messageDTO.asViewObject(MessageEntity.class);
         message.setIpAddress(IpUtils.getIpAddress(request));
         message.setIpRegion(IpUtils.getIpLocation(message.getIpAddress()));
         message.setReview(websiteConfigService.getWebsiteConfig().getEnableMessageReview());
-        messageService.insertMessage(message);
-        return Result.success();
+        MessageEntity savedMessage = messageService.insertMessage(message);
+        return Result.success(savedMessage.asViewObject(AddMessageVO.class));
     }
 
     /**

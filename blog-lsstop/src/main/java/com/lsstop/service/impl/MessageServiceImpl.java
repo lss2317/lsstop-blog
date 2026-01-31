@@ -42,9 +42,10 @@ public class MessageServiceImpl implements MessageService {
      * 新增留言
      *
      * @param message 留言实体
+     * @return 新增的留言实体（含过滤后内容）
      */
     @Override
-    public void insertMessage(MessageEntity message) {
+    public MessageEntity insertMessage(MessageEntity message) {
         // 获取敏感词处理策略
         WebsiteConfigEntity config = websiteConfigService.getWebsiteConfig();
         IllegalPolicyEnum policy = IllegalPolicyEnum.of(config.getMessageIllegalPolicy());
@@ -59,5 +60,6 @@ public class MessageServiceImpl implements MessageService {
         }
 
         messageMapper.insertMessage(message);
+        return message;
     }
 }

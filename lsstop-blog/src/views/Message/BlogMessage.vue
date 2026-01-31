@@ -53,7 +53,8 @@
 import VueDanmaku from 'vue3-danmaku'
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { listMessage, addMessage, type MessageVo, type AddMessageDto } from '@/apis/message'
+import { listMessage, addMessage, type Message, type AddMessageParams } from '@/apis/message'
+import { ReviewStatusEnum } from '@/constants/reviewStatus'
 import useUserInfoStore from '@/stores/modules/userInfo'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
 import usePageInfoStore from '@/stores/modules/pageInfo.ts'
@@ -69,7 +70,7 @@ const messageContent = ref('')
 const inputWrapperRef = ref<HTMLElement | null>(null)
 const danmakuRef = ref<InstanceType<typeof VueDanmaku> | null>(null)
 const isReady = ref(false)
-const barrageList = ref<MessageVo[]>([])
+const barrageList = ref<Message[]>([])
 
 // 发送留言
 function addBlogMessage() {
@@ -81,21 +82,26 @@ function addBlogMessage() {
     return
   }
 
-  const message: AddMessageDto = {
+  const message: AddMessageParams = {
     avatar: userInfoStore.userInfo.avatar!,
     nickname: userInfoStore.userInfo.nickname!,
     messageContent: messageContent.value,
   }
 
   addMessage(message)
-    .then(() => {
-      // 添加到弹幕列表
-      danmakuRef.value?.add(message)
+    .then((res) => {
+      const data = res.data
+      // 审核状态：0-正常 1-待审核
+      if (data.review === ReviewStatusEnum.NORMAL) {
+        // 添加到弹幕列表
+        danmakuRef.value?.add(data)
+        snackbarStore.success('留言成功')
+      } else {
+        snackbarStore.info('留言成功，待审核后展示')
+      }
       // 清空输入框
       messageContent.value = ''
       show.value = false
-      // 提示成功
-      snackbarStore.success('留言成功')
     })
     .catch((error) => {
       const msg = error.response?.data?.msg || '留言失败，请稍后重试'

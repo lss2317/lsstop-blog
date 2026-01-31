@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
 import { getUserInfo } from '@/apis/user'
 import { useSnackbarStore } from './snackbar'
+import { ResponseCode } from '@/constants/http'
 
 export interface UserInfo {
   /** 用户id */
@@ -53,7 +54,7 @@ const useUserInfoStore = defineStore('userInfo', () => {
   async function fetchUserInfo() {
     try {
       const res = await getUserInfo()
-      if (res.code === 200 && res.data) {
+      if (res.code === ResponseCode.SUCCESS && res.data) {
         setUserInfo(res.data)
       }
     } catch (error) {

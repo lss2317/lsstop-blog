@@ -1,7 +1,7 @@
 // import http from '@/utils/http'
 
 /** 回复类型 */
-export interface ReplyVO {
+export interface Reply {
   id: string
   avatar: string
   nickname: string
@@ -16,7 +16,7 @@ export interface ReplyVO {
 }
 
 /** 评论类型 */
-export interface CommentVO {
+export interface Comment {
   id: string
   avatar: string
   nickname: string
@@ -27,5 +27,5 @@ export interface CommentVO {
   commentContent: string
   likeCount: number
   replyCount: number
-  replyDTOList?: ReplyVO[]
+  replyList?: Reply[]
 }

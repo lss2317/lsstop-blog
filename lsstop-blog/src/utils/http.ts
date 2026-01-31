@@ -6,6 +6,7 @@ import 'nprogress/nprogress.css'
 import { tokenManager } from '@/utils/token'
 import useUserInfoStore from '@/stores/modules/userInfo'
 import useLikeStore from '@/stores/modules/like'
+import { ResponseCode, HttpStatus } from '@/constants/http'
 
 // 统一响应结构
 export interface ApiResponse<T = unknown> {
@@ -106,7 +107,7 @@ instance.interceptors.response.use(
     }
 
     // 如果是401错误且未重试过，尝试刷新token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === HttpStatus.UNAUTHORIZED && !originalRequest._retry) {
       // 刷新token的请求不重试
       if (originalRequest.url?.includes('/auth/refresh')) {
         tokenManager.clearTokens()
@@ -148,7 +149,7 @@ instance.interceptors.response.use(
           { headers: { 'Content-Type': 'application/json;charset=UTF-8' } },
         )
 
-        if (response.data.code === 200 && response.data.data) {
+        if (response.data.code === ResponseCode.SUCCESS && response.data.data) {
           const { accessToken, refreshToken } = response.data.data
           tokenManager.setTokens(accessToken, refreshToken)
 
