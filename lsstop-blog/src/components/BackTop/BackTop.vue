@@ -46,10 +46,21 @@ const show = () => {
 const check = () => {
   const isDark = theme.global.current.value.dark
   const newTheme = isDark ? 'light' : 'dark'
-  theme.global.name.value = newTheme
-  icon.value = isDark ? 'iconyueliang' : 'icontaiyang'
-  // 保存到 localStorage
-  localStorage.setItem('theme', newTheme)
+  // 添加过渡 class
+  document.documentElement.classList.add('theme-transition')
+  // 等待下一帧再切换主题，确保 transition 已生效
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      theme.global.name.value = newTheme
+      icon.value = isDark ? 'iconyueliang' : 'icontaiyang'
+      // 保存到 localStorage
+      localStorage.setItem('theme', newTheme)
+      // 过渡结束后移除 class
+      setTimeout(() => {
+        document.documentElement.classList.remove('theme-transition')
+      }, 400)
+    })
+  })
 }
 
 onMounted(() => {
@@ -67,7 +78,7 @@ onUnmounted(() => {
   position: fixed;
   right: -38px;
   bottom: 85px;
-  transition: all 0.5s;
+  transition: opacity 0.5s, transform 0.5s;
 }
 
 .rightside-config-hide {

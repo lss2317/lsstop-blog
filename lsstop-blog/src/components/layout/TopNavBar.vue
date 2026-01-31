@@ -236,7 +236,6 @@ ul {
 }
 
 .menus-item a {
-  transition: all 0.2s;
   cursor: pointer;
 }
 
@@ -257,7 +256,7 @@ ul {
   height: 3px;
   background-color: #80c8f8;
   content: '';
-  transition: all 0.3s ease-in-out;
+  transition: width 0.3s ease-in-out;
 }
 
 .user-avatar {

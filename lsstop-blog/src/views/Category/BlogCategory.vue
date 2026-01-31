@@ -115,7 +115,7 @@ function goToCategory(id: number) {
   border-radius: var(--radius-lg);
   text-decoration: none;
   box-shadow: var(--shadow-card);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
 }
 

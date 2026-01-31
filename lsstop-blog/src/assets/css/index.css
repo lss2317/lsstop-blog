@@ -78,6 +78,16 @@ ul {
     'Microsoft YaHei', sans-serif;
 }
 
+/* 主题切换过渡 */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: color 0.4s ease, background-color 0.4s ease, background 0.4s ease,
+    border-color 0.4s ease, box-shadow 0.4s ease, fill 0.4s ease, stroke 0.4s ease !important;
+  transition-delay: 0s !important;
+}
+
 /* Vuetify 3 - 导航栏和主内容区 */
 .v-toolbar {
   z-index: 1004 !important;
@@ -113,7 +123,7 @@ ul {
   color: #4c4948;
   border-radius: 8px;
   box-shadow: 0 4px 8px 6px rgba(7, 17, 27, 0.06);
-  transition: all 0.3s;
+  transition: box-shadow 0.3s ease;
 }
 
 .v-theme--light .v-card.blog-container {
@@ -175,6 +185,7 @@ ul {
 .v-theme--dark .v-card {
   background: #121212;
   color: rgba(255, 255, 255, 0.8);
+  transition: box-shadow 0.3s ease;
 }
 
 .v-theme--dark .v-card.blog-container {

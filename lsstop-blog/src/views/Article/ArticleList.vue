@@ -227,7 +227,6 @@ function goToTag(tagId: number) {
 }
 
 .article-item-card a {
-  transition: all 0.3s;
   cursor: pointer;
 }
 

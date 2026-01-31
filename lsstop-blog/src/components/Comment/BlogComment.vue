@@ -489,7 +489,6 @@ onUnmounted(() => {
   justify-content: center;
   cursor: pointer;
   color: #3c3c3c;
-  transition: color 0.2s;
   font-size: 1.25rem;
 }
 
@@ -780,7 +779,6 @@ onUnmounted(() => {
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  transition: color 0.2s;
 }
 
 .lc-action-item:hover {
@@ -864,7 +862,7 @@ onUnmounted(() => {
   border-radius: 20px;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s;
 }
 
 .lc-cancel-btn:hover {
@@ -993,7 +991,7 @@ onUnmounted(() => {
   border-radius: 20px;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s;
 }
 
 .lc-load-btn:hover {

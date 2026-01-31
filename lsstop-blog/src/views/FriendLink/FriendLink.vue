@@ -179,7 +179,7 @@ blockquote {
 
 .link-wrapper {
   position: relative;
-  transition: all var(--transition-normal);
+  transition: box-shadow var(--transition-normal), transform var(--transition-normal);
   border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.9);
   box-shadow: var(--shadow-card);
@@ -195,7 +195,7 @@ blockquote {
 .link-avatar {
   margin-top: 5px;
   margin-left: 10px;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), width 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), margin 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   flex-shrink: 0;
   opacity: 1;
@@ -222,7 +222,7 @@ blockquote {
   font-size: 1.25rem;
   font-weight: bold;
   z-index: 1;
-  transition: all var(--transition-slow);
+  transition: font-size var(--transition-slow);
 }
 
 .link-wrapper:hover .link-name {
@@ -235,7 +235,7 @@ blockquote {
   font-size: 13px;
   color: var(--color-text-primary);
   width: 100%;
-  transition: all var(--transition-slow);
+  transition: height var(--transition-slow), max-height var(--transition-slow);
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
@@ -248,7 +248,7 @@ blockquote {
 .link-text-content {
   width: 100%;
   z-index: 10;
-  transition: all var(--transition-slow);
+  transition: transform var(--transition-slow);
   transform: translateX(0);
 }
 

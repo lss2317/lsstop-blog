@@ -591,7 +591,7 @@ watch(
   color: #666;
   background: rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .like-btn-inline:hover {
@@ -610,7 +610,7 @@ watch(
 
 .like-btn-inline .like-icon {
   color: #666;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .like-btn-inline.liked {
@@ -918,7 +918,6 @@ watch(
 }
 
 .content-title a {
-  transition: all 0.2s;
   font-size: 95%;
   cursor: pointer;
 }
@@ -950,7 +949,6 @@ watch(
 #toc :deep(.toc-link) {
   color: #666;
   text-decoration: none;
-  transition: color 0.2s;
 }
 
 #toc :deep(.toc-link:hover),

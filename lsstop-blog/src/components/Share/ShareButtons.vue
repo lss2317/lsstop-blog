@@ -118,7 +118,7 @@ const handleShareToQQ = async () => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
   background: #f5f5f5;
 }
 

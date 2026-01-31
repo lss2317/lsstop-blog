@@ -119,7 +119,7 @@ function goToTag(id: number) {
   box-shadow: var(--shadow-card);
   text-decoration: none;
   color: var(--color-text-primary);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   min-height: 100px;
   cursor: pointer;
 }
@@ -137,7 +137,7 @@ function goToTag(id: number) {
 .tag-icon {
   color: var(--color-text-tertiary);
   margin-bottom: 8px;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .tag-wrapper:hover .tag-icon {
@@ -150,7 +150,6 @@ function goToTag(id: number) {
   font-weight: 600;
   text-align: center;
   margin-bottom: 6px;
-  transition: all 0.3s ease;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -160,7 +159,6 @@ function goToTag(id: number) {
 .tag-count {
   font-size: 13px;
   color: var(--color-text-secondary);
-  transition: color 0.3s ease;
 }
 
 .tag-count-empty {

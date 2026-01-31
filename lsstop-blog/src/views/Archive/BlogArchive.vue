@@ -294,7 +294,7 @@ onMounted(() => {
   border-bottom: 1px dashed var(--color-border-light);
   text-decoration: none;
   color: var(--color-text-primary);
-  transition: all 0.3s ease;
+  transition: padding 0.3s ease;
   cursor: pointer;
 }
 
@@ -317,7 +317,7 @@ onMounted(() => {
   border-radius: 50%;
   margin-right: 12px;
   flex-shrink: 0;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .article-item:hover .article-dot {
@@ -331,7 +331,6 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: color 0.3s ease;
 }
 
 .article-date {

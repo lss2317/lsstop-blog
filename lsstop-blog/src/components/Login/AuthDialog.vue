@@ -540,7 +540,7 @@ const qqLogin = () => {
   font-size: 16px;
   color: #999;
   pointer-events: none;
-  transition: all 0.3s ease;
+  transition: top 0.3s ease, font-size 0.3s ease;
 }
 
 .input-icon {
