@@ -78,7 +78,9 @@ onUnmounted(() => {
   position: fixed;
   right: -38px;
   bottom: 85px;
-  transition: opacity 0.5s, transform 0.5s;
+  transition:
+    opacity 0.5s,
+    transform 0.5s;
 }
 
 .rightside-config-hide {

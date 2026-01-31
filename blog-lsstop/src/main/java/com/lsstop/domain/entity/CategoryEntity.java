@@ -31,11 +31,6 @@ public class CategoryEntity implements BaseData {
     private String categoryName;
 
     /**
-     * 分类背景图URL
-     */
-    private String categoryCover;
-
-    /**
      * 删除时间戳，0表示未删除
      */
     private Long deletedAt;

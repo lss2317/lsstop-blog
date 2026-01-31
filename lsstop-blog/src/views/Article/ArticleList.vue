@@ -208,7 +208,8 @@ function goToTag(tagId: number) {
 
 @media (max-width: 759px) {
   .article-list-wrapper {
-    margin-top: 280px;
+    margin-top: 300px;
+    margin-bottom: 20px;
     padding: 0 12px;
   }
 

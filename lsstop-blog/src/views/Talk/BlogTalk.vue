@@ -220,7 +220,9 @@ onMounted(() => {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.1);
   box-shadow: 0 3px 8px 6px rgb(7 17 27 / 6%);
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
   animation: fadeInUp 0.5s ease forwards;
   animation-delay: var(--delay);
   opacity: 0;
@@ -251,7 +253,9 @@ onMounted(() => {
   border-radius: 50%;
   border: 2px solid #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition: transform 0.5s, box-shadow 0.5s;
+  transition:
+    transform 0.5s,
+    box-shadow 0.5s;
   cursor: pointer !important;
 }
 
@@ -366,7 +370,9 @@ onMounted(() => {
   font-size: 13px;
   padding: 6px 12px;
   border-radius: 20px;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
   cursor: pointer;
   color: #8a919f;
 }

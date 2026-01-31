@@ -591,7 +591,9 @@ watch(
   color: #666;
   background: rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
 }
 
 .like-btn-inline:hover {

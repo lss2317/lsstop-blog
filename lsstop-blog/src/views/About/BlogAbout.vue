@@ -60,7 +60,9 @@ const previewAvatar = () => {
 }
 
 .author-avatar {
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition:
+    transform 0.3s,
+    box-shadow 0.3s;
 }
 
 .avatar-clickable {

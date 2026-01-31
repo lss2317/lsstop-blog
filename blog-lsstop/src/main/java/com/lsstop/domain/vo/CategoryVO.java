@@ -22,11 +22,6 @@ public class CategoryVO {
     private String categoryName;
 
     /**
-     * 分类背景图URL
-     */
-    private String categoryCover;
-
-    /**
      * 文章数量
      */
     private Integer articleCount;

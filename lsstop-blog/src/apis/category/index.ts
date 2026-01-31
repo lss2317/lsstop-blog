@@ -6,8 +6,6 @@ export interface Category {
   id: number
   /** 分类名称 */
   categoryName: string
-  /** 分类封面 */
-  categoryCover: string
   /** 文章数量 */
   articleCount: number
 }

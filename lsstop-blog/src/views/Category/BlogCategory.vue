@@ -7,38 +7,40 @@
     <!-- 分类内容 -->
     <v-card class="blog-container">
       <!-- 加载骨架屏 -->
-      <v-row v-if="loading">
-        <v-col md="4" sm="6" cols="12" v-for="n in 6" :key="n">
-          <v-skeleton-loader type="image" height="200" class="skeleton-category" />
-        </v-col>
-      </v-row>
+      <div v-if="loading" class="category-list">
+        <v-skeleton-loader v-for="n in 6" :key="n" type="list-item" class="skeleton-item" />
+      </div>
       <!-- 分类列表 -->
-      <v-row v-else-if="categoryList.length > 0">
-        <v-col
-          md="4"
-          sm="6"
-          cols="12"
-          v-for="(item, index) of categoryList"
-          :key="item.id"
-          class="category-col"
-          :style="{ '--delay': index * 0.1 + 's' }"
-        >
-          <a class="category-item" @click="goToCategory(item.id)">
-            <img class="category-cover" :src="item.categoryCover" :alt="item.categoryName" />
-            <div class="category-overlay">
-              <div class="category-info">
-                <h3 class="category-name">{{ item.categoryName }}</h3>
-                <span
-                  class="category-count"
-                  :class="{ 'category-count-empty': item.articleCount === 0 }"
-                >
-                  {{ item.articleCount ? item.articleCount + ' 篇文章' : '暂无文章' }}
-                </span>
-              </div>
+      <div v-else-if="categoryList.length > 0">
+        <!-- 统计头部 -->
+        <div class="category-header">
+          <v-icon class="stat-icon" size="28">mdi-layers-outline</v-icon>
+          <span class="stat-text"
+            >共计 <strong>{{ categoryList.length }}</strong> 个分类</span
+          >
+        </div>
+        <!-- 列表 -->
+        <div class="category-list">
+          <div
+            v-for="(item, index) of categoryList"
+            :key="item.id"
+            class="category-item"
+            :style="{ '--delay': index * 0.05 + 's' }"
+            @click="goToCategory(item.id)"
+          >
+            <div class="category-left">
+              <span class="category-dot"></span>
+              <span class="category-name">{{ item.categoryName }}</span>
             </div>
-          </a>
-        </v-col>
-      </v-row>
+            <div class="category-right">
+              <span class="category-count">{{
+                item.articleCount ? item.articleCount + ' 篇文章' : '暂无文章'
+              }}</span>
+              <v-icon size="18" class="category-arrow">mdi-chevron-right</v-icon>
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- 空状态 -->
       <div v-else class="empty-state">
         <v-icon size="64" color="grey-lighten-1">mdi-folder-off-outline</v-icon>
@@ -86,95 +88,132 @@ function goToCategory(id: number) {
 </script>
 
 <style scoped>
-.category-col {
+.category-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+.stat-icon {
+  color: var(--color-primary);
+  margin-right: 10px;
+}
+
+.stat-text {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+}
+
+.stat-text strong {
+  color: var(--color-primary);
+  font-size: 20px;
+  margin: 0 4px;
+}
+
+.category-list {
+  padding: 8px 0;
+}
+
+.skeleton-item {
+  margin: 4px 0;
+}
+
+.category-item {
   --delay: 0s;
-  animation: fadeInUp 0.5s ease forwards;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+  border-bottom: 1px dashed var(--color-border, #e5e5e5);
+  transition: background-color 0.2s ease;
+  animation: fadeIn 0.4s ease forwards;
   animation-delay: var(--delay);
   opacity: 0;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.skeleton-category {
-  border-radius: var(--radius-lg);
-}
-
-.category-item {
-  display: block;
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-lg);
-  text-decoration: none;
-  box-shadow: var(--shadow-card);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  cursor: pointer;
+.category-item:last-child {
+  border-bottom: none;
 }
 
 .category-item:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-card-hover);
+  background-color: var(--color-bg-hover, #f5f5f5);
 }
 
-.category-cover {
-  display: block;
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  transition: transform 0.5s ease;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-.category-item:hover .category-cover {
-  transform: scale(1.1);
-}
-
-.category-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.6) 100%);
+.category-left {
   display: flex;
-  align-items: flex-end;
-  padding: 20px;
-  transition: background 0.3s ease;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  transition: transform 0.3s ease-in-out;
 }
 
-.category-item:hover .category-overlay {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.7) 100%);
+.category-item:hover .category-left {
+  transform: translateX(8px);
 }
 
-.category-info {
-  color: #fff;
-  width: 100%;
+.category-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary, #1867c0);
+  flex-shrink: 0;
 }
 
 .category-name {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 6px 0;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  font-size: 15px;
+  color: var(--color-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color 0.3s ease-in-out;
+}
+
+.category-item:hover .category-name {
+  color: var(--color-primary);
+}
+
+.category-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: 16px;
 }
 
 .category-count {
-  font-size: 0.875rem;
-  opacity: 0.9;
+  font-size: 13px;
+  color: var(--color-text-secondary, #666);
 }
 
-.category-count-empty {
-  opacity: 0.7;
+.category-arrow {
+  color: var(--color-text-tertiary, #999);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.category-item:hover .category-arrow {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .empty-state {
@@ -190,12 +229,51 @@ function goToCategory(id: number) {
   margin-top: 16px;
   font-size: 15px;
 }
+
+@media (max-width: 759px) {
+  .category-header {
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+  }
+
+  .stat-text {
+    font-size: 14px;
+  }
+
+  .stat-text strong {
+    font-size: 18px;
+  }
+
+  .category-item {
+    padding: 14px 16px;
+  }
+
+  .category-name {
+    font-size: 14px;
+  }
+
+  .category-count {
+    font-size: 12px;
+  }
+}
 </style>
 
 <style>
 /* 夜间模式样式 */
 .v-theme--dark .category-item {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-bottom-color: var(--color-border, #333);
+}
+
+.v-theme--dark .category-item:hover {
+  background-color: var(--color-bg-hover, #2a2a2a);
+}
+
+.v-theme--dark .category-name {
+  color: var(--color-text-primary, #e5e5e5);
+}
+
+.v-theme--dark .category-count {
+  color: var(--color-text-secondary, #999);
 }
 
 .v-theme--dark .empty-state {

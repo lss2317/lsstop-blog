@@ -8,7 +8,7 @@
     <v-card class="blog-container">
       <!-- 文章统计 -->
       <div v-if="!loading" class="archive-header">
-        <v-icon class="archive-header-icon" size="28">mdi-archive-outline</v-icon>
+        <v-icon class="archive-header-icon" size="28">mdi-history</v-icon>
         <span class="archive-header-text"
           >共计 <strong>{{ totalCount }}</strong> 篇文章</span
         >
@@ -170,7 +170,7 @@ onMounted(() => {
   justify-content: center;
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 1px dashed var(--color-border);
+  border-bottom: 1px dashed color-mix(in srgb, var(--color-primary) 50%, transparent);
 }
 
 .archive-header-icon {

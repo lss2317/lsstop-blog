@@ -7,35 +7,49 @@
     <!-- 标签列表 -->
     <v-card class="blog-container">
       <!-- 加载骨架屏 -->
-      <v-row v-if="loading" class="tag-container">
-        <v-col md="3" sm="4" cols="6" v-for="n in 12" :key="n">
-          <div class="tag-wrapper skeleton-wrapper">
-            <v-skeleton-loader type="avatar" width="24" height="24" class="mb-2" />
-            <v-skeleton-loader type="text" width="60%" />
-            <v-skeleton-loader type="text" width="40%" class="mt-2" />
-          </div>
-        </v-col>
-      </v-row>
-      <!-- 标签列表 -->
-      <v-row v-else-if="tagList.length > 0" class="tag-container">
-        <v-col
-          md="3"
-          sm="4"
-          cols="6"
-          v-for="(item, index) of tagList"
-          :key="item.id"
-          class="tag-col"
-          :style="{ '--delay': index * 0.05 + 's' }"
-        >
-          <a class="tag-wrapper" @click="goToTag(item.id)">
-            <v-icon class="tag-icon" size="24">mdi-tag-outline</v-icon>
-            <div class="tag-name">{{ item.tagName }}</div>
-            <div class="tag-count" :class="{ 'tag-count-empty': item.articleCount === 0 }">
-              {{ item.articleCount > 0 ? item.articleCount + ' 篇文章' : '暂无文章' }}
+      <div v-if="loading">
+        <div class="tag-header-skeleton">
+          <v-skeleton-loader type="text" width="200" />
+        </div>
+        <v-row class="tag-container">
+          <v-col md="3" sm="4" cols="6" v-for="n in 12" :key="n">
+            <div class="tag-wrapper skeleton-wrapper">
+              <v-skeleton-loader type="avatar" width="24" height="24" class="mb-2" />
+              <v-skeleton-loader type="text" width="60%" />
+              <v-skeleton-loader type="text" width="40%" class="mt-2" />
             </div>
-          </a>
-        </v-col>
-      </v-row>
+          </v-col>
+        </v-row>
+      </div>
+      <!-- 标签列表 -->
+      <div v-else-if="tagList.length > 0">
+        <!-- 统计头部 -->
+        <div class="tag-header">
+          <v-icon class="stat-icon" size="28">mdi-tag-multiple-outline</v-icon>
+          <span class="stat-text"
+            >共计 <strong>{{ tagList.length }}</strong> 个标签</span
+          >
+        </div>
+        <v-row class="tag-container">
+          <v-col
+            md="3"
+            sm="4"
+            cols="6"
+            v-for="(item, index) of tagList"
+            :key="item.id"
+            class="tag-col"
+            :style="{ '--delay': index * 0.05 + 's' }"
+          >
+            <a class="tag-wrapper" @click="goToTag(item.id)">
+              <v-icon class="tag-icon" size="24">mdi-tag-outline</v-icon>
+              <div class="tag-name">{{ item.tagName }}</div>
+              <div class="tag-count" :class="{ 'tag-count-empty': item.articleCount === 0 }">
+                {{ item.articleCount > 0 ? item.articleCount + ' 篇文章' : '暂无文章' }}
+              </div>
+            </a>
+          </v-col>
+        </v-row>
+      </div>
       <!-- 空状态 -->
       <div v-else class="empty-state">
         <v-icon size="64" color="grey-lighten-1">mdi-tag-off-outline</v-icon>
@@ -83,6 +97,39 @@ function goToTag(id: number) {
 </script>
 
 <style scoped>
+.tag-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+.tag-header-skeleton {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.stat-icon {
+  color: var(--color-primary);
+  margin-right: 10px;
+}
+
+.stat-text {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+}
+
+.stat-text strong {
+  color: var(--color-primary);
+  font-size: 20px;
+  margin: 0 4px;
+}
+
 .tag-container {
   margin: 10px 0 0;
 }
@@ -119,7 +166,9 @@ function goToTag(id: number) {
   box-shadow: var(--shadow-card);
   text-decoration: none;
   color: var(--color-text-primary);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
   min-height: 100px;
   cursor: pointer;
 }
