@@ -355,12 +355,14 @@ const generateToc = () => {
       })
       // 先销毁旧实例
       tocbot.destroy()
-      // 初始化tocbot
+      // 初始化tocbot，使用视口高度50%作为偏移
       tocbot.init({
         tocSelector: '#toc',
         contentSelector: '.article-content',
         headingSelector: 'h1, h2, h3, h4, h5, h6',
         hasInnerContainers: true,
+        headingsOffset: Math.round(window.innerHeight * 0.35),
+        scrollSmoothOffset: -80,
         onClick: (e) => e.preventDefault(),
       })
       // 初始化代码复制

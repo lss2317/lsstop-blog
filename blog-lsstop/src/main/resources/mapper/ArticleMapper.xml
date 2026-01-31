@@ -188,10 +188,15 @@
     </select>
 
     <update id="batchUpdateViewCounts">
-        <foreach collection="list" item="item" separator=";">
-            update blog_article
-            set view_count = #{item.viewCount}
-            where id = #{item.id}
+        update blog_article
+        set view_count = case id
+        <foreach collection="list" item="item">
+            when #{item.id} then #{item.viewCount}
+        </foreach>
+        end
+        where id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.id}
         </foreach>
     </update>
 

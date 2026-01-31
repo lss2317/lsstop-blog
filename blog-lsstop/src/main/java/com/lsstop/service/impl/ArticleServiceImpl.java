@@ -94,7 +94,8 @@ public class ArticleServiceImpl implements ArticleService {
                 articleMapper.getPreArticle(articleVO.getCreateTime()));
         CompletableFuture<ArticleSimpleVO> nextFuture = CompletableFuture.supplyAsync(() ->
                 articleMapper.getNextArticle(articleVO.getCreateTime()));
-        CompletableFuture<List<ArticleSimpleVO>> newestFuture = CompletableFuture.supplyAsync(this::getNewestArticles);
+        CompletableFuture<List<ArticleSimpleVO>> newestFuture = CompletableFuture.supplyAsync(() ->
+                getNewestArticles(id));
         CompletableFuture<List<ArticleSimpleVO>> recommendFuture = CompletableFuture.supplyAsync(() ->
                 getRecommendArticles(articleVO.getCategoryId(), id));
 
@@ -109,17 +110,25 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     /**
-     * 获取最新文章（优先从缓存获取）
+     * 获取最新文章（优先从缓存获取，排除当前文章）
      *
+     * @param excludeId 排除的文章ID
      * @return 最新文章列表
      */
-    private List<ArticleSimpleVO> getNewestArticles() {
+    private List<ArticleSimpleVO> getNewestArticles(Integer excludeId) {
         List<ArticleSimpleVO> newestArticles = redisUtils.getList(RedisConst.NEWEST_ARTICLES, ArticleSimpleVO.class);
         if (newestArticles == null || newestArticles.isEmpty()) {
-            newestArticles = articleMapper.getNewestArticles(ArticleConst.NEWEST_ARTICLE_LIMIT);
+            // 多取1篇，确保过滤后仍有足够数量
+            newestArticles = articleMapper.getNewestArticles(ArticleConst.NEWEST_ARTICLE_LIMIT + 1);
             if (newestArticles != null && !newestArticles.isEmpty()) {
                 redisUtils.set(RedisConst.NEWEST_ARTICLES, newestArticles, ArticleConst.NEWEST_ARTICLE_CACHE_EXPIRE);
             }
+        }
+        if (newestArticles != null && excludeId != null) {
+            newestArticles = newestArticles.stream()
+                    .filter(article -> !excludeId.equals(article.getId()))
+                    .limit(ArticleConst.NEWEST_ARTICLE_LIMIT)
+                    .toList();
         }
         return newestArticles;
     }
