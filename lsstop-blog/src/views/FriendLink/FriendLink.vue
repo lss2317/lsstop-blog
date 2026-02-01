@@ -69,7 +69,7 @@
         <span>评论区</span>
       </div>
       <!-- 评论 -->
-      <Comment></Comment>
+      <Comment :type="2" />
     </v-card>
   </div>
 </template>

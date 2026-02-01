@@ -1,15 +1,14 @@
-// import http from '@/utils/http'
+import http from '@/utils/http'
 
 /** 回复类型 */
 export interface Reply {
-  id: string
+  id: number
   avatar: string
   nickname: string
-  webSite?: string
   userId: string
-  location?: string
+  ipRegion: string
   createTime: string
-  commentContent: string
+  content: string
   likeCount: number
   replyUserId?: string
   replyNickname?: string
@@ -17,15 +16,35 @@ export interface Reply {
 
 /** 评论类型 */
 export interface Comment {
-  id: string
+  id: number
   avatar: string
   nickname: string
-  webSite?: string
   userId: string
-  location?: string
+  ipRegion: string
   createTime: string
-  commentContent: string
+  content: string
   likeCount: number
   replyCount: number
   replyList?: Reply[]
+}
+
+/** 评论列表分页VO */
+export interface CommentPageVO {
+  list: Comment[]
+  total: number
+}
+
+/** 评论查询参数 */
+export interface CommentQueryParams {
+  type: number
+  typeId?: string
+  current: number
+  sortType: string
+}
+
+/**
+ * 获取评论列表
+ */
+export function getComments(params: CommentQueryParams) {
+  return http.get<CommentPageVO>('/comment/listComment', { params })
 }

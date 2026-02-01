@@ -22,7 +22,102 @@
         insert into blog_comment (user_id, target_id, target_type, content, parent_id,
                                   reply_user_id, ip_region, review, deleted_at, create_time, update_time)
         values (#{userId}, #{targetId}, #{targetType}, #{content}, #{parentId},
-                #{replyUserId}, #{ipRegion}, #{review}, 0, NOW(), NOW())
+                #{replyUserId}, #{ipRegion}, #{review}, 0, now(), now())
     </insert>
+
+    <!-- 评论VO ResultMap -->
+    <resultMap id="commentVOResultMap" type="com.lsstop.domain.vo.CommentVO">
+        <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="avatar" property="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="nickname" property="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="user_id" property="userId" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="ip_region" property="ipRegion" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result column="content" property="content" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="like_count" property="likeCount" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="reply_count" property="replyCount" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    </resultMap>
+
+    <!-- 评论回复VO ResultMap -->
+    <resultMap id="commentReplyVOResultMap" type="com.lsstop.domain.vo.CommentReplyVO">
+        <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="avatar" property="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="nickname" property="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="user_id" property="userId" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="ip_region" property="ipRegion" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result column="content" property="content" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="like_count" property="likeCount" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="reply_user_id" property="replyUserId" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="reply_nickname" property="replyNickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="parent_id" property="parentId" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    </resultMap>
+
+    <!-- 查询顶级评论列表（分页） -->
+    <select id="selectParentComments" resultMap="commentVOResultMap">
+        select c.id,
+               up.avatar,
+               up.nickname,
+               c.user_id,
+               c.ip_region,
+               c.create_time,
+               c.content,
+               ifnull(rc.reply_count, 0) as reply_count
+        from blog_comment c
+                 left join blog_user_profile up on c.user_id = up.user_id and up.deleted_at = 0
+                 left join (select parent_id, count(*) as reply_count
+                            from blog_comment
+                            where deleted_at = 0 and review = 0
+                            group by parent_id) rc on c.id = rc.parent_id
+        where c.target_type = #{type}
+          and c.target_id = #{typeId}
+          and c.parent_id is null
+          and c.deleted_at = 0
+          and c.review = 0
+        <choose>
+            <when test="sortType == 'hot'">
+        order by reply_count desc, c.create_time desc
+            </when>
+            <otherwise>
+        order by c.create_time desc
+            </otherwise>
+        </choose>
+        limit #{offset}, #{size}
+    </select>
+
+    <!-- 查询子评论列表 -->
+    <select id="selectChildComments" resultMap="commentReplyVOResultMap">
+        select c.id,
+               up.avatar,
+               up.nickname,
+               c.user_id,
+               c.ip_region,
+               c.create_time,
+               c.content,
+               c.reply_user_id,
+               rp.nickname as reply_nickname,
+               c.parent_id
+        from blog_comment c
+                 left join blog_user_profile up on c.user_id = up.user_id and up.deleted_at = 0
+                 left join blog_user_profile rp on c.reply_user_id = rp.user_id and rp.deleted_at = 0
+        where c.parent_id in
+        <foreach collection="parentIds" item="parentId" open="(" separator="," close=")">
+            #{parentId}
+        </foreach>
+          and c.deleted_at = 0
+          and c.review = 0
+        order by c.create_time asc
+    </select>
+
+    <!-- 统计评论总数（仅顶级评论） -->
+    <select id="countComments" resultType="java.lang.Integer">
+        select count(*)
+        from blog_comment
+        where target_type = #{type}
+          and target_id = #{typeId}
+          and parent_id is null
+          and deleted_at = 0
+          and review = 0
+    </select>
 
 </mapper>

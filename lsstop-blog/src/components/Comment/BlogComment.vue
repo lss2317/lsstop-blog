@@ -87,20 +87,17 @@
         <div class="lc-comment-main">
           <!-- 用户信息 -->
           <div class="lc-user-row">
-            <span class="lc-nickname" v-if="!item.webSite">{{ item.nickname }}</span>
-            <a v-else :href="item.webSite" target="_blank" class="lc-nickname">
-              {{ item.nickname }}
-            </a>
+           <span class="lc-nickname">{{ item.nickname }}</span>
             <span class="lc-blogger-tag" v-if="item.userId === postUserId">博主</span>
           </div>
           <!-- 时间地点 -->
           <div class="lc-meta-row">
-            <span>来自 {{ item.location || '未知' }}</span>
+            <span>来自 {{ item.ipRegion }}</span>
             <span class="lc-meta-divider"></span>
             <span>{{ formatTime(item.createTime) }}</span>
           </div>
           <!-- 评论内容 -->
-          <div class="lc-content" v-html="item.commentContent"></div>
+          <div class="lc-content" v-html="item.content"></div>
           <!-- 操作栏 -->
           <div class="lc-action-row">
             <span class="lc-action-item" @click="like(item)">
@@ -177,14 +174,11 @@
                 </div>
                 <div class="lc-reply-main">
                   <div class="lc-user-row">
-                    <span class="lc-nickname" v-if="!reply.webSite">{{ reply.nickname }}</span>
-                    <a v-else :href="reply.webSite" target="_blank" class="lc-nickname">
-                      {{ reply.nickname }}
-                    </a>
+                    <span class="lc-nickname">{{ reply.nickname }}</span>
                     <span class="lc-blogger-tag" v-if="reply.userId === postUserId">博主</span>
                   </div>
                   <div class="lc-meta-row">
-                    <span>来自 {{ reply.location || '未知' }}</span>
+                    <span>来自 {{ reply.ipRegion }}</span>
                     <span class="lc-meta-divider"></span>
                     <span>{{ formatTime(reply.createTime) }}</span>
                   </div>
@@ -192,7 +186,7 @@
                     <template v-if="reply.replyUserId !== item.userId">
                       <span class="lc-reply-to">@{{ reply.replyNickname }}</span>
                     </template>
-                    <span v-html="reply.commentContent"></span>
+                    <span v-html="reply.content"></span>
                   </div>
                   <div class="lc-action-row">
                     <span class="lc-action-item" @click="like(reply)">
@@ -264,9 +258,16 @@
         </div>
       </div>
 
-      <!-- 加载更多 -->
-      <div class="lc-load-more" v-if="count > commentList.length">
-        <button class="lc-load-btn" @click="listComments">加载更多...</button>
+      <!-- 分页 -->
+      <div class="lc-pagination" v-if="totalPages > 1">
+        <v-pagination
+          v-model="current"
+          :length="totalPages"
+          :total-visible="5"
+          density="comfortable"
+          rounded
+          @update:model-value="listComments"
+        />
       </div>
     </div>
 
@@ -279,13 +280,19 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import CommentEmoji from '@/components/Emoji/CommentEmoji.vue'
 import { formatTime } from '@/utils/date'
-import { formatCount } from '@/utils/format'
 import useLikeStore from '@/stores/modules/like'
 import useUserInfoStore from '@/stores/modules/userInfo'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
 import { LikeTypeEnum } from '@/constants/likeType'
 import type { Comment, Reply } from '@/apis/comment'
+import { getComments } from '@/apis/comment'
 import { useEmoji } from '@/composables/useEmoji'
+
+// props
+const props = defineProps<{
+  type: number
+  typeId?: string
+}>()
 
 // stores
 const likeStore = useLikeStore()
@@ -299,10 +306,16 @@ const count = ref(0)
 const commentList = ref<Comment[]>([])
 const postUserId = ref('')
 const replyingTo = ref<number | null>(null)
-const replyingToReplyId = ref<string | null>(null)
+const replyingToReplyId = ref<number | null>(null)
 const showReplies = reactive<Record<number, boolean>>({})
 const sortType = ref<'hot' | 'new'>('hot')
 const showSortMenu = ref(false)
+const current = ref(1)
+const loading = ref(false)
+const pageSize = 10
+
+// 计算总页数
+const totalPages = computed(() => Math.ceil(count.value / pageSize))
 
 // 当前用户头像
 const currentUserAvatar = computed(() => userInfoStore.userInfo.avatar ?? '')
@@ -344,7 +357,7 @@ const like = async (item: Comment | Reply) => {
 }
 
 // 判断是否已点赞
-const isLike = (id: string): boolean => {
+const isLike = (id: number): boolean => {
   return likeStore.isLiked(LikeTypeEnum.COMMENT, id)
 }
 
@@ -393,15 +406,33 @@ const toggleReplies = (index: number) => {
 }
 
 // 加载评论列表
-const listComments = () => {
-  // TODO: 实现加载更多评论逻辑
+const listComments = async () => {
+  if (loading.value) return
+  loading.value = true
+  try {
+    const res = await getComments({
+      type: props.type,
+      typeId: props.typeId,
+      current: current.value,
+      sortType: sortType.value,
+    })
+    commentList.value = res.data.list
+    count.value = res.data.total
+  } finally {
+    loading.value = false
+  }
 }
 
 // 选择排序方式
 const selectSort = (type: 'hot' | 'new') => {
+  if (sortType.value === type) {
+    showSortMenu.value = false
+    return
+  }
   sortType.value = type
   showSortMenu.value = false
-  // TODO: 根据排序方式重新加载评论
+  current.value = 1
+  listComments()
 }
 
 // 自动调整textarea高度
@@ -422,6 +453,7 @@ const handleClickOutside = (event: MouseEvent) => {
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
   registerClickOutside()
+  listComments()
 })
 
 onUnmounted(() => {

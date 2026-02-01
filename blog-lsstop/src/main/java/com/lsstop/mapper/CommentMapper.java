@@ -2,6 +2,8 @@ package com.lsstop.mapper;
 
 import com.lsstop.domain.entity.CommentEntity;
 import com.lsstop.domain.vo.CommentCountVO;
+import com.lsstop.domain.vo.CommentReplyVO;
+import com.lsstop.domain.vo.CommentVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -30,4 +32,38 @@ public interface CommentMapper {
      * @param comment 评论实体
      */
     void insertComment(CommentEntity comment);
+
+    /**
+     * 查询顶级评论列表（分页）
+     *
+     * @param typeId   目标id
+     * @param type     目标类型
+     * @param offset   偏移量
+     * @param size     每页数量
+     * @param sortType 排序方式：hot=最热, new=最新
+     * @return 顶级评论列表
+     */
+    List<CommentVO> selectParentComments(@Param("typeId") Integer typeId,
+                                         @Param("type") Integer type,
+                                         @Param("offset") Integer offset,
+                                         @Param("size") Integer size,
+                                         @Param("sortType") String sortType);
+
+    /**
+     * 查询子评论列表
+     *
+     * @param parentIds 父评论id列表
+     * @return 子评论列表
+     */
+    List<CommentReplyVO> selectChildComments(@Param("parentIds") List<Integer> parentIds);
+
+    /**
+     * 统计评论总数
+     *
+     * @param typeId 目标id
+     * @param type   目标类型
+     * @return 评论总数
+     */
+    Integer countComments(@Param("typeId") Integer typeId,
+                          @Param("type") Integer type);
 }

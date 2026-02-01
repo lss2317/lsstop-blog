@@ -59,6 +59,16 @@ public class CommonConst {
     public static final String INVALID_COMMENT_TYPE = "无效的评论目标类型";
 
     /**
+     * 目标ID不能为空
+     */
+    public static final String TARGET_ID_REQUIRED = "目标ID不能为空";
+
+    /**
+     * 友链评论默认目标ID
+     */
+    public static final Integer FRIEND_LINK_DEFAULT_TARGET_ID = 0;
+
+    /**
      * 无效的点赞类型
      */
     public static final String INVALID_LIKE_TYPE = "无效的点赞类型";
@@ -67,4 +77,29 @@ public class CommonConst {
      * 敏感词检测异常消息
      */
     public static final String SENSITIVE_WORD_DETECTED = "内容包含敏感词，请修改后重试";
+
+    /**
+     * 无效的排序类型
+     */
+    public static final String INVALID_SORT_TYPE = "无效的排序类型";
+
+    /**
+     * 分页参数错误
+     */
+    public static final String INVALID_PAGE_PARAM = "分页参数错误";
+
+    /**
+     * 默认每页数量
+     */
+    public static final int DEFAULT_PAGE_SIZE = 10;
+
+    /**
+     * 排序类型：最热
+     */
+    public static final String SORT_TYPE_HOT = "hot";
+
+    /**
+     * 排序类型：最新
+     */
+    public static final String SORT_TYPE_NEW = "new";
 }

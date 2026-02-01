@@ -355,7 +355,7 @@ const generateToc = () => {
       })
       // 先销毁旧实例
       tocbot.destroy()
-      // 初始化tocbot，使用视口高度50%作为偏移
+      // 初始化tocbot，使用视口高度35%作为偏移
       tocbot.init({
         tocSelector: '#toc',
         contentSelector: '.article-content',

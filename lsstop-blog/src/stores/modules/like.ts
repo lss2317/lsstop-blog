@@ -15,7 +15,7 @@ const useLikeStore = defineStore('like', () => {
   // 点赞的文章ID集合
   const likedArticleIds = ref<Set<number>>(new Set())
   // 点赞的评论ID集合
-  const likedCommentIds = ref<Set<string>>(new Set())
+  const likedCommentIds = ref<Set<number>>(new Set())
   // 是否已获取过用户点赞数据
   const hasFetched = ref(false)
   // 是否正在获取
@@ -33,7 +33,7 @@ const useLikeStore = defineStore('like', () => {
       case LikeTypeEnum.ARTICLE:
         return likedArticleIds.value.has(id as number)
       case LikeTypeEnum.COMMENT:
-        return likedCommentIds.value.has(id as string)
+        return likedCommentIds.value.has(id as number)
       default:
         return false
     }
@@ -89,11 +89,11 @@ const useLikeStore = defineStore('like', () => {
           return true
         }
       case LikeTypeEnum.COMMENT:
-        if (likedCommentIds.value.has(id as string)) {
-          likedCommentIds.value.delete(id as string)
+        if (likedCommentIds.value.has(id as number)) {
+          likedCommentIds.value.delete(id as number)
           return false
         } else {
-          likedCommentIds.value.add(id as string)
+          likedCommentIds.value.add(id as number)
           return true
         }
       default:
@@ -115,7 +115,7 @@ const useLikeStore = defineStore('like', () => {
         likedArticleIds.value.add(id as number)
         break
       case LikeTypeEnum.COMMENT:
-        likedCommentIds.value.add(id as string)
+        likedCommentIds.value.add(id as number)
         break
     }
   }
@@ -134,7 +134,7 @@ const useLikeStore = defineStore('like', () => {
         likedArticleIds.value.delete(id as number)
         break
       case LikeTypeEnum.COMMENT:
-        likedCommentIds.value.delete(id as string)
+        likedCommentIds.value.delete(id as number)
         break
     }
   }
@@ -153,7 +153,7 @@ const useLikeStore = defineStore('like', () => {
         likedArticleIds.value = new Set(ids as number[])
         break
       case LikeTypeEnum.COMMENT:
-        likedCommentIds.value = new Set(ids as string[])
+        likedCommentIds.value = new Set(ids as number[])
         break
     }
   }
@@ -188,7 +188,7 @@ const useLikeStore = defineStore('like', () => {
       const data = res.data
       likedTalkIds.value = new Set(data.talkLikeIds || [])
       likedArticleIds.value = new Set(data.articleLikeIds || [])
-      likedCommentIds.value = new Set(data.commentLikeIds?.map(String) || [])
+      likedCommentIds.value = new Set(data.commentLikeIds || [])
       hasFetched.value = true
     } catch (error) {
       console.error('获取用户点赞数据失败', error)
