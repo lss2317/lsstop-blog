@@ -69,7 +69,7 @@
         <span>评论区</span>
       </div>
       <!-- 评论 -->
-      <Comment :type="CommentTypeEnum.FRIEND_LINK" />
+      <Comment :type="CommentTypeEnum.FRIEND_LINK" type-id="0" />
     </v-card>
   </div>
 </template>

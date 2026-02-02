@@ -87,7 +87,7 @@
         <div class="lc-comment-main">
           <!-- 用户信息 -->
           <div class="lc-user-row">
-           <span class="lc-nickname">{{ item.nickname }}</span>
+            <span class="lc-nickname">{{ item.nickname }}</span>
             <span class="lc-blogger-tag" v-if="item.userId === postUserId">博主</span>
           </div>
           <!-- 时间地点 -->
@@ -97,7 +97,7 @@
             <span>{{ formatTime(item.createTime) }}</span>
           </div>
           <!-- 评论内容 -->
-          <div class="lc-content" v-html="item.content"></div>
+          <div class="lc-content" v-html="parseEmoji(item.content)"></div>
           <!-- 操作栏 -->
           <div class="lc-action-row">
             <span class="lc-action-item" @click="like(item)">
@@ -112,7 +112,7 @@
                   d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"
                 />
               </svg>
-              <span v-if="item.likeCount > 0">{{ item.likeCount }}</span>
+              <span>{{ item.likeCount }}</span>
             </span>
             <span class="lc-action-item" v-if="item.replyCount > 0" @click="toggleReplies(index)">
               <svg class="lc-action-icon" viewBox="0 0 24 24" width="16" height="16">
@@ -183,10 +183,7 @@
                     <span>{{ formatTime(reply.createTime) }}</span>
                   </div>
                   <div class="lc-content">
-                    <template v-if="reply.replyUserId !== item.userId">
-                      <span class="lc-reply-to">@{{ reply.replyNickname }}</span>
-                    </template>
-                    <span v-html="reply.content"></span>
+                    <span v-html="parseEmoji(reply.content)"></span>
                   </div>
                   <div class="lc-action-row">
                     <span class="lc-action-item" @click="like(reply)">
@@ -201,7 +198,7 @@
                           d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"
                         />
                       </svg>
-                      <span v-if="reply.likeCount > 0">{{ reply.likeCount }}</span>
+                      <span>{{ reply.likeCount }}</span>
                     </span>
                     <span class="lc-action-item" @click="replyToReply(index, reply)">
                       <svg class="lc-action-icon" viewBox="0 0 24 24" width="16" height="16">
@@ -280,14 +277,16 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import CommentEmoji from '@/components/Emoji/CommentEmoji.vue'
 import { formatTime } from '@/utils/date'
+import { parseEmoji } from '@/utils/emoji'
 import useLikeStore from '@/stores/modules/like'
 import useUserInfoStore from '@/stores/modules/userInfo'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
 import { LikeTypeEnum } from '@/constants/likeType'
 import type { Comment, Reply } from '@/apis/comment'
-import { getComments } from '@/apis/comment'
+import { getComments, addComment } from '@/apis/comment'
 import { useEmoji } from '@/composables/useEmoji'
 import { CommentTypeEnum } from '@/constants/commentType'
+import { ReviewStatusEnum } from '@/constants/reviewStatus'
 
 // props
 const props = defineProps<{
@@ -332,34 +331,69 @@ const {
   unregisterClickOutside,
 } = useEmoji()
 
-// 提交评论
-const insertComment = () => {
-  if (!userInfoStore.checkLogin('评论')) return
-  if (!commentContent.value.trim()) {
-    snackbarStore.error('评论内容不能为空')
-    return
-  }
-  // TODO: 实现提交评论逻辑
-  console.log('提交评论:', commentContent.value)
-  commentContent.value = ''
-  closeEmoji()
-}
-
-// 添加表情
-const addEmoji = (key: string) => {
-  commentContent.value += key
-}
-
 // 点赞
 const like = async (item: Comment | Reply) => {
   const isLiked = await likeStore.toggleLike(LikeTypeEnum.COMMENT, item.id)
-  if (isLiked === null) return
-  item.likeCount += isLiked ? 1 : -1
+  if (isLiked !== null) {
+    item.likeCount += isLiked ? 1 : -1
+  }
 }
 
 // 判断是否已点赞
 const isLike = (id: number): boolean => {
   return likeStore.isLiked(LikeTypeEnum.COMMENT, id)
+}
+
+// 提交评论
+const insertComment = async () => {
+  if (!userInfoStore.checkLogin('评论')) return
+  if (!commentContent.value.trim()) {
+    snackbarStore.error('评论内容不能为空')
+    return
+  }
+
+  try {
+    const params = {
+      targetType: props.type,
+      targetId: Number(props.typeId),
+      content: commentContent.value,
+    }
+
+    const res = await addComment(params)
+
+    if (res.data.review === ReviewStatusEnum.PENDING) {
+      snackbarStore.success('评论提交成功，等待审核')
+    } else {
+      // 不需要审核，本地插入新评论
+      const newComment: Comment = {
+        id: res.data.id,
+        avatar: res.data.avatar,
+        nickname: res.data.nickname,
+        userId: res.data.userId,
+        ipRegion: res.data.ipRegion,
+        createTime: res.data.createTime,
+        content: res.data.content,
+        likeCount: 0,
+        replyCount: 0,
+        replyList: [],
+      }
+      commentList.value.unshift(newComment)
+      count.value++
+      snackbarStore.success('评论提交成功')
+    }
+
+    // 清空评论内容
+    commentContent.value = ''
+    closeEmoji()
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { msg?: string } } }
+    snackbarStore.error(err.response?.data?.msg || '评论提交失败')
+  }
+}
+
+// 添加表情
+const addEmoji = (key: string) => {
+  commentContent.value += key
 }
 
 // 回复评论
@@ -390,15 +424,69 @@ const cancelReply = () => {
 }
 
 // 提交回复
-const submitReply = (item: Comment) => {
+const submitReply = async (item: Comment) => {
   if (!userInfoStore.checkLogin('回复')) return
   if (!replyContent.value.trim()) {
     snackbarStore.error('回复内容不能为空')
     return
   }
-  console.log('回复:', replyContent.value, '到:', item)
-  // TODO: 实现提交回复逻辑
-  cancelReply()
+
+  try {
+    // 获取被回复的用户信息（如果是回复子评论）
+    const replyToUser = replyingToReplyId.value
+      ? item.replyList?.find((r) => r.id === replyingToReplyId.value)
+      : null
+
+    const params = {
+      targetType: props.type,
+      targetId: Number(props.typeId),
+      content: replyContent.value,
+      parentId: item.id, // 回复目标评论
+      replyUserId: replyingToReplyId.value ? replyingToReplyId.value : undefined,
+    }
+
+    const res = await addComment(params)
+
+    if (res.data.review === ReviewStatusEnum.PENDING) {
+      snackbarStore.success('回复提交成功，等待审核')
+    } else {
+      // 不需要审核，本地插入新回复
+      const newReply: Reply = {
+        id: res.data.id,
+        avatar: res.data.avatar,
+        nickname: res.data.nickname,
+        userId: res.data.userId,
+        ipRegion: res.data.ipRegion,
+        createTime: res.data.createTime,
+        content: res.data.content,
+        likeCount: 0,
+        replyUserId: replyToUser?.userId,
+        replyNickname: replyToUser?.nickname,
+      }
+
+      // 插入到回复列表（通过索引更新确保响应式）
+      const index = commentList.value.findIndex((c) => c.id === item.id)
+      const comment = commentList.value[index]
+      if (comment) {
+        if (!comment.replyList) {
+          comment.replyList = []
+        }
+        comment.replyList.push(newReply)
+        comment.replyCount++
+        // 自动展开回复列表
+        showReplies[index] = true
+      }
+
+      snackbarStore.success('回复提交成功')
+    }
+
+    // 清空回复内容
+    cancelReply()
+  } catch (error: unknown) {
+    console.error('提交回复失败:', error)
+    const err = error as { response?: { data?: { msg?: string } } }
+    snackbarStore.error(err.response?.data?.msg || '回复提交失败')
+  }
 }
 
 // 切换回复列表显示
@@ -409,18 +497,21 @@ const toggleReplies = (index: number) => {
 // 加载评论列表
 const listComments = async () => {
   // 对于需要typeId的类型，如果typeId为空或不是数字，则不发起请求
-  if (([CommentTypeEnum.ARTICLE, CommentTypeEnum.TALK] as number[]).includes(props.type) && (!props.typeId || isNaN(Number(props.typeId)))) {
+  if (
+    ([CommentTypeEnum.ARTICLE, CommentTypeEnum.TALK] as number[]).includes(props.type) &&
+    (!props.typeId || isNaN(Number(props.typeId)))
+  ) {
     commentList.value = []
     count.value = 0
     return
   }
-  
+
   if (loading.value) return
   loading.value = true
   try {
     const res = await getComments({
       type: props.type,
-      typeId: props.typeId,
+      typeId: props.typeId ? Number(props.typeId) : undefined,
       current: current.value,
       sortType: sortType.value,
     })
@@ -803,6 +894,13 @@ onUnmounted(() => {
 
 .lc-content :deep(a:hover) {
   text-decoration: underline;
+}
+
+.lc-content :deep(.comment-emoji) {
+  width: 20px;
+  height: 20px;
+  vertical-align: text-bottom;
+  margin: 0 1px;
 }
 
 /* 操作栏 */

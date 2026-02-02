@@ -1,6 +1,7 @@
 package com.lsstop.service;
 
 import com.lsstop.domain.entity.CommentEntity;
+import com.lsstop.domain.vo.AddCommentVO;
 import com.lsstop.domain.vo.CommentVO;
 
 import java.util.List;
@@ -17,8 +18,9 @@ public interface CommentService {
      * 新增评论
      *
      * @param comment 评论实体
+     * @return 新增的评论信息（含用户资料）
      */
-    void insertComment(CommentEntity comment);
+    AddCommentVO insertComment(CommentEntity comment);
 
     /**
      * 获取评论列表（分页）

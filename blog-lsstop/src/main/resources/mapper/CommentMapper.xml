@@ -18,11 +18,11 @@
     </select>
 
     <!-- 新增评论 -->
-    <insert id="insertComment" parameterType="com.lsstop.domain.entity.CommentEntity">
+    <insert id="insertComment" parameterType="com.lsstop.domain.entity.CommentEntity" useGeneratedKeys="true" keyProperty="id">
         insert into blog_comment (user_id, target_id, target_type, content, parent_id,
                                   reply_user_id, ip_region, review, deleted_at, create_time, update_time)
         values (#{userId}, #{targetId}, #{targetType}, #{content}, #{parentId},
-                #{replyUserId}, #{ipRegion}, #{review}, 0, now(), now())
+                #{replyUserId}, #{ipRegion}, #{review}, 0, #{createTime}, now())
     </insert>
 
     <!-- 评论VO ResultMap -->

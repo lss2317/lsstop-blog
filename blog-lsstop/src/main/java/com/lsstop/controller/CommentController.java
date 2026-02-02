@@ -5,6 +5,7 @@ import com.lsstop.common.Result;
 import com.lsstop.constant.CommonConst;
 import com.lsstop.domain.dto.CommentDTO;
 import com.lsstop.domain.entity.CommentEntity;
+import com.lsstop.domain.vo.AddCommentVO;
 import com.lsstop.domain.vo.CommentPageVO;
 import com.lsstop.domain.vo.CommentVO;
 import com.lsstop.enums.CommentTypeEnum;
@@ -40,11 +41,11 @@ public class CommentController {
      *
      * @param commentDTO 评论请求参数
      * @param request    请求对象（拦截器已验证token并存入userId）
-     * @return 响应结果
+     * @return 新增的评论信息
      */
     @PostMapping("/front/comment/addComment")
     @AccessLimit(seconds = 60, maxCount = 30)
-    public Result<Void> addComment(@RequestBody @Validated CommentDTO commentDTO, HttpServletRequest request) {
+    public Result<AddCommentVO> addComment(@RequestBody @Validated CommentDTO commentDTO, HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         if (userId == null || userId.isBlank()) {
             throw new BusinessException(StatusEnum.NOT_LOGIN);
@@ -61,8 +62,8 @@ public class CommentController {
         comment.setUserId(userId);
         comment.setIpRegion(IpUtils.getIpLocation(IpUtils.getIpAddress(request)));
         comment.setReview(websiteConfigService.getWebsiteConfig().getEnableCommentReview());
-        commentService.insertComment(comment);
-        return Result.success();
+        AddCommentVO vo = commentService.insertComment(comment);
+        return Result.success(vo);
     }
 
     /**

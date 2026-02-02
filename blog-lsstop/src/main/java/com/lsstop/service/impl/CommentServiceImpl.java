@@ -1,14 +1,25 @@
 package com.lsstop.service.impl;
 
+import com.lsstop.constant.CommonConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.entity.CommentEntity;
+import com.lsstop.domain.entity.UserProfileEntity;
+import com.lsstop.domain.entity.WebsiteConfigEntity;
+import com.lsstop.domain.vo.AddCommentVO;
 import com.lsstop.domain.vo.CommentReplyVO;
 import com.lsstop.domain.vo.CommentVO;
+import com.lsstop.enums.CommentTypeEnum;
+import com.lsstop.enums.IllegalPolicyEnum;
+import com.lsstop.mapper.AuthMapper;
 import com.lsstop.mapper.CommentMapper;
 import com.lsstop.service.CommentService;
+import com.lsstop.service.WebsiteConfigService;
 import com.lsstop.utils.RedisUtils;
+import com.lsstop.utils.SensitiveWordUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,16 +39,66 @@ public class CommentServiceImpl implements CommentService {
     private CommentMapper commentMapper;
 
     @Resource
+    private AuthMapper authMapper;
+
+    @Resource
     private RedisUtils redisUtils;
+
+    @Resource
+    private WebsiteConfigService websiteConfigService;
 
     /**
      * 新增评论
      *
      * @param comment 评论实体
+     * @return 新增的评论信息（含用户资料）
      */
     @Override
-    public void insertComment(CommentEntity comment) {
+    public AddCommentVO insertComment(CommentEntity comment) {
+        // 获取敏感词处理策略
+        WebsiteConfigEntity config = websiteConfigService.getWebsiteConfig();
+        IllegalPolicyEnum policy = IllegalPolicyEnum.of(config.getCommentIllegalPolicy());
+
+        // 敏感词处理
+        SensitiveWordUtils.Result result = SensitiveWordUtils.process(comment.getContent(), policy);
+        comment.setContent(result.content());
+
+        // 转审核策略且命中敏感词，设置待审核状态
+        if (result.hasSensitive() && IllegalPolicyEnum.REVIEW == policy) {
+            comment.setReview(CommonConst.REVIEW_PENDING);
+        }
+
+        // 设置创建时间（不依赖数据库now()，确保返回时有值）
+        comment.setCreateTime(LocalDateTime.now());
+
         commentMapper.insertComment(comment);
+
+        // 更新Redis计数
+        updateRedisCount(comment);
+
+        // 查询用户资料并组装返回数据
+        UserProfileEntity userProfile = authMapper.selectProfileById(comment.getUserId());
+        AddCommentVO vo = comment.asViewObject(AddCommentVO.class);
+        if (userProfile != null) {
+            vo.setAvatar(userProfile.getAvatar());
+            vo.setNickname(userProfile.getNickname());
+        }
+        return vo;
+    }
+
+    /**
+     * 更新Redis计数
+     *
+     * @param comment 评论实体
+     */
+    private void updateRedisCount(CommentEntity comment) {
+        if (comment.getParentId() != null) {
+            // 回复评论：更新父评论的回复数
+            redisUtils.increment(RedisConst.COMMENT_REPLY_COUNT + comment.getParentId());
+        } else if (CommentTypeEnum.TALK.getType().equals(comment.getTargetType())) {
+            // 说说的顶级评论：更新说说评论数
+            redisUtils.increment(RedisConst.TALK_COMMENT_COUNT + comment.getTargetId());
+        }
     }
 
     /**
@@ -65,16 +126,22 @@ public class CommentServiceImpl implements CommentService {
         // 查询子评论
         List<CommentReplyVO> childComments = commentMapper.selectChildComments(parentIds);
         
-        // 批量从Redis获取顶级评论回复数
+        // 批量从 Redis 获取顶级评论回复数和点赞数
         List<String> parentReplyKeys = parentIds.stream()
                 .map(id -> RedisConst.COMMENT_REPLY_COUNT + id)
                 .collect(Collectors.toList());
+        List<String> parentLikeKeys = parentIds.stream()
+                .map(id -> RedisConst.COMMENT_LIKE_COUNT + id)
+                .collect(Collectors.toList());
         List<Integer> parentReplyCounts = redisUtils.mGet(parentReplyKeys, Integer.class);
+        List<Integer> parentLikeCounts = redisUtils.mGet(parentLikeKeys, Integer.class);
         
-        // 设置顶级评论回复数
+        // 设置顶级评论回复数和点赞数
         for (int i = 0; i < parentComments.size(); i++) {
             Integer replyCount = parentReplyCounts.get(i);
+            Integer likeCount = parentLikeCounts.get(i);
             parentComments.get(i).setReplyCount(replyCount == null ? 0 : replyCount);
+            parentComments.get(i).setLikeCount(likeCount == null ? 0 : likeCount);
         }
         
         // 批量从Redis获取子评论点赞数

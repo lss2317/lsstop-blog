@@ -97,7 +97,7 @@ function addBlogMessage() {
         danmakuRef.value?.add(data)
         snackbarStore.success('留言成功')
       } else {
-        snackbarStore.info('留言成功，待审核后展示')
+        snackbarStore.success('留言成功，待审核后展示')
       }
       // 清空输入框
       messageContent.value = ''
