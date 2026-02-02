@@ -18,22 +18,28 @@ export interface ApiResponse<T = unknown> {
   data: T
 }
 
+// 自定义请求配置，扩展 showProgress 参数
+export interface CustomAxiosRequestConfig extends AxiosRequestConfig {
+  /** 是否显示加载进度条，默认 true */
+  showProgress?: boolean
+}
+
 // 自定义请求实例接口，统一返回 ApiResponse<T>
 interface HttpInstance {
-  <T = unknown>(config: AxiosRequestConfig): Promise<ApiResponse<T>>
-  get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
+  <T = unknown>(config: CustomAxiosRequestConfig): Promise<ApiResponse<T>>
+  get<T = unknown>(url: string, config?: CustomAxiosRequestConfig): Promise<ApiResponse<T>>
   post<T = unknown>(
     url: string,
     data?: unknown,
-    config?: AxiosRequestConfig,
+    config?: CustomAxiosRequestConfig,
   ): Promise<ApiResponse<T>>
   put<T = unknown>(
     url: string,
     data?: unknown,
-    config?: AxiosRequestConfig,
+    config?: CustomAxiosRequestConfig,
   ): Promise<ApiResponse<T>>
-  delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
-  request<T = unknown>(config: AxiosRequestConfig): Promise<ApiResponse<T>>
+  delete<T = unknown>(url: string, config?: CustomAxiosRequestConfig): Promise<ApiResponse<T>>
+  request<T = unknown>(config: CustomAxiosRequestConfig): Promise<ApiResponse<T>>
 }
 
 // 创建axios实例
@@ -54,9 +60,12 @@ let requestCount = 0
 
 // request拦截器
 instance.interceptors.request.use(
-  (config: InternalAxiosRequestConfig & { _isRetry?: boolean }) => {
+  (config: InternalAxiosRequestConfig & { _isRetry?: boolean; showProgress?: boolean }) => {
+    // 判断是否需要显示进度条（默认显示）
+    const showProgress = config.showProgress !== false
+
     // 重试请求不参与计数（原请求已经计过了）
-    if (!config._isRetry) {
+    if (!config._isRetry && showProgress) {
       if (requestCount === 0) {
         NProgress.start()
       }
@@ -82,9 +91,14 @@ instance.interceptors.request.use(
 // response拦截器
 instance.interceptors.response.use(
   (response) => {
-    const config = response.config as InternalAxiosRequestConfig & { _isRetry?: boolean }
+    const config = response.config as InternalAxiosRequestConfig & {
+      _isRetry?: boolean
+      showProgress?: boolean
+    }
+    const showProgress = config.showProgress !== false
+
     // 重试请求不参与计数
-    if (!config._isRetry) {
+    if (!config._isRetry && showProgress) {
       requestCount--
       if (requestCount === 0) {
         NProgress.done()
@@ -96,10 +110,12 @@ instance.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean
       _isRetry?: boolean
+      showProgress?: boolean
     }
+    const showProgress = originalRequest.showProgress !== false
 
     // 重试请求不参与计数
-    if (!originalRequest._isRetry) {
+    if (!originalRequest._isRetry && showProgress) {
       requestCount--
       if (requestCount === 0) {
         NProgress.done()

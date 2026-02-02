@@ -68,7 +68,6 @@ public class CommentServiceImpl implements CommentService {
             comment.setReview(CommonConst.REVIEW_PENDING);
         }
 
-        // 设置创建时间（不依赖数据库now()，确保返回时有值）
         comment.setCreateTime(LocalDateTime.now());
 
         commentMapper.insertComment(comment);
@@ -95,8 +94,9 @@ public class CommentServiceImpl implements CommentService {
         if (comment.getParentId() != null) {
             // 回复评论：更新父评论的回复数
             redisUtils.increment(RedisConst.COMMENT_REPLY_COUNT + comment.getParentId());
-        } else if (CommentTypeEnum.TALK.getType().equals(comment.getTargetType())) {
-            // 说说的顶级评论：更新说说评论数
+        }
+        // 说说类型的评论（顶级+回复）都需要更新说说评论数
+        if (CommentTypeEnum.TALK.getType().equals(comment.getTargetType())) {
             redisUtils.increment(RedisConst.TALK_COMMENT_COUNT + comment.getTargetId());
         }
     }

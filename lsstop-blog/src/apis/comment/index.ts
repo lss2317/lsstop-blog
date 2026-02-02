@@ -89,5 +89,5 @@ export function getComments(params: CommentQueryParams) {
  * 当parentId存在时，回复对应评论
  */
 export function addComment(data: AddCommentParams) {
-  return http.post<AddCommentResult>('/comment/addComment', data)
+  return http.post<AddCommentResult>('/comment/addComment', data, { showProgress: false })
 }

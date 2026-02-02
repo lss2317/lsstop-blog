@@ -22,7 +22,7 @@ export interface UserLike {
 
 // 点赞/取消点赞
 export const toggleLike = (data: LikeParams) => {
-  return http.post<null>('/like/toggle', data)
+  return http.post<null>('/like/toggle', data, { showProgress: false })
 }
 
 // 获取用户点赞数据
