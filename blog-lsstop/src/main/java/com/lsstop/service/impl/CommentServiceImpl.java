@@ -65,11 +65,17 @@ public class CommentServiceImpl implements CommentService {
         // 查询子评论
         List<CommentReplyVO> childComments = commentMapper.selectChildComments(parentIds);
         
-        // 批量从Redis获取顶级评论点赞数
-        List<String> parentLikeKeys = parentIds.stream()
-                .map(id -> RedisConst.COMMENT_LIKE_COUNT + id)
+        // 批量从Redis获取顶级评论回复数
+        List<String> parentReplyKeys = parentIds.stream()
+                .map(id -> RedisConst.COMMENT_REPLY_COUNT + id)
                 .collect(Collectors.toList());
-        List<Integer> parentLikeCounts = redisUtils.mGet(parentLikeKeys, Integer.class);
+        List<Integer> parentReplyCounts = redisUtils.mGet(parentReplyKeys, Integer.class);
+        
+        // 设置顶级评论回复数
+        for (int i = 0; i < parentComments.size(); i++) {
+            Integer replyCount = parentReplyCounts.get(i);
+            parentComments.get(i).setReplyCount(replyCount == null ? 0 : replyCount);
+        }
         
         // 批量从Redis获取子评论点赞数
         List<String> childLikeKeys = childComments.stream()
@@ -77,12 +83,6 @@ public class CommentServiceImpl implements CommentService {
                 .collect(Collectors.toList());
         List<Integer> childLikeCounts = childLikeKeys.isEmpty() ? 
                 new ArrayList<>() : redisUtils.mGet(childLikeKeys, Integer.class);
-        
-        // 设置顶级评论点赞数
-        for (int i = 0; i < parentComments.size(); i++) {
-            Integer likeCount = parentLikeCounts.get(i);
-            parentComments.get(i).setLikeCount(likeCount == null ? 0 : likeCount);
-        }
         
         // 设置子评论点赞数
         for (int i = 0; i < childComments.size(); i++) {

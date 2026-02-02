@@ -69,13 +69,14 @@
         <span>评论区</span>
       </div>
       <!-- 评论 -->
-      <Comment :type="2" />
+      <Comment :type="CommentTypeEnum.FRIEND_LINK" />
     </v-card>
   </div>
 </template>
 
 <script setup lang="ts">
 import Comment from '@/components/Comment/BlogComment.vue'
+import { CommentTypeEnum } from '@/constants/commentType'
 import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { listFriendLink, type FriendLink } from '@/apis/friendLink'

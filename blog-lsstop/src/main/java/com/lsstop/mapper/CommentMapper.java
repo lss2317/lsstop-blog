@@ -66,4 +66,11 @@ public interface CommentMapper {
      */
     Integer countComments(@Param("typeId") Integer typeId,
                           @Param("type") Integer type);
+
+    /**
+     * 统计每条评论的回复数
+     *
+     * @return 评论回复数列表
+     */
+    List<CommentCountVO> countRepliesByParent();
 }

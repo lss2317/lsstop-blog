@@ -94,7 +94,7 @@
         </div>
         <!-- 评论 -->
         <div class="comment-wrapper">
-          <Comment></Comment>
+          <Comment :type="CommentTypeEnum.TALK" :typeId="String(talkId)" />
         </div>
       </template>
     </v-card>
@@ -115,6 +115,7 @@ import { type TalkItem, isUserDeactivated, getUserAvatar, getUserNickname } from
 import ShareDialog from '@/components/Share/ShareDialog.vue'
 import { LikeTypeEnum } from '@/constants/likeType'
 import Comment from '@/components/Comment/BlogComment.vue'
+import { CommentTypeEnum } from '@/constants/commentType'
 import { previewImages } from '@/utils/photoPreview'
 
 // 获取路由参数

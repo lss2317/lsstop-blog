@@ -69,6 +69,11 @@ public class RedisConst {
     public static final String COMMENT_LIKE_COUNT = PREFIX + "comment:like:count:";
 
     /**
+     * 评论回复数
+     */
+    public static final String COMMENT_REPLY_COUNT = PREFIX + "comment:reply:count:";
+
+    /**
      * 用户文章点赞记录
      */
     public static final String USER_ARTICLE_LIKE = PREFIX + "user:article:like:";

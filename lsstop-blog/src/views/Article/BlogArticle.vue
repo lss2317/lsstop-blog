@@ -201,7 +201,7 @@
               <span>评论区</span>
             </div>
             <!-- 评论 -->
-            <BlogComment />
+            <BlogComment :type="CommentTypeEnum.ARTICLE" :typeId="String(article.id)" />
           </v-card>
         </v-col>
         <!-- 侧边功能 -->
@@ -257,6 +257,7 @@ import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
 import useLikeStore from '@/stores/modules/like'
 import { LikeTypeEnum } from '@/constants/likeType'
 import BlogComment from '@/components/Comment/BlogComment.vue'
+import { CommentTypeEnum } from '@/constants/commentType'
 import ShareButtons from '@/components/Share/ShareButtons.vue'
 import tocbot from 'tocbot'
 import Clipboard from 'clipboard'

@@ -38,6 +38,7 @@ public class CommentStatsTask {
     public void init() {
         clearOldData();
         initCommentCounts();
+        initReplyCounts();
     }
 
     /**
@@ -46,6 +47,7 @@ public class CommentStatsTask {
     private void clearOldData() {
         log.info("开始清理Redis中的旧评论数据...");
         redisUtils.deleteByPrefix(RedisConst.TALK_COMMENT_COUNT);
+        redisUtils.deleteByPrefix(RedisConst.COMMENT_REPLY_COUNT);
         log.info("旧评论数据清理完成");
     }
 
@@ -54,7 +56,6 @@ public class CommentStatsTask {
      */
     private void initCommentCounts() {
         log.info("开始初始化说说评论数到Redis...");
-        // 只有说说需要评论数
         List<CommentCountVO> commentCounts = commentMapper.countCommentsByTargetType(CommentTypeEnum.TALK.getType());
         if (commentCounts == null || commentCounts.isEmpty()) {
             log.info("没有说说评论数需要初始化");
@@ -64,5 +65,21 @@ public class CommentStatsTask {
             redisUtils.set(RedisConst.TALK_COMMENT_COUNT + commentCount.getTargetId(), commentCount.getCommentCount());
         }
         log.info("说说评论数初始化完成，共{}条", commentCounts.size());
+    }
+
+    /**
+     * 初始化评论回复数
+     */
+    private void initReplyCounts() {
+        log.info("开始初始化评论回复数到Redis...");
+        List<CommentCountVO> replyCounts = commentMapper.countRepliesByParent();
+        if (replyCounts == null || replyCounts.isEmpty()) {
+            log.info("没有评论回复数需要初始化");
+            return;
+        }
+        for (CommentCountVO replyCount : replyCounts) {
+            redisUtils.set(RedisConst.COMMENT_REPLY_COUNT + replyCount.getTargetId(), replyCount.getCommentCount());
+        }
+        log.info("评论回复数初始化完成，共{}条", replyCounts.size());
     }
 }

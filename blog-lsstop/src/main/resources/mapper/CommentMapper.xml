@@ -106,7 +106,7 @@
         </foreach>
           and c.deleted_at = 0
           and c.review = 0
-        order by c.create_time asc
+        order by c.create_time
     </select>
 
     <!-- 统计评论总数（仅顶级评论） -->
@@ -118,6 +118,16 @@
           and parent_id is null
           and deleted_at = 0
           and review = 0
+    </select>
+
+    <!-- 统计每条评论的回复数 -->
+    <select id="countRepliesByParent" resultMap="commentCountResultMap">
+        select parent_id as target_id, count(*) as comment_count
+        from blog_comment
+        where parent_id is not null
+          and deleted_at = 0
+          and review = 0
+        group by parent_id
     </select>
 
 </mapper>

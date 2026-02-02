@@ -287,6 +287,7 @@ import { LikeTypeEnum } from '@/constants/likeType'
 import type { Comment, Reply } from '@/apis/comment'
 import { getComments } from '@/apis/comment'
 import { useEmoji } from '@/composables/useEmoji'
+import { CommentTypeEnum } from '@/constants/commentType'
 
 // props
 const props = defineProps<{
@@ -407,6 +408,13 @@ const toggleReplies = (index: number) => {
 
 // 加载评论列表
 const listComments = async () => {
+  // 对于需要typeId的类型，如果typeId为空或不是数字，则不发起请求
+  if (([CommentTypeEnum.ARTICLE, CommentTypeEnum.TALK] as number[]).includes(props.type) && (!props.typeId || isNaN(Number(props.typeId)))) {
+    commentList.value = []
+    count.value = 0
+    return
+  }
+  
   if (loading.value) return
   loading.value = true
   try {
