@@ -9,6 +9,7 @@ import 'animate.css'
 import './assets/css/index.css'
 import './assets/css/markdown.css'
 import './assets/css/icon/iconfont.css'
+import './assets/css/emoji.css'
 import 'highlight.js/styles/atom-one-dark.css'
 
 const app = createApp(App)

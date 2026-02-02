@@ -1,0 +1,94 @@
+/* 表情面板公共样式 */
+
+.lc-emoji-trigger-wrapper {
+  position: relative;
+}
+
+.lc-tool-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #3c3c3c;
+  font-size: 1.25rem;
+}
+
+.lc-tool-icon:hover,
+.lc-tool-icon.active {
+  color: #5cb85c;
+}
+
+.lc-emoji-panel {
+  position: absolute;
+  left: -5px;
+  z-index: 1000;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 10px;
+}
+
+.lc-emoji-panel.down {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+
+.lc-emoji-panel.down::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 10px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-left: 1px solid #e5e5e5;
+  border-top: 1px solid #e5e5e5;
+  transform: rotate(45deg);
+  box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.lc-emoji-panel.up {
+  bottom: calc(100% + 8px);
+  top: auto;
+}
+
+.lc-emoji-panel.up::before {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 10px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-right: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5;
+  transform: rotate(45deg);
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* 夜间模式 */
+.v-theme--dark .lc-tool-icon {
+  color: var(--color-text-secondary);
+}
+
+.v-theme--dark .lc-tool-icon:hover,
+.v-theme--dark .lc-tool-icon.active {
+  color: var(--color-success);
+}
+
+.v-theme--dark .lc-emoji-panel {
+  background: #2a2a2a;
+  box-shadow: var(--shadow-dropdown);
+}
+
+.v-theme--dark .lc-emoji-panel.down::before {
+  background: #2a2a2a;
+  border-left-color: #3d3d4a;
+  border-top-color: #3d3d4a;
+}
+
+.v-theme--dark .lc-emoji-panel.up::before {
+  background: #2a2a2a;
+  border-right-color: #3d3d4a;
+  border-bottom-color: #3d3d4a;
+}

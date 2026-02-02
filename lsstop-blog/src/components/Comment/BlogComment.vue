@@ -32,14 +32,9 @@
       <div class="lc-sort-dropdown-wrapper">
         <span class="lc-sort-dropdown" @click="showSortMenu = !showSortMenu">
           <span class="lc-sort-value">{{ sortType === 'hot' ? '最热' : '最新' }}</span>
-          <svg
-            :class="['lc-dropdown-icon', showSortMenu ? 'rotate' : '']"
-            viewBox="0 0 24 24"
-            width="14"
-            height="14"
+          <v-icon :class="['lc-dropdown-icon', showSortMenu ? 'rotate' : '']" size="14"
+            >mdi-chevron-down</v-icon
           >
-            <path fill="currentColor" d="M7 10l5 5 5-5z" />
-          </svg>
         </span>
         <!-- 下拉菜单 -->
         <div class="lc-sort-menu" v-if="showSortMenu">
@@ -48,30 +43,14 @@
             @click="selectSort('hot')"
           >
             <span>最热</span>
-            <svg
-              v-if="sortType === 'hot'"
-              class="lc-check-icon"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-            >
-              <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-            </svg>
+            <v-icon v-if="sortType === 'hot'" class="lc-check-icon" size="16">mdi-check</v-icon>
           </div>
           <div
             :class="['lc-sort-menu-item', sortType === 'new' ? 'active' : '']"
             @click="selectSort('new')"
           >
             <span>最新</span>
-            <svg
-              v-if="sortType === 'new'"
-              class="lc-check-icon"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-            >
-              <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-            </svg>
+            <v-icon v-if="sortType === 'new'" class="lc-check-icon" size="16">mdi-check</v-icon>
           </div>
         </div>
       </div>
@@ -106,89 +85,48 @@
           <div class="lc-content" v-html="parseEmoji(item.content)"></div>
           <!-- 操作栏 -->
           <div class="lc-action-row">
-            <span class="lc-action-item" @click="like(item)">
-              <svg
-                :class="['lc-action-icon', isLike(item.id) ? 'liked' : '']"
-                viewBox="0 0 24 24"
-                width="16"
-                height="16"
-              >
-                <path
-                  fill="currentColor"
-                  d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"
-                />
-              </svg>
+            <span
+              :class="['lc-action-item', 'like-item', isLike(item.id) ? 'liked' : '']"
+              @click="like(item)"
+            >
+              <v-icon size="16" class="like-btn">
+                {{ isLike(item.id) ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
+              </v-icon>
               <span>{{ item.likeCount }}</span>
             </span>
-            <span class="lc-action-item" v-if="item.replyCount > 0" @click="toggleReplies(index)">
-              <svg class="lc-action-icon" viewBox="0 0 24 24" width="16" height="16">
-                <path
-                  fill="currentColor"
-                  d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"
-                />
-              </svg>
+            <span
+              class="lc-action-item comment-btn"
+              v-if="item.replyCount > 0"
+              @click="toggleReplies(index)"
+            >
+              <v-icon size="16">mdi-comment-text-outline</v-icon>
               <span>{{
                 showReplies[index] ? '隐藏回复' : '展示 ' + item.replyCount + ' 条回复'
               }}</span>
             </span>
-            <span class="lc-action-item" @click="replyComment(index)">
-              <svg class="lc-action-icon" viewBox="0 0 24 24" width="16" height="16">
-                <path
-                  fill="currentColor"
-                  d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"
-                />
-              </svg>
+            <span class="lc-action-item reply-btn" @click="replyComment(index)">
+              <v-icon size="16">mdi-reply</v-icon>
               <span>回复</span>
             </span>
           </div>
 
           <!-- 回复输入框（回复主评论） -->
-          <div class="lc-reply-input-box" v-if="replyingTo === index && replyingToReplyId === null">
-            <div class="lc-reply-avatar">
-              <img :src="currentUserAvatar" alt="用户头像" />
-            </div>
-            <div class="lc-reply-input-wrapper">
-              <textarea
-                class="lc-reply-input"
-                v-model="replyContent"
-                placeholder="请输入回复 ..."
-                rows="1"
-                @input="autoResize"
-              />
-            </div>
-          </div>
-          <div class="lc-reply-actions" v-if="replyingTo === index && replyingToReplyId === null">
-            <div class="lc-emoji-trigger-wrapper">
-              <span
-                ref="replyEmojiTriggerRef"
-                :class="['lc-tool-icon', showReplyEmoji ? 'active' : '']"
-                title="表情"
-                @click="toggleReplyEmoji"
-              >
-                <i class="iconfont iconbiaoqing" />
-              </span>
-              <div :class="['lc-emoji-panel', replyEmojiDirection]" v-show="showReplyEmoji">
-                <CommentEmoji @addEmoji="addReplyEmoji" />
-              </div>
-            </div>
-            <div class="lc-reply-btns">
-              <button class="lc-cancel-btn" @click="cancelReply">取消</button>
-              <button
-                class="lc-reply-submit-btn"
-                :disabled="!replyContent.trim()"
-                @click="submitReply(item)"
-              >
-                回复
-              </button>
-            </div>
-          </div>
+          <ReplyInput
+            v-if="replyingTo === index && replyingToReplyId === null"
+            :avatar="currentUserAvatar"
+            v-model="replyContent"
+            placeholder="请输入回复 ..."
+            @submit="submitReply(item)"
+            @cancel="cancelReply"
+            @add-emoji="addReplyEmoji"
+          />
 
           <!-- 回复列表 -->
           <div
             class="lc-reply-list"
             v-if="item.replyList && item.replyList.length && showReplies[index]"
           >
-            <template v-for="reply of item.replyList" :key="reply.id">
+            <template v-for="reply of getVisibleReplies(index, item.replyList)" :key="reply.id">
               <div class="lc-reply-item">
                 <div class="lc-avatar small">
                   <img :src="reply.avatar" alt="用户头像" />
@@ -212,27 +150,17 @@
                     ><span v-html="parseEmoji(reply.content)"></span>
                   </div>
                   <div class="lc-action-row">
-                    <span class="lc-action-item" @click="like(reply)">
-                      <svg
-                        :class="['lc-action-icon', isLike(reply.id) ? 'liked' : '']"
-                        viewBox="0 0 24 24"
-                        width="16"
-                        height="16"
-                      >
-                        <path
-                          fill="currentColor"
-                          d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"
-                        />
-                      </svg>
+                    <span
+                      :class="['lc-action-item', 'like-item', isLike(reply.id) ? 'liked' : '']"
+                      @click="like(reply)"
+                    >
+                      <v-icon size="16" class="like-btn">
+                        {{ isLike(reply.id) ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
+                      </v-icon>
                       <span>{{ reply.likeCount }}</span>
                     </span>
-                    <span class="lc-action-item" @click="replyToReply(index, reply)">
-                      <svg class="lc-action-icon" viewBox="0 0 24 24" width="16" height="16">
-                        <path
-                          fill="currentColor"
-                          d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"
-                        />
-                      </svg>
+                    <span class="lc-action-item reply-btn" @click="replyToReply(index, reply)">
+                      <v-icon size="16">mdi-reply</v-icon>
                       <span>回复</span>
                     </span>
                   </div>
@@ -243,54 +171,29 @@
                 class="lc-sub-reply-input"
                 v-if="replyingTo === index && replyingToReplyId === reply.id"
               >
-                <div class="lc-reply-input-box">
-                  <div class="lc-reply-avatar">
-                    <img :src="currentUserAvatar" alt="用户头像" />
-                  </div>
-                  <div class="lc-reply-input-wrapper">
-                    <textarea
-                      class="lc-reply-input"
-                      v-model="replyContent"
-                      :placeholder="'@' + reply.nickname"
-                      rows="1"
-                      @input="autoResize"
-                    />
-                  </div>
-                </div>
-                <div class="lc-reply-actions">
-                  <div class="lc-emoji-trigger-wrapper">
-                    <span
-                      ref="replyEmojiTriggerRef"
-                      :class="['lc-tool-icon', showReplyEmoji ? 'active' : '']"
-                      title="表情"
-                      @click="toggleReplyEmoji"
-                    >
-                      <i class="iconfont iconbiaoqing" />
-                    </span>
-                    <div :class="['lc-emoji-panel', replyEmojiDirection]" v-show="showReplyEmoji">
-                      <CommentEmoji @addEmoji="addReplyEmoji" />
-                    </div>
-                  </div>
-                  <div class="lc-reply-btns">
-                    <button class="lc-cancel-btn" @click="cancelReply">取消</button>
-                    <button
-                      class="lc-reply-submit-btn"
-                      :disabled="!replyContent.trim()"
-                      @click="submitReply(item)"
-                    >
-                      回复
-                    </button>
-                  </div>
-                </div>
+                <ReplyInput
+                  :avatar="currentUserAvatar"
+                  v-model="replyContent"
+                  :placeholder="'@' + reply.nickname"
+                  @submit="submitReply(item)"
+                  @cancel="cancelReply"
+                  @add-emoji="addReplyEmoji"
+                />
               </div>
             </template>
 
-            <!-- 隐藏按钮 -->
-            <div class="lc-hide-replies" @click="toggleReplies(index)">
-              <svg class="lc-hide-icon" viewBox="0 0 24 24" width="14" height="14">
-                <path fill="currentColor" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" />
-              </svg>
-              <span>隐藏</span>
+            <!-- 展示更多/隐藏操作栏 -->
+            <div class="lc-reply-actions-bar">
+              <span
+                class="lc-show-more"
+                v-if="hasMoreReplies(index, item.replyList)"
+                @click="showMoreReplies(index)"
+                >展示更多</span
+              >
+              <span class="lc-hide-replies" @click="hideReplies(index)">
+                <v-icon class="lc-hide-icon" size="14">mdi-chevron-up</v-icon>
+                <span>隐藏</span>
+              </span>
             </div>
           </div>
         </div>
@@ -301,9 +204,9 @@
         <v-pagination
           v-model="current"
           :length="totalPages"
-          :total-visible="5"
+          :total-visible="7"
           density="comfortable"
-          rounded
+          variant="flat"
           @update:model-value="listComments"
         />
       </div>
@@ -317,6 +220,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import CommentEmoji from '@/components/Emoji/CommentEmoji.vue'
+import ReplyInput from '@/components/Comment/ReplyInput.vue'
 import { formatTime } from '@/utils/date'
 import { parseEmoji } from '@/utils/emoji'
 import useLikeStore from '@/stores/modules/like'
@@ -349,10 +253,13 @@ const postUserId = ref('')
 const replyingTo = ref<number | null>(null)
 const replyingToReplyId = ref<number | null>(null)
 const showReplies = reactive<Record<number, boolean>>({})
+const visibleReplyCount = reactive<Record<number, number>>({})
+const replyPageSize = 5 // 每次加载的子评论数量
 const sortType = ref<'hot' | 'new'>('hot')
 const showSortMenu = ref(false)
 const current = ref(1)
 const loading = ref(false)
+//每页默认最大条数
 const pageSize = 10
 
 // 计算总页数
@@ -370,17 +277,6 @@ const {
   closeEmoji,
   registerClickOutside,
   unregisterClickOutside,
-} = useEmoji()
-
-// 回复表情
-const {
-  showEmoji: showReplyEmoji,
-  emojiDirection: replyEmojiDirection,
-  emojiTriggerRef: replyEmojiTriggerRef,
-  toggleEmoji: toggleReplyEmoji,
-  closeEmoji: closeReplyEmoji,
-  registerClickOutside: registerReplyClickOutside,
-  unregisterClickOutside: unregisterReplyClickOutside,
 } = useEmoji()
 
 // 点赞
@@ -478,7 +374,6 @@ const cancelReply = () => {
   replyingTo.value = null
   replyingToReplyId.value = null
   replyContent.value = ''
-  closeReplyEmoji()
 }
 
 // 提交回复
@@ -533,6 +428,11 @@ const submitReply = async (item: Comment) => {
         comment.replyCount++
         // 自动展开回复列表
         showReplies[index] = true
+        // 确保新回复可见（更新显示数量）
+        const currentVisible = visibleReplyCount[index] || replyPageSize
+        if (comment.replyList.length > currentVisible) {
+          visibleReplyCount[index] = comment.replyList.length
+        }
       }
 
       snackbarStore.success('回复提交成功')
@@ -550,6 +450,34 @@ const submitReply = async (item: Comment) => {
 // 切换回复列表显示
 const toggleReplies = (index: number) => {
   showReplies[index] = !showReplies[index]
+  // 初次展开时设置默认显示数量
+  if (showReplies[index] && !visibleReplyCount[index]) {
+    visibleReplyCount[index] = replyPageSize
+  }
+}
+
+// 展示更多子评论
+const showMoreReplies = (index: number) => {
+  visibleReplyCount[index] = (visibleReplyCount[index] || replyPageSize) + replyPageSize
+}
+
+// 隐藏子评论列表
+const hideReplies = (index: number) => {
+  showReplies[index] = false
+}
+
+// 获取显示的子评论列表
+const getVisibleReplies = (index: number, replyList: Reply[] | undefined) => {
+  if (!replyList) return []
+  const count = visibleReplyCount[index] || replyPageSize
+  return replyList.slice(0, count)
+}
+
+// 是否还有更多子评论
+const hasMoreReplies = (index: number, replyList: Reply[] | undefined) => {
+  if (!replyList) return false
+  const count = visibleReplyCount[index] || replyPageSize
+  return replyList.length > count
 }
 
 // 加载评论列表
@@ -592,13 +520,6 @@ const selectSort = (type: 'hot' | 'new') => {
   listComments()
 }
 
-// 自动调整textarea高度
-const autoResize = (event: Event) => {
-  const textarea = event.target as HTMLTextAreaElement
-  textarea.style.height = 'auto'
-  textarea.style.height = textarea.scrollHeight + 'px'
-}
-
 // 点击外部关闭下拉菜单
 const handleClickOutside = (event: MouseEvent) => {
   const target = event.target as HTMLElement
@@ -610,14 +531,12 @@ const handleClickOutside = (event: MouseEvent) => {
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
   registerClickOutside()
-  registerReplyClickOutside()
   listComments()
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
   unregisterClickOutside()
-  unregisterReplyClickOutside()
 })
 </script>
 
@@ -682,24 +601,6 @@ onUnmounted(() => {
   gap: 20px;
 }
 
-.lc-emoji-trigger-wrapper {
-  position: relative;
-}
-
-.lc-tool-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #3c3c3c;
-  font-size: 1.25rem;
-}
-
-.lc-tool-icon:hover,
-.lc-tool-icon.active {
-  color: #5cb85c;
-}
-
 .lc-submit-btn {
   padding: 8px 24px;
   background: #2db55d;
@@ -721,57 +622,7 @@ onUnmounted(() => {
   cursor: not-allowed;
 }
 
-.lc-emoji-panel {
-  position: absolute;
-  left: -5px;
-  z-index: 1000;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 10px;
-}
-
-/* 向下展开（默认） */
-.lc-emoji-panel.down {
-  top: calc(100% + 8px);
-  bottom: auto;
-}
-
-.lc-emoji-panel.down::before {
-  content: '';
-  position: absolute;
-  top: -7px;
-  left: 10px;
-  width: 12px;
-  height: 12px;
-  background: #fff;
-  border-left: 1px solid #e5e5e5;
-  border-top: 1px solid #e5e5e5;
-  transform: rotate(45deg);
-  box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.03);
-}
-
-/* 向上展开 */
-.lc-emoji-panel.up {
-  bottom: calc(100% + 8px);
-  top: auto;
-}
-
-.lc-emoji-panel.up::before {
-  content: '';
-  position: absolute;
-  bottom: -6px;
-  left: 10px;
-  width: 12px;
-  height: 12px;
-  background: #fff;
-  border-right: 1px solid #e5e5e5;
-  border-bottom: 1px solid #e5e5e5;
-  transform: rotate(45deg);
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.03);
-}
-
-/* 回复表情面板 */
+/* 回复表情面板位置调整 */
 .lc-emoji-panel.reply-panel {
   left: 0;
 }
@@ -994,19 +845,64 @@ onUnmounted(() => {
   align-items: center;
   gap: 4px;
   cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 16px;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .lc-action-item:hover {
-  color: #262626;
+  background: rgba(0, 0, 0, 0.04);
 }
 
-.lc-action-icon {
-  width: 16px;
-  height: 16px;
+.lc-action-item :deep(.v-icon) {
+  color: #8c8c8c;
 }
 
-.lc-action-icon.liked {
-  color: #5cb85c;
+/* 点赞按钮样式 */
+.like-item:hover {
+  color: #eb5055;
+}
+
+.like-item:hover :deep(.v-icon) {
+  color: #eb5055 !important;
+}
+
+.like-item:hover .like-btn {
+  transform: scale(1.2);
+}
+
+.like-btn {
+  transition: transform 0.2s ease;
+}
+
+.like-item.liked {
+  color: #eb5055;
+}
+
+.like-item.liked :deep(.v-icon) {
+  color: #eb5055 !important;
+}
+
+/* 评论按钮样式 */
+.comment-btn:hover {
+  color: #1e80ff;
+}
+
+.comment-btn:hover :deep(.v-icon) {
+  color: #1e80ff !important;
+  transform: scale(1.2);
+}
+
+/* 回复按钮样式 */
+.reply-btn:hover {
+  color: #07c160;
+}
+
+.reply-btn:hover :deep(.v-icon) {
+  color: #07c160 !important;
+  transform: scale(1.2);
 }
 
 .lc-more-actions {
@@ -1068,7 +964,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   margin-top: 12px;
-  margin-left: 44px; /* 和评论框对齐（32px头像 + 12px gap） */
+  margin-left: calc(32px + 12px); /* 和评论框对齐（32px头像 + 12px gap） */
 }
 
 .lc-reply-btns {
@@ -1136,8 +1032,18 @@ onUnmounted(() => {
 }
 
 .lc-reply-to {
-  color: #40a9ff;
+  color: #007aff;
+  font-weight: 500;
   margin-right: 4px;
+  text-decoration: none;
+}
+
+.lc-reply-to:visited {
+  color: #007aff;
+}
+
+.lc-reply-to:hover {
+  text-decoration: underline;
 }
 
 /* 子评论回复输入框 */
@@ -1154,16 +1060,30 @@ onUnmounted(() => {
   margin-top: 12px;
 }
 
+/* 展示更多/隐藏操作栏 */
+.lc-reply-actions-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+}
+
+.lc-show-more {
+  font-size: 13px;
+  font-weight: 500;
+  color: #007aff;
+  cursor: pointer;
+}
+
 /* 隐藏按钮 */
 .lc-hide-replies {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 4px;
-  padding-top: 12px;
   font-size: 13px;
   color: #8c8c8c;
   cursor: pointer;
+  margin-left: auto;
 }
 
 .lc-hide-replies:hover {
@@ -1272,33 +1192,6 @@ onUnmounted(() => {
   color: var(--color-text-placeholder);
 }
 
-/* 表情面板 */
-.v-theme--dark .lc-emoji-panel {
-  background: #2a2a2a;
-  box-shadow: var(--shadow-dropdown);
-}
-
-.v-theme--dark .lc-emoji-panel.down::before {
-  background: #2a2a2a;
-  border-left-color: #3d3d4a;
-  border-top-color: #3d3d4a;
-}
-
-.v-theme--dark .lc-emoji-panel.up::before {
-  background: #2a2a2a;
-  border-right-color: #3d3d4a;
-  border-bottom-color: #3d3d4a;
-}
-
-.v-theme--dark .lc-tool-icon {
-  color: var(--color-text-secondary);
-}
-
-.v-theme--dark .lc-tool-icon:hover,
-.v-theme--dark .lc-tool-icon.active {
-  color: var(--color-success);
-}
-
 /* 排序 */
 .v-theme--dark .lc-sort-bar {
   color: var(--color-text-secondary);
@@ -1405,6 +1298,10 @@ onUnmounted(() => {
   color: var(--color-text-primary);
 }
 
+.v-theme--dark .lc-show-more {
+  color: #007aff;
+}
+
 /* 加载更多 */
 .v-theme--dark .lc-load-btn {
   background: transparent;
@@ -1434,5 +1331,93 @@ onUnmounted(() => {
 
 .v-theme--dark .lc-paging {
   color: var(--color-text-secondary);
+}
+
+/* 分页样式 */
+.lc-pagination {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 8px;
+}
+
+.lc-pagination .v-pagination__list {
+  gap: 4px;
+}
+
+/* 普通按钮 - bg-fill-3 */
+.lc-pagination .v-pagination .v-btn {
+  min-width: 32px !important;
+  height: 32px !important;
+  border-radius: 5px !important;
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  box-shadow: none !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.lc-pagination .v-pagination .v-btn .v-btn__overlay,
+.lc-pagination .v-pagination .v-btn .v-btn__underlay {
+  display: none !important;
+}
+
+/* hover - bg-fill-2 */
+.lc-pagination .v-pagination .v-btn:hover {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 当前选中页 - bg-paper + shadow-level1 */
+.lc-pagination .v-pagination__item--is-active .v-btn {
+  background-color: #fff !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  box-shadow:
+    0px 0px 1px 0px rgba(0, 0, 0, 0.1),
+    0px 0.5px 5px 0px rgba(0, 0, 0, 0.1) !important;
+  pointer-events: none !important;
+}
+
+/* 禁用状态 - disabled:opacity-40 */
+.lc-pagination .v-pagination .v-btn--disabled {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  box-shadow: none !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+  opacity: 0.4 !important;
+}
+
+/* 省略号 - disabled + bg-fill-3 */
+.lc-pagination .v-pagination__more .v-btn {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  box-shadow: none !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+  opacity: 0.4 !important;
+}
+
+/* 分页夜间模式 - dark-fill-3, dark-label-2, dark-gray-5 */
+.v-theme--dark .lc-pagination .v-pagination .v-btn {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.v-theme--dark .lc-pagination .v-pagination .v-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.v-theme--dark .lc-pagination .v-pagination__item--is-active .v-btn {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  box-shadow:
+    0px 0px 1px 0px rgba(0, 0, 0, 0.3),
+    0px 0.5px 5px 0px rgba(0, 0, 0, 0.3) !important;
+}
+
+.v-theme--dark .lc-pagination .v-pagination .v-btn--disabled {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.v-theme--dark .lc-pagination .v-pagination__more .v-btn {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
 }
 </style>
