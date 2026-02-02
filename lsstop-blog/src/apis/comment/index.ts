@@ -53,7 +53,7 @@ export interface AddCommentParams {
   /** 回复的目标评论ID（可选，用于回复评论）*/
   parentId?: number
   /** 回复的目标用户ID（可选，用于回复特定用户）*/
-  replyUserId?: number
+  replyUserId?: string
 }
 
 /** 添加评论返回结果 */

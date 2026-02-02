@@ -6,7 +6,7 @@ import EmojiList from '@/constants/emoji'
  */
 export function parseEmoji(content: string): string {
   if (!content) return ''
-  return content.replace(/\[([^\]]+)\]/g, (match) => {
+  return content.replace(/\[([^\]]+)]/g, (match) => {
     const url = EmojiList[match]
     return url ? `<img src="${url}" alt="${match}" class="comment-emoji" />` : match
   })

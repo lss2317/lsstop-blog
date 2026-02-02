@@ -77,8 +77,14 @@
       </div>
     </div>
 
+    <!-- 加载状态 -->
+    <div class="lc-loading" v-if="loading">
+      <v-progress-circular indeterminate color="green" size="32" />
+      <span>加载中...</span>
+    </div>
+
     <!-- 评论列表 -->
-    <div class="lc-comment-list" v-if="count > 0">
+    <div class="lc-comment-list" v-else-if="count > 0">
       <div class="lc-comment-item" v-for="(item, index) of commentList" :key="item.id">
         <!-- 头像 -->
         <div class="lc-avatar">
@@ -152,14 +158,29 @@
             </div>
           </div>
           <div class="lc-reply-actions" v-if="replyingTo === index && replyingToReplyId === null">
-            <button class="lc-cancel-btn" @click="cancelReply">取消</button>
-            <button
-              class="lc-reply-submit-btn"
-              :disabled="!replyContent.trim()"
-              @click="submitReply(item)"
-            >
-              回复
-            </button>
+            <div class="lc-emoji-trigger-wrapper">
+              <span
+                ref="replyEmojiTriggerRef"
+                :class="['lc-tool-icon', showReplyEmoji ? 'active' : '']"
+                title="表情"
+                @click="toggleReplyEmoji"
+              >
+                <i class="iconfont iconbiaoqing" />
+              </span>
+              <div :class="['lc-emoji-panel', replyEmojiDirection]" v-show="showReplyEmoji">
+                <CommentEmoji @addEmoji="addReplyEmoji" />
+              </div>
+            </div>
+            <div class="lc-reply-btns">
+              <button class="lc-cancel-btn" @click="cancelReply">取消</button>
+              <button
+                class="lc-reply-submit-btn"
+                :disabled="!replyContent.trim()"
+                @click="submitReply(item)"
+              >
+                回复
+              </button>
+            </div>
           </div>
 
           <!-- 回复列表 -->
@@ -183,7 +204,12 @@
                     <span>{{ formatTime(reply.createTime) }}</span>
                   </div>
                   <div class="lc-content">
-                    <span v-html="parseEmoji(reply.content)"></span>
+                    <a
+                      v-if="reply.replyNickname"
+                      class="lc-reply-to"
+                      :href="'/user/' + reply.replyUserId"
+                      >@{{ reply.replyNickname }}</a
+                    ><span v-html="parseEmoji(reply.content)"></span>
                   </div>
                   <div class="lc-action-row">
                     <span class="lc-action-item" @click="like(reply)">
@@ -232,14 +258,29 @@
                   </div>
                 </div>
                 <div class="lc-reply-actions">
-                  <button class="lc-cancel-btn" @click="cancelReply">取消</button>
-                  <button
-                    class="lc-reply-submit-btn"
-                    :disabled="!replyContent.trim()"
-                    @click="submitReply(item)"
-                  >
-                    回复
-                  </button>
+                  <div class="lc-emoji-trigger-wrapper">
+                    <span
+                      ref="replyEmojiTriggerRef"
+                      :class="['lc-tool-icon', showReplyEmoji ? 'active' : '']"
+                      title="表情"
+                      @click="toggleReplyEmoji"
+                    >
+                      <i class="iconfont iconbiaoqing" />
+                    </span>
+                    <div :class="['lc-emoji-panel', replyEmojiDirection]" v-show="showReplyEmoji">
+                      <CommentEmoji @addEmoji="addReplyEmoji" />
+                    </div>
+                  </div>
+                  <div class="lc-reply-btns">
+                    <button class="lc-cancel-btn" @click="cancelReply">取消</button>
+                    <button
+                      class="lc-reply-submit-btn"
+                      :disabled="!replyContent.trim()"
+                      @click="submitReply(item)"
+                    >
+                      回复
+                    </button>
+                  </div>
                 </div>
               </div>
             </template>
@@ -269,7 +310,7 @@
     </div>
 
     <!-- 空状态 -->
-    <div class="lc-empty" v-else>来发评论吧~</div>
+    <div class="lc-empty" v-else-if="!loading">来发评论吧~</div>
   </div>
 </template>
 
@@ -320,7 +361,7 @@ const totalPages = computed(() => Math.ceil(count.value / pageSize))
 // 当前用户头像
 const currentUserAvatar = computed(() => userInfoStore.userInfo.avatar ?? '')
 
-// 表情相关
+// 主评论表情
 const {
   showEmoji,
   emojiDirection,
@@ -329,6 +370,17 @@ const {
   closeEmoji,
   registerClickOutside,
   unregisterClickOutside,
+} = useEmoji()
+
+// 回复表情
+const {
+  showEmoji: showReplyEmoji,
+  emojiDirection: replyEmojiDirection,
+  emojiTriggerRef: replyEmojiTriggerRef,
+  toggleEmoji: toggleReplyEmoji,
+  closeEmoji: closeReplyEmoji,
+  registerClickOutside: registerReplyClickOutside,
+  unregisterClickOutside: unregisterReplyClickOutside,
 } = useEmoji()
 
 // 点赞
@@ -396,6 +448,11 @@ const addEmoji = (key: string) => {
   commentContent.value += key
 }
 
+// 添加回复表情
+const addReplyEmoji = (key: string) => {
+  replyContent.value += key
+}
+
 // 回复评论
 const replyComment = (index: number) => {
   if (!userInfoStore.checkLogin('回复')) return
@@ -421,6 +478,7 @@ const cancelReply = () => {
   replyingTo.value = null
   replyingToReplyId.value = null
   replyContent.value = ''
+  closeReplyEmoji()
 }
 
 // 提交回复
@@ -442,7 +500,7 @@ const submitReply = async (item: Comment) => {
       targetId: Number(props.typeId),
       content: replyContent.value,
       parentId: item.id, // 回复目标评论
-      replyUserId: replyingToReplyId.value ? replyingToReplyId.value : undefined,
+      replyUserId: replyToUser?.userId, // 只有回复子评论时才有值
     }
 
     const res = await addComment(params)
@@ -552,12 +610,14 @@ const handleClickOutside = (event: MouseEvent) => {
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
   registerClickOutside()
+  registerReplyClickOutside()
   listComments()
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
   unregisterClickOutside()
+  unregisterReplyClickOutside()
 })
 </script>
 
@@ -566,6 +626,18 @@ onUnmounted(() => {
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background: #fff;
+}
+
+/* 加载状态 */
+.lc-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  gap: 12px;
+  color: #8c8c8c;
+  font-size: 14px;
 }
 
 /* 输入框 */
@@ -697,6 +769,11 @@ onUnmounted(() => {
   border-bottom: 1px solid #e5e5e5;
   transform: rotate(45deg);
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* 回复表情面板 */
+.lc-emoji-panel.reply-panel {
+  left: 0;
 }
 
 /* 排序 */
@@ -987,9 +1064,16 @@ onUnmounted(() => {
 
 .lc-reply-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 12px;
   margin-top: 12px;
+  margin-left: 44px; /* 和评论框对齐（32px头像 + 12px gap） */
+}
+
+.lc-reply-btns {
+  display: flex;
+  gap: 12px;
 }
 
 .lc-cancel-btn {
@@ -1335,6 +1419,11 @@ onUnmounted(() => {
 
 /* 空状态 */
 .v-theme--dark .lc-empty {
+  color: var(--color-text-tertiary);
+}
+
+/* 加载状态 */
+.v-theme--dark .lc-loading {
   color: var(--color-text-tertiary);
 }
 

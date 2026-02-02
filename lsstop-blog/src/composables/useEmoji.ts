@@ -6,24 +6,45 @@ export function useEmoji() {
   const emojiTriggerRef = ref<HTMLElement | null>(null)
 
   // 计算表情框展开方向
-  const calculateEmojiDirection = () => {
-    if (!emojiTriggerRef.value) return
-    const rect = emojiTriggerRef.value.getBoundingClientRect()
-    const panelHeight = 220
-    const spaceBelow = window.innerHeight - rect.bottom
-    const spaceAbove = rect.top
+  const calculateEmojiDirection = (triggerEl?: HTMLElement | null) => {
+    const el =
+      triggerEl ||
+      (Array.isArray(emojiTriggerRef.value) ? emojiTriggerRef.value[0] : emojiTriggerRef.value)
+    if (!el) return
 
-    if (spaceBelow < panelHeight && spaceAbove > spaceBelow) {
-      emojiDirection.value = 'up'
+    const rect = el.getBoundingClientRect()
+    const panelHeight = 220
+
+    // 查找评论容器
+    const commentContainer = el.closest('.lc-comment-container')
+    if (commentContainer) {
+      const containerRect = commentContainer.getBoundingClientRect()
+      const spaceBelow = containerRect.bottom - rect.bottom
+      const spaceAbove = rect.top - containerRect.top
+
+      if (spaceBelow < panelHeight && spaceAbove > spaceBelow) {
+        emojiDirection.value = 'up'
+      } else {
+        emojiDirection.value = 'down'
+      }
     } else {
-      emojiDirection.value = 'down'
+      // 回退到视口计算
+      const spaceBelow = window.innerHeight - rect.bottom
+      const spaceAbove = rect.top
+
+      if (spaceBelow < panelHeight && spaceAbove > spaceBelow) {
+        emojiDirection.value = 'up'
+      } else {
+        emojiDirection.value = 'down'
+      }
     }
   }
 
   // 切换表情框
-  const toggleEmoji = () => {
+  const toggleEmoji = (event?: MouseEvent) => {
     if (!showEmoji.value) {
-      calculateEmojiDirection()
+      const triggerEl = (event?.currentTarget || event?.target) as HTMLElement | null
+      calculateEmojiDirection(triggerEl)
     }
     showEmoji.value = !showEmoji.value
   }
