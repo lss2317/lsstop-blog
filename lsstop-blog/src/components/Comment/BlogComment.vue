@@ -2,7 +2,13 @@
   <div class="lc-comment-container">
     <!-- 评论输入框 -->
     <div class="lc-input-box">
-      <textarea class="lc-textarea" v-model="commentContent" placeholder="请输入评论..." />
+      <textarea
+        ref="commentTextareaRef"
+        class="lc-textarea"
+        v-model="commentContent"
+        placeholder="请输入评论..."
+        @input="handleTextareaInput"
+      />
       <div class="lc-input-toolbar">
         <div class="lc-toolbar-left">
           <div class="lc-emoji-trigger-wrapper">
@@ -64,7 +70,7 @@
 
     <!-- 评论列表 -->
     <div class="lc-comment-list" v-else-if="count > 0">
-      <div class="lc-comment-item" v-for="(item, index) of commentList" :key="item.id">
+      <div class="lc-comment-item" v-for="item of commentList" :key="item.id">
         <!-- 头像 -->
         <div class="lc-avatar">
           <img :src="item.avatar" alt="用户头像" />
@@ -97,14 +103,14 @@
             <span
               class="lc-action-item comment-btn"
               v-if="item.replyCount > 0"
-              @click="toggleReplies(index)"
+              @click="toggleReplies(item.id)"
             >
               <v-icon size="16">mdi-comment-text-outline</v-icon>
               <span>{{
-                showReplies[index] ? '隐藏回复' : '展示 ' + item.replyCount + ' 条回复'
+                showRepliesMap[item.id] ? '隐藏回复' : '展示 ' + item.replyCount + ' 条回复'
               }}</span>
             </span>
-            <span class="lc-action-item reply-btn" @click="replyComment(index)">
+            <span class="lc-action-item reply-btn" @click="replyComment(item.id)">
               <v-icon size="16">mdi-reply</v-icon>
               <span>回复</span>
             </span>
@@ -112,7 +118,7 @@
 
           <!-- 回复输入框（回复主评论） -->
           <ReplyInput
-            v-if="replyingTo === index && replyingToReplyId === null"
+            v-if="replyingTo === item.id && replyingToReplyId === null"
             :avatar="currentUserAvatar"
             v-model="replyContent"
             placeholder="请输入回复 ..."
@@ -124,9 +130,9 @@
           <!-- 回复列表 -->
           <div
             class="lc-reply-list"
-            v-if="item.replyList && item.replyList.length && showReplies[index]"
+            v-if="item.replyList && item.replyList.length && showRepliesMap[item.id]"
           >
-            <template v-for="reply of getVisibleReplies(index, item.replyList)" :key="reply.id">
+            <template v-for="reply of getVisibleReplies(item.id, item.replyList)" :key="reply.id">
               <div class="lc-reply-item">
                 <div class="lc-avatar small">
                   <img :src="reply.avatar" alt="用户头像" />
@@ -159,7 +165,7 @@
                       </v-icon>
                       <span>{{ reply.likeCount }}</span>
                     </span>
-                    <span class="lc-action-item reply-btn" @click="replyToReply(index, reply)">
+                    <span class="lc-action-item reply-btn" @click="replyToReply(item.id, reply)">
                       <v-icon size="16">mdi-reply</v-icon>
                       <span>回复</span>
                     </span>
@@ -169,7 +175,7 @@
               <!-- 回复子评论的输入框 -->
               <div
                 class="lc-sub-reply-input"
-                v-if="replyingTo === index && replyingToReplyId === reply.id"
+                v-if="replyingTo === item.id && replyingToReplyId === reply.id"
               >
                 <ReplyInput
                   :avatar="currentUserAvatar"
@@ -186,11 +192,11 @@
             <div class="lc-reply-actions-bar">
               <span
                 class="lc-show-more"
-                v-if="hasMoreReplies(index, item.replyList)"
-                @click="showMoreReplies(index)"
+                v-if="hasMoreReplies(item.id, item.replyList)"
+                @click="showMoreReplies(item.id)"
                 >展示更多</span
               >
-              <span class="lc-hide-replies" @click="hideReplies(index)">
+              <span class="lc-hide-replies" @click="hideReplies(item.id)">
                 <v-icon class="lc-hide-icon" size="14">mdi-chevron-up</v-icon>
                 <span>隐藏</span>
               </span>
@@ -223,6 +229,7 @@ import CommentEmoji from '@/components/Emoji/CommentEmoji.vue'
 import ReplyInput from '@/components/Comment/ReplyInput.vue'
 import { formatTime } from '@/utils/date'
 import { parseEmoji } from '@/utils/emoji'
+import { adjustTextareaHeight } from '@/utils/format'
 import useLikeStore from '@/stores/modules/like'
 import useUserInfoStore from '@/stores/modules/userInfo'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
@@ -246,14 +253,15 @@ const snackbarStore = useSnackbarStore()
 
 // 评论状态
 const commentContent = ref('')
+const commentTextareaRef = ref<HTMLTextAreaElement | null>(null)
 const replyContent = ref('')
 const count = ref(0)
 const commentList = ref<Comment[]>([])
 const postUserId = ref('')
 const replyingTo = ref<number | null>(null)
 const replyingToReplyId = ref<number | null>(null)
-const showReplies = reactive<Record<number, boolean>>({})
-const visibleReplyCount = reactive<Record<number, number>>({})
+const showRepliesMap = reactive<Record<number, boolean>>({})
+const visibleReplyCountMap = reactive<Record<number, number>>({})
 const replyPageSize = 5 // 每次加载的子评论数量
 const sortType = ref<'hot' | 'new'>('hot')
 const showSortMenu = ref(false)
@@ -278,6 +286,13 @@ const {
   registerClickOutside,
   unregisterClickOutside,
 } = useEmoji()
+
+// 调整评论输入框高度
+const handleTextareaInput = () => {
+  if (commentTextareaRef.value) {
+    adjustTextareaHeight(commentTextareaRef.value)
+  }
+}
 
 // 点赞
 const like = async (item: Comment | Reply) => {
@@ -350,21 +365,21 @@ const addReplyEmoji = (key: string) => {
 }
 
 // 回复评论
-const replyComment = (index: number) => {
+const replyComment = (commentId: number) => {
   if (!userInfoStore.checkLogin('回复')) return
-  if (replyingTo.value === index && replyingToReplyId.value === null) {
+  if (replyingTo.value === commentId && replyingToReplyId.value === null) {
     cancelReply()
   } else {
-    replyingTo.value = index
+    replyingTo.value = commentId
     replyingToReplyId.value = null
     replyContent.value = ''
   }
 }
 
 // 回复子评论
-const replyToReply = (index: number, reply: Reply) => {
+const replyToReply = (commentId: number, reply: Reply) => {
   if (!userInfoStore.checkLogin('回复')) return
-  replyingTo.value = index
+  replyingTo.value = commentId
   replyingToReplyId.value = reply.id
   replyContent.value = ''
 }
@@ -424,15 +439,14 @@ const submitReply = async (item: Comment) => {
         if (!comment.replyList) {
           comment.replyList = []
         }
-        comment.replyList.push(newReply)
+        // 在当前可见区域末尾插入新回复
+        const currentVisible = visibleReplyCountMap[comment.id] || replyPageSize
+        comment.replyList.splice(currentVisible, 0, newReply)
         comment.replyCount++
         // 自动展开回复列表
-        showReplies[index] = true
-        // 确保新回复可见（更新显示数量）
-        const currentVisible = visibleReplyCount[index] || replyPageSize
-        if (comment.replyList.length > currentVisible) {
-          visibleReplyCount[index] = comment.replyList.length
-        }
+        showRepliesMap[comment.id] = true
+        // 显示数量+1，确保新回复可见
+        visibleReplyCountMap[comment.id] = currentVisible + 1
       }
 
       snackbarStore.success('回复提交成功')
@@ -448,36 +462,44 @@ const submitReply = async (item: Comment) => {
 }
 
 // 切换回复列表显示
-const toggleReplies = (index: number) => {
-  showReplies[index] = !showReplies[index]
+const toggleReplies = (commentId: number) => {
+  showRepliesMap[commentId] = !showRepliesMap[commentId]
   // 初次展开时设置默认显示数量
-  if (showReplies[index] && !visibleReplyCount[index]) {
-    visibleReplyCount[index] = replyPageSize
+  if (showRepliesMap[commentId] && !visibleReplyCountMap[commentId]) {
+    visibleReplyCountMap[commentId] = replyPageSize
   }
 }
 
 // 展示更多子评论
-const showMoreReplies = (index: number) => {
-  visibleReplyCount[index] = (visibleReplyCount[index] || replyPageSize) + replyPageSize
+const showMoreReplies = (commentId: number) => {
+  visibleReplyCountMap[commentId] =
+    (visibleReplyCountMap[commentId] || replyPageSize) + replyPageSize
 }
 
 // 隐藏子评论列表
-const hideReplies = (index: number) => {
-  showReplies[index] = false
+const hideReplies = (commentId: number) => {
+  showRepliesMap[commentId] = false
 }
 
 // 获取显示的子评论列表
-const getVisibleReplies = (index: number, replyList: Reply[] | undefined) => {
+const getVisibleReplies = (commentId: number, replyList: Reply[] | undefined) => {
   if (!replyList) return []
-  const count = visibleReplyCount[index] || replyPageSize
+  const count = visibleReplyCountMap[commentId] || replyPageSize
   return replyList.slice(0, count)
 }
 
 // 是否还有更多子评论
-const hasMoreReplies = (index: number, replyList: Reply[] | undefined) => {
+const hasMoreReplies = (commentId: number, replyList: Reply[] | undefined) => {
   if (!replyList) return false
-  const count = visibleReplyCount[index] || replyPageSize
+  const count = visibleReplyCountMap[commentId] || replyPageSize
   return replyList.length > count
+}
+
+// 重置所有展开状态
+const resetRepliesState = () => {
+  Object.keys(showRepliesMap).forEach((key) => delete showRepliesMap[Number(key)])
+  Object.keys(visibleReplyCountMap).forEach((key) => delete visibleReplyCountMap[Number(key)])
+  cancelReply()
 }
 
 // 加载评论列表
@@ -494,6 +516,8 @@ const listComments = async () => {
 
   if (loading.value) return
   loading.value = true
+  // 重置展开状态
+  resetRepliesState()
   try {
     const res = await getComments({
       type: props.type,
@@ -573,7 +597,8 @@ onUnmounted(() => {
 
 .lc-textarea {
   width: 100%;
-  min-height: 80px;
+  min-height: 42px;
+  max-height: 200px;
   padding: 16px;
   border: none;
   outline: none;
@@ -583,6 +608,7 @@ onUnmounted(() => {
   color: #262626;
   box-sizing: border-box;
   background: transparent;
+  overflow-y: hidden;
 }
 
 .lc-textarea::placeholder {

@@ -41,6 +41,7 @@
 <script setup lang="ts">
 import CommentEmoji from '@/components/Emoji/CommentEmoji.vue'
 import { useEmoji } from '@/composables/useEmoji'
+import { adjustTextareaHeight } from '@/utils/format'
 import { onMounted, onUnmounted } from 'vue'
 
 defineProps<{
@@ -67,8 +68,7 @@ const {
 
 const onInput = (event: Event) => {
   const textarea = event.target as HTMLTextAreaElement
-  textarea.style.height = 'auto'
-  textarea.style.height = textarea.scrollHeight + 'px'
+  adjustTextareaHeight(textarea)
   emit('update:modelValue', textarea.value)
 }
 
@@ -124,6 +124,7 @@ onUnmounted(() => {
   resize: none;
   overflow-y: hidden;
   min-height: 42px;
+  max-height: 200px;
   line-height: 1.5;
   font-family: inherit;
   box-sizing: border-box;
