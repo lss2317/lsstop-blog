@@ -14,7 +14,9 @@
             enter-active-class="animate__animated animate__bounceInLeft"
             leave-active-class="animate__animated animate__bounceOutRight"
           >
-            <button class="ml-3" @click="addBlogMessage" v-show="show">发送</button>
+            <button class="ml-3" :disabled="submitting" @click="addBlogMessage" v-show="show">
+              {{ submitting ? '发送中...' : '发送' }}
+            </button>
           </transition>
         </div>
       </div>
@@ -66,6 +68,7 @@ const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
 
 // 状态
 const show = ref(false)
+const submitting = ref(false)
 const messageContent = ref('')
 const inputWrapperRef = ref<HTMLElement | null>(null)
 const danmakuRef = ref<InstanceType<typeof VueDanmaku> | null>(null)
@@ -82,6 +85,9 @@ function addBlogMessage() {
     return
   }
 
+  if (submitting.value) return
+
+  submitting.value = true
   const message: AddMessageParams = {
     avatar: userInfoStore.userInfo.avatar!,
     nickname: userInfoStore.userInfo.nickname!,
@@ -106,6 +112,9 @@ function addBlogMessage() {
     .catch((error) => {
       const msg = error.response?.data?.msg || '留言失败，请稍后重试'
       snackbarStore.error(msg)
+    })
+    .finally(() => {
+      submitting.value = false
     })
 }
 
@@ -200,6 +209,11 @@ function handleClickOutside(event: MouseEvent) {
   border: #fff 1px solid;
   flex-shrink: 0;
   cursor: pointer;
+}
+
+.message-input-wrapper button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .barrage-container {

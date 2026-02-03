@@ -29,9 +29,9 @@
         </div>
       </div>
       <div class="reply-btns">
-        <button class="cancel-btn" @click="$emit('cancel')">取消</button>
-        <button class="submit-btn" :disabled="!modelValue.trim()" @click="$emit('submit')">
-          回复
+        <button class="cancel-btn" :disabled="submitting" @click="$emit('cancel')">取消</button>
+        <button class="submit-btn" :disabled="!modelValue.trim() || submitting" @click="$emit('submit')">
+          {{ submitting ? '提交中...' : '回复' }}
         </button>
       </div>
     </div>
@@ -48,6 +48,7 @@ defineProps<{
   avatar: string
   placeholder?: string
   modelValue: string
+  submitting?: boolean
 }>()
 
 const emit = defineEmits<{

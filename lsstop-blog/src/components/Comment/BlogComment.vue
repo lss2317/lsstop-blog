@@ -26,8 +26,8 @@
             </div>
           </div>
         </div>
-        <button class="lc-submit-btn" :disabled="!commentContent.trim()" @click="insertComment">
-          评论
+        <button class="lc-submit-btn" :disabled="!commentContent.trim() || submitting" @click="insertComment">
+          {{ submitting ? '提交中...' : '评论' }}
         </button>
       </div>
     </div>
@@ -79,7 +79,6 @@
           <!-- 用户信息 -->
           <div class="lc-user-row">
             <span class="lc-nickname">{{ item.nickname }}</span>
-            <span class="lc-blogger-tag" v-if="item.userId === postUserId">博主</span>
           </div>
           <!-- 时间地点 -->
           <div class="lc-meta-row">
@@ -122,6 +121,7 @@
             :avatar="currentUserAvatar"
             v-model="replyContent"
             placeholder="请输入回复 ..."
+            :submitting="submitting"
             @submit="submitReply(item)"
             @cancel="cancelReply"
             @add-emoji="addReplyEmoji"
@@ -140,7 +140,6 @@
                 <div class="lc-reply-main">
                   <div class="lc-user-row">
                     <span class="lc-nickname">{{ reply.nickname }}</span>
-                    <span class="lc-blogger-tag" v-if="reply.userId === postUserId">博主</span>
                   </div>
                   <div class="lc-meta-row">
                     <span>来自 {{ reply.ipRegion }}</span>
@@ -181,6 +180,7 @@
                   :avatar="currentUserAvatar"
                   v-model="replyContent"
                   :placeholder="'@' + reply.nickname"
+                  :submitting="submitting"
                   @submit="submitReply(item)"
                   @cancel="cancelReply"
                   @add-emoji="addReplyEmoji"
@@ -257,7 +257,6 @@ const commentTextareaRef = ref<HTMLTextAreaElement | null>(null)
 const replyContent = ref('')
 const count = ref(0)
 const commentList = ref<Comment[]>([])
-const postUserId = ref('')
 const replyingTo = ref<number | null>(null)
 const replyingToReplyId = ref<number | null>(null)
 const showRepliesMap = reactive<Record<number, boolean>>({})
@@ -267,6 +266,7 @@ const sortType = ref<'hot' | 'new'>('hot')
 const showSortMenu = ref(false)
 const current = ref(1)
 const loading = ref(false)
+const submitting = ref(false)
 //每页默认最大条数
 const pageSize = 10
 
@@ -314,7 +314,9 @@ const insertComment = async () => {
     snackbarStore.error('评论内容不能为空')
     return
   }
+  if (submitting.value) return
 
+  submitting.value = true
   try {
     const params = {
       targetType: props.type,
@@ -345,12 +347,17 @@ const insertComment = async () => {
       snackbarStore.success('评论提交成功')
     }
 
-    // 清空评论内容
+    // 清空评论内容并重置高度
     commentContent.value = ''
+    if (commentTextareaRef.value) {
+      commentTextareaRef.value.style.height = 'auto'
+    }
     closeEmoji()
   } catch (error: unknown) {
     const err = error as { response?: { data?: { msg?: string } } }
     snackbarStore.error(err.response?.data?.msg || '评论提交失败')
+  } finally {
+    submitting.value = false
   }
 }
 
@@ -398,7 +405,9 @@ const submitReply = async (item: Comment) => {
     snackbarStore.error('回复内容不能为空')
     return
   }
+  if (submitting.value) return
 
+  submitting.value = true
   try {
     // 获取被回复的用户信息（如果是回复子评论）
     const replyToUser = replyingToReplyId.value
@@ -458,6 +467,8 @@ const submitReply = async (item: Comment) => {
     console.error('提交回复失败:', error)
     const err = error as { response?: { data?: { msg?: string } } }
     snackbarStore.error(err.response?.data?.msg || '回复提交失败')
+  } finally {
+    submitting.value = false
   }
 }
 
@@ -765,17 +776,6 @@ onUnmounted(() => {
   height: 32px;
 }
 
-.lc-online-dot {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 10px;
-  height: 10px;
-  background: #ffc107;
-  border: 2px solid #fff;
-  border-radius: 50%;
-}
-
 /* 评论主体 */
 .lc-comment-main {
   flex: 1;
@@ -798,20 +798,6 @@ onUnmounted(() => {
 
 .lc-nickname:hover {
   color: #5cb85c;
-}
-
-.lc-badge {
-  width: 18px;
-  height: 18px;
-}
-
-.lc-blogger-tag {
-  display: inline-block;
-  padding: 1px 6px;
-  font-size: 12px;
-  color: #fff;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 4px;
 }
 
 /* 元信息 */
@@ -931,108 +917,6 @@ onUnmounted(() => {
   transform: scale(1.2);
 }
 
-.lc-more-actions {
-  margin-left: auto;
-}
-
-/* 回复输入框 */
-.lc-reply-input-box {
-  display: flex;
-  align-items: center;
-  margin-top: 16px;
-  gap: 12px;
-}
-
-.lc-reply-avatar {
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-}
-
-.lc-reply-avatar img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.lc-reply-input-wrapper {
-  flex: 1;
-}
-
-.lc-reply-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none;
-  background: #fff;
-  resize: none;
-  overflow-y: hidden;
-  min-height: 42px;
-  line-height: 1.5;
-  font-family: inherit;
-  box-sizing: border-box;
-}
-
-.lc-reply-input::placeholder {
-  color: #bfbfbf;
-}
-
-.lc-reply-input:focus {
-  border-color: #d9d9d9;
-}
-
-.lc-reply-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-top: 12px;
-  margin-left: calc(32px + 12px); /* 和评论框对齐（32px头像 + 12px gap） */
-}
-
-.lc-reply-btns {
-  display: flex;
-  gap: 12px;
-}
-
-.lc-cancel-btn {
-  padding: 8px 20px;
-  background: #000a200d;
-  color: #262626;
-  border: none;
-  border-radius: 20px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.lc-cancel-btn:hover {
-  background: #000a201a;
-}
-
-.lc-reply-submit-btn {
-  padding: 8px 20px;
-  background: #2db55d;
-  color: #fff;
-  border: none;
-  border-radius: 20px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.lc-reply-submit-btn:hover:not(:disabled) {
-  background: #26a452;
-}
-
-.lc-reply-submit-btn:disabled {
-  background: #88d4a0;
-  cursor: not-allowed;
-}
-
 /* 回复列表 */
 .lc-reply-list {
   margin-top: 16px;
@@ -1121,52 +1005,6 @@ onUnmounted(() => {
   height: 14px;
 }
 
-/* 更多回复 */
-.lc-more-reply {
-  font-size: 13px;
-  color: #8c8c8c;
-  margin-top: 12px;
-}
-
-.lc-link {
-  color: #40a9ff;
-  cursor: pointer;
-}
-
-.lc-link:hover {
-  text-decoration: underline;
-}
-
-/* 分页 */
-.lc-paging {
-  font-size: 13px;
-  color: #595959;
-  margin-top: 10px;
-}
-
-/* 加载更多 */
-.lc-load-more {
-  display: flex;
-  justify-content: center;
-  padding: 24px 0;
-}
-
-.lc-load-btn {
-  padding: 10px 32px;
-  background: #fff;
-  color: #5cb85c;
-  border: 1px solid #5cb85c;
-  border-radius: 20px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.lc-load-btn:hover {
-  background: #5cb85c;
-  color: #fff;
-}
-
 /* 空状态 */
 .lc-empty {
   padding: 80px 0;
@@ -1174,30 +1012,12 @@ onUnmounted(() => {
   color: #8c8c8c;
   font-size: 14px;
 }
-
-/* 点赞样式 */
-.like {
-  cursor: pointer;
-}
-
-.like-active {
-  color: #5cb85c !important;
-}
 </style>
 
 <!-- 夜间模式样式 -->
 <style>
 .v-theme--dark .lc-comment-container {
   background: transparent;
-}
-
-.v-theme--dark .lc-icon {
-  color: var(--color-text-primary);
-}
-
-.v-theme--dark .lc-comment-title,
-.v-theme--dark .lc-comment-count {
-  color: var(--color-text-title);
 }
 
 /* 输入框 */
@@ -1282,30 +1102,6 @@ onUnmounted(() => {
   color: var(--color-text-primary);
 }
 
-/* 回复输入框 */
-.v-theme--dark .lc-reply-input {
-  background: var(--color-bg-light);
-  border-color: var(--color-border);
-  color: var(--color-text-primary);
-}
-
-.v-theme--dark .lc-reply-input::placeholder {
-  color: var(--color-text-placeholder);
-}
-
-.v-theme--dark .lc-reply-input:focus {
-  border-color: var(--color-border-focus);
-}
-
-.v-theme--dark .lc-cancel-btn {
-  background: var(--color-bg-light);
-  color: var(--color-text-primary);
-}
-
-.v-theme--dark .lc-cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
 /* 回复列表 */
 .v-theme--dark .lc-reply-item {
   background: rgba(255, 255, 255, 0.06);
@@ -1328,18 +1124,6 @@ onUnmounted(() => {
   color: #007aff;
 }
 
-/* 加载更多 */
-.v-theme--dark .lc-load-btn {
-  background: transparent;
-  border-color: var(--color-success);
-  color: var(--color-success);
-}
-
-.v-theme--dark .lc-load-btn:hover {
-  background: var(--color-success);
-  color: #fff;
-}
-
 /* 空状态 */
 .v-theme--dark .lc-empty {
   color: var(--color-text-tertiary);
@@ -1348,15 +1132,6 @@ onUnmounted(() => {
 /* 加载状态 */
 .v-theme--dark .lc-loading {
   color: var(--color-text-tertiary);
-}
-
-/* 更多回复链接 */
-.v-theme--dark .lc-more-reply {
-  color: var(--color-text-tertiary);
-}
-
-.v-theme--dark .lc-paging {
-  color: var(--color-text-secondary);
 }
 
 /* 分页样式 */
