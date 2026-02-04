@@ -30,7 +30,11 @@
       </div>
       <div class="reply-btns">
         <button class="cancel-btn" :disabled="submitting" @click="$emit('cancel')">取消</button>
-        <button class="submit-btn" :disabled="!modelValue.trim() || submitting" @click="$emit('submit')">
+        <button
+          class="submit-btn"
+          :disabled="!modelValue.trim() || submitting"
+          @click="$emit('submit')"
+        >
           {{ submitting ? '提交中...' : '回复' }}
         </button>
       </div>

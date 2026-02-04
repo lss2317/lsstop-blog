@@ -7,6 +7,7 @@ import com.lsstop.domain.dto.CommentDTO;
 import com.lsstop.domain.entity.CommentEntity;
 import com.lsstop.domain.vo.AddCommentVO;
 import com.lsstop.domain.vo.CommentPageVO;
+import com.lsstop.domain.vo.CommentReplyVO;
 import com.lsstop.domain.vo.CommentVO;
 import com.lsstop.enums.CommentTypeEnum;
 import com.lsstop.enums.StatusEnum;
@@ -101,5 +102,32 @@ public class CommentController {
         List<CommentVO> commentList = commentService.getCommentList(typeId, type, current, CommonConst.DEFAULT_PAGE_SIZE, sortType);
         Integer total = commentService.getCommentCount(typeId, type);
         return Result.success(new CommentPageVO(commentList, total));
+    }
+
+    /**
+     * 获取子评论列表（分页）
+     *
+     * @param parentId 父评论id
+     * @param current  当前页码，默认1
+     * @param sortType 排序方式：hot=最热, new=最新
+     * @return 子评论列表
+     */
+    @GetMapping("/front/comment/listReply")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<List<CommentReplyVO>> listReply(@RequestParam Integer parentId,
+                                                  @RequestParam(defaultValue = "1") Integer current,
+                                                  @RequestParam(defaultValue = "new") String sortType) {
+        // 参数校验
+        if (parentId == null || parentId < 1) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.PARENT_ID_REQUIRED);
+        }
+        if (current < 1) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.INVALID_PAGE_PARAM);
+        }
+        if (!CommonConst.SORT_TYPE_HOT.equals(sortType) && !CommonConst.SORT_TYPE_NEW.equals(sortType)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.INVALID_SORT_TYPE);
+        }
+        List<CommentReplyVO> replyList = commentService.getReplyList(parentId, current, CommonConst.DEFAULT_CHILD_COMMENT_LIMIT, sortType);
+        return Result.success(replyList);
     }
 }

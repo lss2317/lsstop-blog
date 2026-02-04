@@ -85,30 +85,6 @@
         limit #{offset}, #{size}
     </select>
 
-    <!-- 查询子评论列表 -->
-    <select id="selectChildComments" resultMap="commentReplyVOResultMap">
-        select c.id,
-               up.avatar,
-               up.nickname,
-               c.user_id,
-               c.ip_region,
-               c.create_time,
-               c.content,
-               c.reply_user_id,
-               rp.nickname as reply_nickname,
-               c.parent_id
-        from blog_comment c
-                 left join blog_user_profile up on c.user_id = up.user_id and up.deleted_at = 0
-                 left join blog_user_profile rp on c.reply_user_id = rp.user_id and rp.deleted_at = 0
-        where c.parent_id in
-        <foreach collection="parentIds" item="parentId" open="(" separator="," close=")">
-            #{parentId}
-        </foreach>
-          and c.deleted_at = 0
-          and c.review = 0
-        order by c.create_time
-    </select>
-
     <!-- 统计评论总数（仅顶级评论） -->
     <select id="countComments" resultType="java.lang.Integer">
         select count(*)
@@ -128,6 +104,40 @@
           and deleted_at = 0
           and review = 0
         group by parent_id
+    </select>
+
+    <!-- 查询单个父评论的子评论列表（分页） -->
+    <select id="selectReplyList" resultMap="commentReplyVOResultMap">
+        select c.id,
+               up.avatar,
+               up.nickname,
+               c.user_id,
+               c.ip_region,
+               c.create_time,
+               c.content,
+               c.reply_user_id,
+               rp.nickname as reply_nickname,
+               c.parent_id,
+               ifnull(lc.like_count, 0) as like_count
+        from blog_comment c
+                 left join blog_user_profile up on c.user_id = up.user_id and up.deleted_at = 0
+                 left join blog_user_profile rp on c.reply_user_id = rp.user_id and rp.deleted_at = 0
+                 left join (select target_id, count(*) as like_count
+                            from blog_like_record
+                            where type = 3 and status = 1
+                            group by target_id) lc on c.id = lc.target_id
+        where c.parent_id = #{parentId}
+          and c.deleted_at = 0
+          and c.review = 0
+        <choose>
+            <when test="sortType == 'hot'">
+        order by like_count desc, c.create_time desc
+            </when>
+            <otherwise>
+        order by c.create_time desc
+            </otherwise>
+        </choose>
+        limit #{offset}, #{size}
     </select>
 
 </mapper>

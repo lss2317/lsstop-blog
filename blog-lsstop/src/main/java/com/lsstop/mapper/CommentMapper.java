@@ -50,14 +50,6 @@ public interface CommentMapper {
                                          @Param("sortType") String sortType);
 
     /**
-     * 查询子评论列表
-     *
-     * @param parentIds 父评论id列表
-     * @return 子评论列表
-     */
-    List<CommentReplyVO> selectChildComments(@Param("parentIds") List<Integer> parentIds);
-
-    /**
      * 统计评论总数
      *
      * @param typeId 目标id
@@ -73,4 +65,18 @@ public interface CommentMapper {
      * @return 评论回复数列表
      */
     List<CommentCountVO> countRepliesByParent();
+
+    /**
+     * 查询单个父评论的子评论列表（分页）
+     *
+     * @param parentId 父评论id
+     * @param sortType 排序方式：hot=最热, new=最新
+     * @param offset   偏移量
+     * @param size     每页数量
+     * @return 子评论列表
+     */
+    List<CommentReplyVO> selectReplyList(@Param("parentId") Integer parentId,
+                                         @Param("sortType") String sortType,
+                                         @Param("offset") Integer offset,
+                                         @Param("size") Integer size);
 }

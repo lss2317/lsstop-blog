@@ -20,10 +20,7 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -122,9 +119,7 @@ public class CommentServiceImpl implements CommentService {
         // 获取顶级评论ID列表
         List<Integer> parentIds = parentComments.stream()
                 .map(CommentVO::getId)
-                .collect(Collectors.toList());
-        // 查询子评论
-        List<CommentReplyVO> childComments = commentMapper.selectChildComments(parentIds);
+                .toList();
         
         // 批量从 Redis 获取顶级评论回复数和点赞数
         List<String> parentReplyKeys = parentIds.stream()
@@ -144,26 +139,6 @@ public class CommentServiceImpl implements CommentService {
             parentComments.get(i).setLikeCount(likeCount == null ? 0 : likeCount);
         }
         
-        // 批量从Redis获取子评论点赞数
-        List<String> childLikeKeys = childComments.stream()
-                .map(reply -> RedisConst.COMMENT_LIKE_COUNT + reply.getId())
-                .collect(Collectors.toList());
-        List<Integer> childLikeCounts = childLikeKeys.isEmpty() ? 
-                new ArrayList<>() : redisUtils.mGet(childLikeKeys, Integer.class);
-        
-        // 设置子评论点赞数
-        for (int i = 0; i < childComments.size(); i++) {
-            Integer likeCount = childLikeCounts.get(i);
-            childComments.get(i).setLikeCount(likeCount == null ? 0 : likeCount);
-        }
-        
-        // 组装子评论到父评论
-        Map<Integer, List<CommentReplyVO>> childMap = childComments.stream()
-                .collect(Collectors.groupingBy(CommentReplyVO::getParentId));
-        parentComments.forEach(parent -> {
-            List<CommentReplyVO> replyList = childMap.getOrDefault(parent.getId(), new ArrayList<>());
-            parent.setReplyList(replyList);
-        });
         return parentComments;
     }
 
@@ -177,5 +152,20 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Integer getCommentCount(Integer typeId, Integer type) {
         return commentMapper.countComments(typeId, type);
+    }
+
+    /**
+     * 获取子评论列表（分页）
+     *
+     * @param parentId 父评论id
+     * @param current  当前页码
+     * @param size     每页数量
+     * @param sortType 排序方式：hot=最热, new=最新
+     * @return 子评论列表
+     */
+    @Override
+    public List<CommentReplyVO> getReplyList(Integer parentId, Integer current, Integer size, String sortType) {
+        int offset = (current - 1) * size;
+        return commentMapper.selectReplyList(parentId, sortType, offset, size);
     }
 }

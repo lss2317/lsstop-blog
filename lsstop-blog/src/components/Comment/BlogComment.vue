@@ -26,14 +26,18 @@
             </div>
           </div>
         </div>
-        <button class="lc-submit-btn" :disabled="!commentContent.trim() || submitting" @click="insertComment">
+        <button
+          class="lc-submit-btn"
+          :disabled="!commentContent.trim() || submitting"
+          @click="insertComment"
+        >
           {{ submitting ? '提交中...' : '评论' }}
         </button>
       </div>
     </div>
 
     <!-- 排序 -->
-    <div class="lc-sort-bar" v-if="count > 0">
+    <div class="lc-sort-bar" ref="sortBarRef" v-if="count > 0">
       <span class="lc-sort-label">排序：</span>
       <div class="lc-sort-dropdown-wrapper">
         <span class="lc-sort-dropdown" @click="showSortMenu = !showSortMenu">
@@ -87,7 +91,27 @@
             <span>{{ formatTime(item.createTime) }}</span>
           </div>
           <!-- 评论内容 -->
-          <div class="lc-content" v-html="parseEmoji(item.content)"></div>
+          <div class="lc-content-wrapper" :class="{ expanded: expandedCommentMap[item.id] }">
+            <div
+              :class="['lc-content', !expandedCommentMap[item.id] ? 'collapsed' : '']"
+              :ref="(el) => setCommentContentRef(item.id, el as HTMLElement)"
+              v-html="parseEmoji(item.content)"
+            ></div>
+            <div
+              class="lc-content-fade"
+              v-if="overflowCommentMap[item.id] && !expandedCommentMap[item.id]"
+            ></div>
+            <span
+              class="lc-expand-btn"
+              v-if="overflowCommentMap[item.id]"
+              @click="toggleExpandComment(item.id)"
+            >
+              <v-icon size="14">{{
+                expandedCommentMap[item.id] ? 'mdi-chevron-up' : 'mdi-chevron-down'
+              }}</v-icon>
+              <span>{{ expandedCommentMap[item.id] ? '收起' : '查看更多' }}</span>
+            </span>
+          </div>
           <!-- 操作栏 -->
           <div class="lc-action-row">
             <span
@@ -128,65 +152,127 @@
           />
 
           <!-- 回复列表 -->
-          <div
-            class="lc-reply-list"
-            v-if="item.replyList && item.replyList.length && showRepliesMap[item.id]"
-          >
-            <template v-for="reply of getVisibleReplies(item.id, item.replyList)" :key="reply.id">
-              <div class="lc-reply-item">
-                <div class="lc-avatar small">
-                  <img :src="reply.avatar" alt="用户头像" />
+          <div class="lc-reply-list" v-if="showRepliesMap[item.id]">
+            <!-- 骨架屏加载状态 -->
+            <div
+              class="lc-reply-skeleton"
+              v-if="loadingReplyMap[item.id] && (!item.replyList || !item.replyList.length)"
+            >
+              <div class="lc-skeleton-item" v-for="n in 2" :key="n">
+                <div class="lc-skeleton-avatar"></div>
+                <div class="lc-skeleton-content">
+                  <div class="lc-skeleton-line short"></div>
+                  <div class="lc-skeleton-line tiny"></div>
+                  <div class="lc-skeleton-line"></div>
+                  <div class="lc-skeleton-line medium"></div>
+                  <div class="lc-skeleton-actions">
+                    <div class="lc-skeleton-action"></div>
+                    <div class="lc-skeleton-action"></div>
+                  </div>
                 </div>
-                <div class="lc-reply-main">
-                  <div class="lc-user-row">
-                    <span class="lc-nickname">{{ reply.nickname }}</span>
+              </div>
+            </div>
+
+            <!-- 子评论列表 -->
+            <template v-if="item.replyList && item.replyList.length">
+              <template v-for="reply of getVisibleReplies(item.id, item.replyList)" :key="reply.id">
+                <div class="lc-reply-item">
+                  <div class="lc-avatar small">
+                    <img :src="reply.avatar" alt="用户头像" />
                   </div>
-                  <div class="lc-meta-row">
-                    <span>来自 {{ reply.ipRegion }}</span>
-                    <span class="lc-meta-divider"></span>
-                    <span>{{ formatTime(reply.createTime) }}</span>
-                  </div>
-                  <div class="lc-content">
-                    <a
-                      v-if="reply.replyNickname"
-                      class="lc-reply-to"
-                      :href="'/user/' + reply.replyUserId"
-                      >@{{ reply.replyNickname }}</a
-                    ><span v-html="parseEmoji(reply.content)"></span>
-                  </div>
-                  <div class="lc-action-row">
-                    <span
-                      :class="['lc-action-item', 'like-item', isLike(reply.id) ? 'liked' : '']"
-                      @click="like(reply)"
+                  <div class="lc-reply-main">
+                    <div class="lc-user-row">
+                      <span class="lc-nickname">{{ reply.nickname }}</span>
+                    </div>
+                    <div class="lc-meta-row">
+                      <span>来自 {{ reply.ipRegion }}</span>
+                      <span class="lc-meta-divider"></span>
+                      <span>{{ formatTime(reply.createTime) }}</span>
+                    </div>
+                    <div
+                      class="lc-content-wrapper"
+                      :class="{ expanded: expandedReplyMap[reply.id] }"
                     >
-                      <v-icon size="16" class="like-btn">
-                        {{ isLike(reply.id) ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
-                      </v-icon>
-                      <span>{{ reply.likeCount }}</span>
-                    </span>
-                    <span class="lc-action-item reply-btn" @click="replyToReply(item.id, reply)">
-                      <v-icon size="16">mdi-reply</v-icon>
-                      <span>回复</span>
-                    </span>
+                      <div
+                        :class="['lc-content', !expandedReplyMap[reply.id] ? 'collapsed' : '']"
+                        :ref="(el) => setReplyContentRef(reply.id, el as HTMLElement)"
+                      >
+                        <a
+                          v-if="reply.replyNickname"
+                          class="lc-reply-to"
+                          :href="'/user/' + reply.replyUserId"
+                          >@{{ reply.replyNickname }}</a
+                        ><span v-html="parseEmoji(reply.content)"></span>
+                      </div>
+                      <div
+                        class="lc-content-fade"
+                        v-if="overflowReplyMap[reply.id] && !expandedReplyMap[reply.id]"
+                      ></div>
+                      <span
+                        class="lc-expand-btn"
+                        v-if="overflowReplyMap[reply.id]"
+                        @click="toggleExpandReply(reply.id)"
+                      >
+                        <v-icon size="14">{{
+                          expandedReplyMap[reply.id] ? 'mdi-chevron-up' : 'mdi-chevron-down'
+                        }}</v-icon>
+                        <span>{{ expandedReplyMap[reply.id] ? '收起' : '查看更多' }}</span>
+                      </span>
+                    </div>
+                    <div class="lc-action-row">
+                      <span
+                        :class="['lc-action-item', 'like-item', isLike(reply.id) ? 'liked' : '']"
+                        @click="like(reply)"
+                      >
+                        <v-icon size="16" class="like-btn">
+                          {{ isLike(reply.id) ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
+                        </v-icon>
+                        <span>{{ reply.likeCount }}</span>
+                      </span>
+                      <span class="lc-action-item reply-btn" @click="replyToReply(item.id, reply)">
+                        <v-icon size="16">mdi-reply</v-icon>
+                        <span>回复</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <!-- 回复子评论的输入框 -->
+                <div
+                  class="lc-sub-reply-input"
+                  v-if="replyingTo === item.id && replyingToReplyId === reply.id"
+                >
+                  <ReplyInput
+                    :avatar="currentUserAvatar"
+                    v-model="replyContent"
+                    :placeholder="'@' + reply.nickname"
+                    :submitting="submitting"
+                    @submit="submitReply(item)"
+                    @cancel="cancelReply"
+                    @add-emoji="addReplyEmoji"
+                  />
+                </div>
+              </template>
+            </template>
+
+            <!-- 加载更多骨架屏 -->
+            <div
+              class="lc-reply-skeleton"
+              v-if="loadingReplyMap[item.id] && item.replyList && item.replyList.length"
+            >
+              <div class="lc-skeleton-item">
+                <div class="lc-skeleton-avatar"></div>
+                <div class="lc-skeleton-content">
+                  <div class="lc-skeleton-line short"></div>
+                  <div class="lc-skeleton-line tiny"></div>
+                  <div class="lc-skeleton-line"></div>
+                  <div class="lc-skeleton-line medium"></div>
+                  <div class="lc-skeleton-actions">
+                    <div class="lc-skeleton-action"></div>
+                    <div class="lc-skeleton-action"></div>
                   </div>
                 </div>
               </div>
-              <!-- 回复子评论的输入框 -->
-              <div
-                class="lc-sub-reply-input"
-                v-if="replyingTo === item.id && replyingToReplyId === reply.id"
-              >
-                <ReplyInput
-                  :avatar="currentUserAvatar"
-                  v-model="replyContent"
-                  :placeholder="'@' + reply.nickname"
-                  :submitting="submitting"
-                  @submit="submitReply(item)"
-                  @cancel="cancelReply"
-                  @add-emoji="addReplyEmoji"
-                />
-              </div>
-            </template>
+            </div>
 
             <!-- 展示更多/隐藏操作栏 -->
             <div class="lc-reply-actions-bar">
@@ -213,7 +299,7 @@
           :total-visible="7"
           density="comfortable"
           variant="flat"
-          @update:model-value="listComments"
+          @update:model-value="handlePageChange"
         />
       </div>
     </div>
@@ -235,7 +321,7 @@ import useUserInfoStore from '@/stores/modules/userInfo'
 import { useSnackbarStore } from '@/stores/modules/snackbar'
 import { LikeTypeEnum } from '@/constants/likeType'
 import type { Comment, Reply } from '@/apis/comment'
-import { getComments, addComment } from '@/apis/comment'
+import { getComments, addComment, getReplyList } from '@/apis/comment'
 import { useEmoji } from '@/composables/useEmoji'
 import { CommentTypeEnum } from '@/constants/commentType'
 import { ReviewStatusEnum } from '@/constants/reviewStatus'
@@ -260,13 +346,22 @@ const commentList = ref<Comment[]>([])
 const replyingTo = ref<number | null>(null)
 const replyingToReplyId = ref<number | null>(null)
 const showRepliesMap = reactive<Record<number, boolean>>({})
-const visibleReplyCountMap = reactive<Record<number, number>>({})
-const replyPageSize = 5 // 每次加载的子评论数量
+const loadingReplyMap = reactive<Record<number, boolean>>({}) // 子评论加载状态
+const replyPageMap = reactive<Record<number, number>>({}) // 已加载的页码
+const noMoreRepliesMap = reactive<Record<number, boolean>>({}) // 是否已加载完所有子评论
+const expandedCommentMap = reactive<Record<number, boolean>>({}) // 主评论展开状态
+const overflowCommentMap = reactive<Record<number, boolean>>({}) // 主评论是否溢出
+const expandedReplyMap = reactive<Record<number, boolean>>({}) // 子评论展开状态
+const overflowReplyMap = reactive<Record<number, boolean>>({}) // 子评论是否溢出
+const commentContentRefs = reactive<Record<number, HTMLElement | null>>({}) // 主评论内容ref
+const replyContentRefs = reactive<Record<number, HTMLElement | null>>({}) // 子评论内容ref
+const maxCollapsedHeight = 162 // 6行约162px (line-height:1.8 * font-size:14 * 6 ≈ 151, 留余量)
 const sortType = ref<'hot' | 'new'>('hot')
 const showSortMenu = ref(false)
 const current = ref(1)
 const loading = ref(false)
 const submitting = ref(false)
+const sortBarRef = ref<HTMLElement | null>(null)
 //每页默认最大条数
 const pageSize = 10
 
@@ -448,14 +543,11 @@ const submitReply = async (item: Comment) => {
         if (!comment.replyList) {
           comment.replyList = []
         }
-        // 在当前可见区域末尾插入新回复
-        const currentVisible = visibleReplyCountMap[comment.id] || replyPageSize
-        comment.replyList.splice(currentVisible, 0, newReply)
+        // 追加到回复列表末尾
+        comment.replyList.push(newReply)
         comment.replyCount++
         // 自动展开回复列表
         showRepliesMap[comment.id] = true
-        // 显示数量+1，确保新回复可见
-        visibleReplyCountMap[comment.id] = currentVisible + 1
       }
 
       snackbarStore.success('回复提交成功')
@@ -473,18 +565,73 @@ const submitReply = async (item: Comment) => {
 }
 
 // 切换回复列表显示
-const toggleReplies = (commentId: number) => {
-  showRepliesMap[commentId] = !showRepliesMap[commentId]
-  // 初次展开时设置默认显示数量
-  if (showRepliesMap[commentId] && !visibleReplyCountMap[commentId]) {
-    visibleReplyCountMap[commentId] = replyPageSize
+const toggleReplies = async (commentId: number) => {
+  // 如果已展开，则收起
+  if (showRepliesMap[commentId]) {
+    showRepliesMap[commentId] = false
+    return
+  }
+
+  // 展开并加载第1页数据
+  showRepliesMap[commentId] = true
+
+  const comment = commentList.value.find((c) => c.id === commentId)
+  if (!comment) return
+
+  // 如果已有数据，不重复加载
+  if (comment.replyList && comment.replyList.length > 0) return
+
+  // 加载第1页
+  if (loadingReplyMap[commentId]) return
+  loadingReplyMap[commentId] = true
+
+  try {
+    const res = await getReplyList({
+      parentId: commentId,
+      current: 1,
+      sortType: sortType.value,
+    })
+    comment.replyList = res.data || []
+    replyPageMap[commentId] = 1 // 记录已加载第1页
+  } finally {
+    loadingReplyMap[commentId] = false
   }
 }
 
 // 展示更多子评论
-const showMoreReplies = (commentId: number) => {
-  visibleReplyCountMap[commentId] =
-    (visibleReplyCountMap[commentId] || replyPageSize) + replyPageSize
+const showMoreReplies = async (commentId: number) => {
+  if (loadingReplyMap[commentId]) return
+  loadingReplyMap[commentId] = true
+
+  try {
+    const comment = commentList.value.find((c) => c.id === commentId)
+    if (!comment || !comment.replyList) return
+
+    // 下一页
+    const nextPage = (replyPageMap[commentId] || 1) + 1
+
+    const res = await getReplyList({
+      parentId: commentId,
+      current: nextPage,
+      sortType: sortType.value,
+    })
+
+    const responseData = res.data || []
+    // 如果返回数据为空，标记已加载完毕
+    if (responseData.length === 0) {
+      noMoreRepliesMap[commentId] = true
+      return
+    }
+
+    // 获取已存在的ID集合
+    const existingIds = new Set(comment.replyList.map((r) => r.id))
+    // 过滤去重后追加
+    const newReplies = responseData.filter((r) => !existingIds.has(r.id))
+    comment.replyList.push(...newReplies)
+    replyPageMap[commentId] = nextPage // 更新已加载页码
+  } finally {
+    loadingReplyMap[commentId] = false
+  }
 }
 
 // 隐藏子评论列表
@@ -492,25 +639,63 @@ const hideReplies = (commentId: number) => {
   showRepliesMap[commentId] = false
 }
 
-// 获取显示的子评论列表
-const getVisibleReplies = (commentId: number, replyList: Reply[] | undefined) => {
+// 获取显示的子评论列表（直接返回全部已加载的）
+const getVisibleReplies = (_commentId: number, replyList: Reply[] | undefined) => {
   if (!replyList) return []
-  const count = visibleReplyCountMap[commentId] || replyPageSize
-  return replyList.slice(0, count)
+  return replyList
 }
 
 // 是否还有更多子评论
 const hasMoreReplies = (commentId: number, replyList: Reply[] | undefined) => {
   if (!replyList) return false
-  const count = visibleReplyCountMap[commentId] || replyPageSize
-  return replyList.length > count
+  // 已标记加载完毕
+  if (noMoreRepliesMap[commentId]) return false
+  const comment = commentList.value.find((c) => c.id === commentId)
+  if (!comment) return false
+  return replyList.length < comment.replyCount
 }
 
 // 重置所有展开状态
 const resetRepliesState = () => {
   Object.keys(showRepliesMap).forEach((key) => delete showRepliesMap[Number(key)])
-  Object.keys(visibleReplyCountMap).forEach((key) => delete visibleReplyCountMap[Number(key)])
+  Object.keys(replyPageMap).forEach((key) => delete replyPageMap[Number(key)])
+  Object.keys(noMoreRepliesMap).forEach((key) => delete noMoreRepliesMap[Number(key)])
+  Object.keys(expandedCommentMap).forEach((key) => delete expandedCommentMap[Number(key)])
+  Object.keys(overflowCommentMap).forEach((key) => delete overflowCommentMap[Number(key)])
+  Object.keys(expandedReplyMap).forEach((key) => delete expandedReplyMap[Number(key)])
+  Object.keys(overflowReplyMap).forEach((key) => delete overflowReplyMap[Number(key)])
   cancelReply()
+}
+
+// 设置主评论内容ref
+const setCommentContentRef = (id: number, el: HTMLElement | null) => {
+  commentContentRefs[id] = el
+  if (el) {
+    // 使用 nextTick 确保 DOM 已渲染
+    setTimeout(() => {
+      overflowCommentMap[id] = el.scrollHeight > maxCollapsedHeight
+    }, 0)
+  }
+}
+
+// 设置子评论内容ref
+const setReplyContentRef = (id: number, el: HTMLElement | null) => {
+  replyContentRefs[id] = el
+  if (el) {
+    setTimeout(() => {
+      overflowReplyMap[id] = el.scrollHeight > maxCollapsedHeight
+    }, 0)
+  }
+}
+
+// 切换主评论展开状态
+const toggleExpandComment = (id: number) => {
+  expandedCommentMap[id] = !expandedCommentMap[id]
+}
+
+// 切换子评论展开状态
+const toggleExpandReply = (id: number) => {
+  expandedReplyMap[id] = !expandedReplyMap[id]
 }
 
 // 加载评论列表
@@ -541,6 +726,15 @@ const listComments = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// 切换分页
+const handlePageChange = () => {
+  // 滚动到排序栏位置
+  if (sortBarRef.value) {
+    sortBarRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  listComments()
 }
 
 // 选择排序方式
@@ -819,12 +1013,55 @@ onUnmounted(() => {
 }
 
 /* 内容 */
+.lc-content-wrapper {
+  position: relative;
+}
+
+.lc-content-wrapper.expanded {
+  display: flex;
+  flex-direction: column;
+}
+
 .lc-content {
   font-size: 14px;
   line-height: 1.8;
   color: #262626;
   margin: 12px 0;
   word-break: break-word;
+}
+
+.lc-content.collapsed {
+  max-height: 162px;
+  overflow: hidden;
+}
+
+.lc-content-fade {
+  position: absolute;
+  bottom: 32px;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(transparent, #fff);
+  pointer-events: none;
+}
+
+.lc-reply-item .lc-content-fade {
+  background: linear-gradient(transparent, #f5f5f5);
+}
+
+.lc-expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 14px;
+  color: #8c8c8c;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.lc-expand-btn:hover {
+  color: #262626;
 }
 
 .lc-content :deep(a) {
@@ -1005,6 +1242,83 @@ onUnmounted(() => {
   height: 14px;
 }
 
+/* 骨架屏加载 */
+.lc-reply-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lc-skeleton-item {
+  display: flex;
+  padding: 16px;
+  background: hsl(0, 0%, 0%, 0.04);
+  border-radius: 8px;
+}
+
+.lc-skeleton-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.lc-skeleton-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lc-skeleton-line {
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+.lc-skeleton-line.short {
+  width: 80px;
+}
+
+.lc-skeleton-line.tiny {
+  width: 120px;
+  height: 12px;
+}
+
+.lc-skeleton-line.medium {
+  width: 60%;
+}
+
+.lc-skeleton-actions {
+  display: flex;
+  gap: 24px;
+  margin-top: 4px;
+}
+
+.lc-skeleton-action {
+  width: 50px;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 /* 空状态 */
 .lc-empty {
   padding: 80px 0;
@@ -1093,6 +1407,22 @@ onUnmounted(() => {
   color: var(--color-text-primary);
 }
 
+.v-theme--dark .lc-content-fade {
+  background: linear-gradient(transparent, #2a2a2a);
+}
+
+.v-theme--dark .lc-reply-item .lc-content-fade {
+  background: linear-gradient(transparent, #373737);
+}
+
+.v-theme--dark .lc-expand-btn {
+  color: var(--color-text-tertiary);
+}
+
+.v-theme--dark .lc-expand-btn:hover {
+  color: var(--color-text-primary);
+}
+
 /* 操作栏 */
 .v-theme--dark .lc-action-row {
   color: var(--color-text-tertiary);
@@ -1105,6 +1435,24 @@ onUnmounted(() => {
 /* 回复列表 */
 .v-theme--dark .lc-reply-item {
   background: rgba(255, 255, 255, 0.06);
+}
+
+/* 骨架屏夜间模式 */
+.v-theme--dark .lc-skeleton-item {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.v-theme--dark .lc-skeleton-avatar,
+.v-theme--dark .lc-skeleton-line,
+.v-theme--dark .lc-skeleton-action {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.1) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
 }
 
 .v-theme--dark .lc-sub-reply-input {

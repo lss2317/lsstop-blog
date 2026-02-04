@@ -91,3 +91,17 @@ export function getComments(params: CommentQueryParams) {
 export function addComment(data: AddCommentParams) {
   return http.post<AddCommentResult>('/comment/addComment', data, { showProgress: false })
 }
+
+/** 子评论查询参数 */
+export interface ReplyQueryParams {
+  parentId: number
+  current: number
+  sortType: string
+}
+
+/**
+ * 获取子评论列表
+ */
+export function getReplyList(params: ReplyQueryParams) {
+  return http.get<Reply[]>('/comment/listReply', { params })
+}

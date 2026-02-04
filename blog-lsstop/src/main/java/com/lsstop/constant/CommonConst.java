@@ -89,11 +89,6 @@ public class CommonConst {
     public static final String INVALID_PAGE_PARAM = "分页参数错误";
 
     /**
-     * 默认每页数量
-     */
-    public static final int DEFAULT_PAGE_SIZE = 10;
-
-    /**
      * 排序类型：最热
      */
     public static final String SORT_TYPE_HOT = "hot";
@@ -102,4 +97,19 @@ public class CommonConst {
      * 排序类型：最新
      */
     public static final String SORT_TYPE_NEW = "new";
+
+    /**
+     * 默认每页数量
+     */
+    public static final int DEFAULT_PAGE_SIZE = 10;
+
+    /**
+     * 子评论默认限制数量
+     */
+    public static final int DEFAULT_CHILD_COMMENT_LIMIT = 5;
+
+    /**
+     * 父评论ID不能为空
+     */
+    public static final String PARENT_ID_REQUIRED = "父评论ID不能为空";
 }

@@ -2,6 +2,7 @@ package com.lsstop.service;
 
 import com.lsstop.domain.entity.CommentEntity;
 import com.lsstop.domain.vo.AddCommentVO;
+import com.lsstop.domain.vo.CommentReplyVO;
 import com.lsstop.domain.vo.CommentVO;
 
 import java.util.List;
@@ -42,4 +43,15 @@ public interface CommentService {
      * @return 评论总数
      */
     Integer getCommentCount(Integer typeId, Integer type);
+
+    /**
+     * 获取子评论列表（分页）
+     *
+     * @param parentId 父评论id
+     * @param current  当前页码
+     * @param size     每页数量
+     * @param sortType 排序方式：hot=最热, new=最新
+     * @return 子评论列表
+     */
+    List<CommentReplyVO> getReplyList(Integer parentId, Integer current, Integer size, String sortType);
 }

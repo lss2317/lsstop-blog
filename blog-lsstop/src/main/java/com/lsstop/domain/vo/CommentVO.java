@@ -3,7 +3,6 @@ package com.lsstop.domain.vo;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 评论VO
@@ -58,9 +57,4 @@ public class CommentVO {
      * 回复数
      */
     private Integer replyCount;
-
-    /**
-     * 回复列表
-     */
-    private List<CommentReplyVO> replyList;
 }

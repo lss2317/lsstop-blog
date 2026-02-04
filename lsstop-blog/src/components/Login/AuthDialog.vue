@@ -638,3 +638,61 @@ const qqLogin = () => {
   opacity: 0;
 }
 </style>
+
+<!-- 夜间模式样式 -->
+<style>
+.v-theme--dark .login-container {
+  background: #2a2a2a;
+}
+
+.v-theme--dark .title {
+  color: var(--color-text-primary);
+}
+
+.v-theme--dark .form-input {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-border);
+}
+
+.v-theme--dark .form-input:focus {
+  border-bottom-color: #1976d2;
+}
+
+.v-theme--dark .form-label {
+  color: var(--color-text-tertiary);
+}
+
+.v-theme--dark .tip-link,
+.v-theme--dark .tip-text {
+  color: var(--color-text-primary);
+}
+
+.v-theme--dark .tip-link:hover {
+  color: #1976d2;
+}
+
+.v-theme--dark .input-icon {
+  color: var(--color-text-tertiary);
+}
+
+.v-theme--dark .input-icon:hover {
+  color: var(--color-text-primary);
+}
+
+.v-theme--dark .close-btn {
+  color: var(--color-text-tertiary);
+}
+
+.v-theme--dark .close-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.v-theme--dark .social-login-title {
+  color: var(--color-text-tertiary);
+}
+
+.v-theme--dark .social-login-title::before,
+.v-theme--dark .social-login-title::after {
+  background-color: var(--color-border);
+}
+</style>
