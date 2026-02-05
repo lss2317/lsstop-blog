@@ -34,58 +34,58 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { getPhotoAlbumById, listPhotoByAlbumId, type PhotoAlbumImage } from '@/apis/photoAlbum'
-import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
-import usePageInfoStore, { createCoverStyle } from '@/stores/modules/pageInfo'
-import { previewImages } from '@/utils/photoPreview'
+import { computed, onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { getPhotoAlbumById, listPhotoByAlbumId, type PhotoAlbumImage } from '@/apis/photoAlbum';
+import { useSnackbarStore } from '@/stores/modules/snackbar.ts';
+import usePageInfoStore, { createCoverStyle } from '@/stores/modules/pageInfo';
+import { previewImages } from '@/utils/photoPreview';
 
-const route = useRoute()
-const snackbarStore = useSnackbarStore()
-const pageInfoStore = usePageInfoStore()
-const { currentCoverStyle: defaultCover } = storeToRefs(pageInfoStore)
+const route = useRoute();
+const snackbarStore = useSnackbarStore();
+const pageInfoStore = usePageInfoStore();
+const { currentCoverStyle: defaultCover } = storeToRefs(pageInfoStore);
 
-const photoList = ref<PhotoAlbumImage[]>([])
-const albumName = ref('相册详情')
-const albumCoverUrl = ref('')
-const loading = ref(true)
+const photoList = ref<PhotoAlbumImage[]>([]);
+const albumName = ref('相册详情');
+const albumCoverUrl = ref('');
+const loading = ref(true);
 
 // 相册封面样式：有封面用封面，没有则用默认封面
 const albumCover = computed(() =>
   albumCoverUrl.value ? createCoverStyle(albumCoverUrl.value) : defaultCover.value,
-)
+);
 
 // 从路由获取相册id
-const albumId = Number(route.params.albumId)
+const albumId = Number(route.params.albumId);
 
 // 图片预览
 const preview = (index: number) => {
-  const images = photoList.value.map((item) => item.photoSrc)
-  previewImages(images, index)
-}
+  const images = photoList.value.map((item) => item.photoSrc);
+  previewImages(images, index);
+};
 
 onMounted(() => {
   if (!albumId) {
-    loading.value = false
-    return
+    loading.value = false;
+    return;
   }
 
   // 并行请求相册信息和照片列表
   Promise.all([getPhotoAlbumById(albumId), listPhotoByAlbumId(albumId)])
     .then(([albumRes, photoRes]) => {
-      albumName.value = albumRes.data?.photoAlbumName ?? '相册详情'
-      albumCoverUrl.value = albumRes.data?.photoAlbumCover ?? ''
-      photoList.value = photoRes.data || []
+      albumName.value = albumRes.data?.photoAlbumName ?? '相册详情';
+      albumCoverUrl.value = albumRes.data?.photoAlbumCover ?? '';
+      photoList.value = photoRes.data || [];
     })
     .catch(() => {
-      snackbarStore.error('获取相册数据失败')
+      snackbarStore.error('获取相册数据失败');
     })
     .finally(() => {
-      loading.value = false
-    })
-})
+      loading.value = false;
+    });
+});
 </script>
 
 <style scoped>

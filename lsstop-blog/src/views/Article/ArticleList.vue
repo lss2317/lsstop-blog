@@ -63,96 +63,96 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import usePageInfoStore from '@/stores/modules/pageInfo'
-import { useSnackbarStore } from '@/stores/modules/snackbar'
-import { getArticleListByCategory, getArticleListByTag, type ArticleList } from '@/apis/article'
-import { listCategory } from '@/apis/category'
-import { listTag } from '@/apis/tag'
-import { formatTime } from '@/utils/date'
-import { useNavigate } from '@/composables/useNavigate'
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import usePageInfoStore from '@/stores/modules/pageInfo';
+import { useSnackbarStore } from '@/stores/modules/snackbar';
+import { getArticleListByCategory, getArticleListByTag, type ArticleList } from '@/apis/article';
+import { listCategory } from '@/apis/category';
+import { listTag } from '@/apis/tag';
+import { formatTime } from '@/utils/date';
+import { useNavigate } from '@/composables/useNavigate';
 
-const route = useRoute()
-const router = useRouter()
-const { navigateToArticle } = useNavigate()
-const pageInfoStore = usePageInfoStore()
-const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
-const snackbarStore = useSnackbarStore()
+const route = useRoute();
+const router = useRouter();
+const { navigateToArticle } = useNavigate();
+const pageInfoStore = usePageInfoStore();
+const { currentCoverStyle: cover } = storeToRefs(pageInfoStore);
+const snackbarStore = useSnackbarStore();
 
-const articleList = ref<ArticleList[]>([])
-const loading = ref(true)
-const name = ref('')
+const articleList = ref<ArticleList[]>([]);
+const loading = ref(true);
+const name = ref('');
 
 /** 是否为分类页面 */
-const isCategory = computed(() => route.name === 'CategoryArticles')
+const isCategory = computed(() => route.name === 'CategoryArticles');
 
 /** 页面标题 */
-const title = computed(() => (isCategory.value ? '分类' : '标签'))
+const title = computed(() => (isCategory.value ? '分类' : '标签'));
 
 /** 获取分类或标签名称 */
 async function fetchName() {
   if (isCategory.value) {
-    const categoryId = Number(route.params.categoryId)
-    const res = await listCategory()
-    const category = res.data.find((item) => item.id === categoryId)
-    name.value = category?.categoryName || ''
+    const categoryId = Number(route.params.categoryId);
+    const res = await listCategory();
+    const category = res.data.find((item) => item.id === categoryId);
+    name.value = category?.categoryName || '';
   } else {
-    const tagId = Number(route.params.tagId)
-    const res = await listTag()
-    const tag = res.data.find((item) => item.id === tagId)
-    name.value = tag?.tagName || ''
+    const tagId = Number(route.params.tagId);
+    const res = await listTag();
+    const tag = res.data.find((item) => item.id === tagId);
+    name.value = tag?.tagName || '';
   }
 }
 
 /** 获取文章列表 */
 async function fetchArticleList() {
-  loading.value = true
+  loading.value = true;
   try {
     if (isCategory.value) {
-      const categoryId = Number(route.params.categoryId)
+      const categoryId = Number(route.params.categoryId);
       if (!categoryId) {
-        loading.value = false
-        return
+        loading.value = false;
+        return;
       }
-      const res = await getArticleListByCategory(categoryId)
-      articleList.value = res.data
+      const res = await getArticleListByCategory(categoryId);
+      articleList.value = res.data;
     } else {
-      const tagId = Number(route.params.tagId)
+      const tagId = Number(route.params.tagId);
       if (!tagId) {
-        loading.value = false
-        return
+        loading.value = false;
+        return;
       }
-      const res = await getArticleListByTag(tagId)
-      articleList.value = res.data
+      const res = await getArticleListByTag(tagId);
+      articleList.value = res.data;
     }
   } catch {
-    snackbarStore.error('获取文章列表失败')
+    snackbarStore.error('获取文章列表失败');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 onMounted(() => {
-  fetchName()
-  fetchArticleList()
-})
+  fetchName();
+  fetchArticleList();
+});
 
 // 跳转到分类页
 function goToCategory(categoryId: number) {
-  if (isCategory.value && Number(route.params.categoryId) === categoryId) return
+  if (isCategory.value && Number(route.params.categoryId) === categoryId) return;
   router.push('/category/' + categoryId).then(() => {
-    window.scrollTo(0, 0)
-  })
+    window.scrollTo(0, 0);
+  });
 }
 
 // 跳转到标签页
 function goToTag(tagId: number) {
-  if (!isCategory.value && Number(route.params.tagId) === tagId) return
+  if (!isCategory.value && Number(route.params.tagId) === tagId) return;
   router.push('/tag/' + tagId).then(() => {
-    window.scrollTo(0, 0)
-  })
+    window.scrollTo(0, 0);
+  });
 }
 </script>
 

@@ -1,20 +1,20 @@
-import http from '@/utils/http.ts'
+import http from '@/utils/http.ts';
 
 /** 友链信息 */
 export interface FriendLink {
   /** 友链ID */
-  id: number
+  id: number;
   /** 友链名称 */
-  linkName: string
+  linkName: string;
   /** 友链头像 */
-  linkAvatar: string
+  linkAvatar: string;
   /** 友链地址 */
-  linkAddress: string
+  linkAddress: string;
   /** 友链介绍 */
-  linkIntro: string
+  linkIntro: string;
 }
 
 // 获取友链列表
 export function listFriendLink() {
-  return http.get<FriendLink[]>('/friendLink/listFriendLink')
+  return http.get<FriendLink[]>('/friendLink/listFriendLink');
 }

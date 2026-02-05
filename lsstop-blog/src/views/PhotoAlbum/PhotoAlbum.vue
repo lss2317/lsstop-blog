@@ -41,42 +41,42 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { listPhotoAlbum, type PhotoAlbum } from '@/apis/photoAlbum'
-import usePageInfoStore from '@/stores/modules/pageInfo.ts'
-import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { listPhotoAlbum, type PhotoAlbum } from '@/apis/photoAlbum';
+import usePageInfoStore from '@/stores/modules/pageInfo.ts';
+import { useSnackbarStore } from '@/stores/modules/snackbar.ts';
 
-const router = useRouter()
+const router = useRouter();
 
-const pageInfoStore = usePageInfoStore()
-const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
+const pageInfoStore = usePageInfoStore();
+const { currentCoverStyle: cover } = storeToRefs(pageInfoStore);
 
-const snackbarStore = useSnackbarStore()
+const snackbarStore = useSnackbarStore();
 
-const photoAlbumList = ref<PhotoAlbum[]>([])
-const loading = ref(true)
+const photoAlbumList = ref<PhotoAlbum[]>([]);
+const loading = ref(true);
 
 // 跳转到相册详情页
 function goToAlbum(id: number) {
   router.push('/photoAlbum/' + id).then(() => {
-    window.scrollTo(0, 0)
-  })
+    window.scrollTo(0, 0);
+  });
 }
 
 onMounted(() => {
   listPhotoAlbum()
     .then((res) => {
-      photoAlbumList.value = res.data
+      photoAlbumList.value = res.data;
     })
     .catch(() => {
-      snackbarStore.error('获取相册列表失败')
+      snackbarStore.error('获取相册列表失败');
     })
     .finally(() => {
-      loading.value = false
-    })
-})
+      loading.value = false;
+    });
+});
 </script>
 
 <style scoped>

@@ -20,43 +20,43 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import TopNavBar from '@/components/layout/TopNavBar.vue'
-import SideNavBar from '@/components/layout/SideNavBar.vue'
-import BlogFooter from './components/layout/BlogFooter.vue'
-import BackTop from './components/BackTop/BackTop.vue'
-import SnackbarMessage from './components/Snackbar/SnackbarMessage.vue'
-import AuthDialog from './components/Login/AuthDialog.vue'
-import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
-import usePageInfoStore from '@/stores/modules/pageInfo'
-import useLikeStore from '@/stores/modules/like'
-import useUserInfoStore from '@/stores/modules/userInfo'
-import { tokenManager } from '@/utils/token'
-import { useScrollRestore } from '@/composables/useScrollRestore'
+import { onMounted } from 'vue';
+import TopNavBar from '@/components/layout/TopNavBar.vue';
+import SideNavBar from '@/components/layout/SideNavBar.vue';
+import BlogFooter from './components/layout/BlogFooter.vue';
+import BackTop from './components/BackTop/BackTop.vue';
+import SnackbarMessage from './components/Snackbar/SnackbarMessage.vue';
+import AuthDialog from './components/Login/AuthDialog.vue';
+import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
+import usePageInfoStore from '@/stores/modules/pageInfo';
+import useLikeStore from '@/stores/modules/like';
+import useUserInfoStore from '@/stores/modules/userInfo';
+import { tokenManager } from '@/utils/token';
+import { useScrollRestore } from '@/composables/useScrollRestore';
 
-const websiteConfigStore = useWebsiteConfigStore()
-const pageInfoStore = usePageInfoStore()
-const likeStore = useLikeStore()
-const userInfoStore = useUserInfoStore()
+const websiteConfigStore = useWebsiteConfigStore();
+const pageInfoStore = usePageInfoStore();
+const likeStore = useLikeStore();
+const userInfoStore = useUserInfoStore();
 
 // 页面刷新时保持滚动位置
-useScrollRestore()
+useScrollRestore();
 
 onMounted(async () => {
-  void websiteConfigStore.fetchWebsiteConfig()
-  void pageInfoStore.fetchPageList()
+  void websiteConfigStore.fetchWebsiteConfig();
+  void pageInfoStore.fetchPageList();
   // 有token时先获取用户信息，再获取点赞数据
   if (tokenManager.hasToken()) {
-    await userInfoStore.fetchUserInfo()
-    void likeStore.fetchUserLike()
+    await userInfoStore.fetchUserInfo();
+    void likeStore.fetchUserLike();
   }
-})
+});
 
 const isMobile = (): boolean => {
   return /(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i.test(
     navigator.userAgent,
-  )
-}
+  );
+};
 
-console.log(isMobile())
+console.log(isMobile());
 </script>

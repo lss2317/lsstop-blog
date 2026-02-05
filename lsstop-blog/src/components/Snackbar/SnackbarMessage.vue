@@ -16,9 +16,9 @@
 </template>
 
 <script setup lang="ts">
-import { useSnackbarStore } from '@/stores/modules/snackbar'
+import { useSnackbarStore } from '@/stores/modules/snackbar';
 
-const snackbarStore = useSnackbarStore()
+const snackbarStore = useSnackbarStore();
 </script>
 
 <style scoped>

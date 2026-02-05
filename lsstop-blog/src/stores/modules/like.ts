@@ -1,9 +1,9 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { LikeTypeEnum } from '@/constants/likeType'
-import { toggleLike as toggleLikeApi, getUserLike } from '@/apis/like'
-import useUserInfoStore from '@/stores/modules/userInfo'
-import { useSnackbarStore } from '@/stores/modules/snackbar'
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
+import { LikeTypeEnum } from '@/constants/likeType';
+import { toggleLike as toggleLikeApi, getUserLike } from '@/apis/like';
+import useUserInfoStore from '@/stores/modules/userInfo';
+import { useSnackbarStore } from '@/stores/modules/snackbar';
 
 /**
  * 点赞状态集中管理 Store
@@ -11,15 +11,15 @@ import { useSnackbarStore } from '@/stores/modules/snackbar'
  */
 const useLikeStore = defineStore('like', () => {
   // 点赞的说说ID集合
-  const likedTalkIds = ref<Set<number>>(new Set())
+  const likedTalkIds = ref<Set<number>>(new Set());
   // 点赞的文章ID集合
-  const likedArticleIds = ref<Set<number>>(new Set())
+  const likedArticleIds = ref<Set<number>>(new Set());
   // 点赞的评论ID集合
-  const likedCommentIds = ref<Set<number>>(new Set())
+  const likedCommentIds = ref<Set<number>>(new Set());
   // 是否已获取过用户点赞数据
-  const hasFetched = ref(false)
+  const hasFetched = ref(false);
   // 是否正在获取
-  const isFetching = ref(false)
+  const isFetching = ref(false);
 
   /**
    * 判断是否已点赞
@@ -29,13 +29,13 @@ const useLikeStore = defineStore('like', () => {
   function isLiked(type: LikeTypeEnum, id: number | string): boolean {
     switch (type) {
       case LikeTypeEnum.TALK:
-        return likedTalkIds.value.has(id as number)
+        return likedTalkIds.value.has(id as number);
       case LikeTypeEnum.ARTICLE:
-        return likedArticleIds.value.has(id as number)
+        return likedArticleIds.value.has(id as number);
       case LikeTypeEnum.COMMENT:
-        return likedCommentIds.value.has(id as number)
+        return likedCommentIds.value.has(id as number);
       default:
-        return false
+        return false;
     }
   }
 
@@ -46,14 +46,14 @@ const useLikeStore = defineStore('like', () => {
    * @returns 切换后是否为已点赞状态，失败时返回 null
    */
   async function toggleLike(type: LikeTypeEnum, id: number | string): Promise<boolean | null> {
-    const userInfoStore = useUserInfoStore()
-    const snackbarStore = useSnackbarStore()
-    const userId = userInfoStore.userInfo.userId
+    const userInfoStore = useUserInfoStore();
+    const snackbarStore = useSnackbarStore();
+    const userId = userInfoStore.userInfo.userId;
 
     // 未登录时提示用户登录
     if (!userId) {
-      snackbarStore.info('登录后即可点赞哦~')
-      return null
+      snackbarStore.info('登录后即可点赞哦~');
+      return null;
     }
 
     // 发送点赞请求
@@ -61,43 +61,43 @@ const useLikeStore = defineStore('like', () => {
       await toggleLikeApi({
         targetId: Number(id),
         type,
-      })
+      });
     } catch (error) {
       // 请求失败，显示错误信息
-      console.error(error)
-      snackbarStore.error('点赞失败，请稍后重试')
+      console.error(error);
+      snackbarStore.error('点赞失败，请稍后重试');
       // 请求失败时返回 null，让调用方知道失败了
-      return null
+      return null;
     }
 
     // 请求成功，更新本地状态
     switch (type) {
       case LikeTypeEnum.TALK:
         if (likedTalkIds.value.has(id as number)) {
-          likedTalkIds.value.delete(id as number)
-          return false
+          likedTalkIds.value.delete(id as number);
+          return false;
         } else {
-          likedTalkIds.value.add(id as number)
-          return true
+          likedTalkIds.value.add(id as number);
+          return true;
         }
       case LikeTypeEnum.ARTICLE:
         if (likedArticleIds.value.has(id as number)) {
-          likedArticleIds.value.delete(id as number)
-          return false
+          likedArticleIds.value.delete(id as number);
+          return false;
         } else {
-          likedArticleIds.value.add(id as number)
-          return true
+          likedArticleIds.value.add(id as number);
+          return true;
         }
       case LikeTypeEnum.COMMENT:
         if (likedCommentIds.value.has(id as number)) {
-          likedCommentIds.value.delete(id as number)
-          return false
+          likedCommentIds.value.delete(id as number);
+          return false;
         } else {
-          likedCommentIds.value.add(id as number)
-          return true
+          likedCommentIds.value.add(id as number);
+          return true;
         }
       default:
-        return false
+        return false;
     }
   }
 
@@ -109,14 +109,14 @@ const useLikeStore = defineStore('like', () => {
   function addLike(type: LikeTypeEnum, id: number | string) {
     switch (type) {
       case LikeTypeEnum.TALK:
-        likedTalkIds.value.add(id as number)
-        break
+        likedTalkIds.value.add(id as number);
+        break;
       case LikeTypeEnum.ARTICLE:
-        likedArticleIds.value.add(id as number)
-        break
+        likedArticleIds.value.add(id as number);
+        break;
       case LikeTypeEnum.COMMENT:
-        likedCommentIds.value.add(id as number)
-        break
+        likedCommentIds.value.add(id as number);
+        break;
     }
   }
 
@@ -128,14 +128,14 @@ const useLikeStore = defineStore('like', () => {
   function removeLike(type: LikeTypeEnum, id: number | string) {
     switch (type) {
       case LikeTypeEnum.TALK:
-        likedTalkIds.value.delete(id as number)
-        break
+        likedTalkIds.value.delete(id as number);
+        break;
       case LikeTypeEnum.ARTICLE:
-        likedArticleIds.value.delete(id as number)
-        break
+        likedArticleIds.value.delete(id as number);
+        break;
       case LikeTypeEnum.COMMENT:
-        likedCommentIds.value.delete(id as number)
-        break
+        likedCommentIds.value.delete(id as number);
+        break;
     }
   }
 
@@ -147,14 +147,14 @@ const useLikeStore = defineStore('like', () => {
   function setLikedIds(type: LikeTypeEnum, ids: (number | string)[]) {
     switch (type) {
       case LikeTypeEnum.TALK:
-        likedTalkIds.value = new Set(ids as number[])
-        break
+        likedTalkIds.value = new Set(ids as number[]);
+        break;
       case LikeTypeEnum.ARTICLE:
-        likedArticleIds.value = new Set(ids as number[])
-        break
+        likedArticleIds.value = new Set(ids as number[]);
+        break;
       case LikeTypeEnum.COMMENT:
-        likedCommentIds.value = new Set(ids as number[])
-        break
+        likedCommentIds.value = new Set(ids as number[]);
+        break;
     }
   }
 
@@ -162,10 +162,10 @@ const useLikeStore = defineStore('like', () => {
    * 清空所有点赞状态
    */
   function clearAll() {
-    likedTalkIds.value.clear()
-    likedArticleIds.value.clear()
-    likedCommentIds.value.clear()
-    hasFetched.value = false
+    likedTalkIds.value.clear();
+    likedArticleIds.value.clear();
+    likedCommentIds.value.clear();
+    hasFetched.value = false;
   }
 
   /**
@@ -174,26 +174,26 @@ const useLikeStore = defineStore('like', () => {
    */
   async function fetchUserLike(force = false) {
     // 已获取过且不强制刷新，直接返回
-    if (hasFetched.value && !force) return
+    if (hasFetched.value && !force) return;
     // 正在获取中，避免重复请求
-    if (isFetching.value) return
+    if (isFetching.value) return;
 
-    const userInfoStore = useUserInfoStore()
-    const userId = userInfoStore.userInfo.userId
-    if (!userId) return
+    const userInfoStore = useUserInfoStore();
+    const userId = userInfoStore.userInfo.userId;
+    if (!userId) return;
 
     try {
-      isFetching.value = true
-      const res = await getUserLike(userId)
-      const data = res.data
-      likedTalkIds.value = new Set(data.talkLikeIds || [])
-      likedArticleIds.value = new Set(data.articleLikeIds || [])
-      likedCommentIds.value = new Set(data.commentLikeIds || [])
-      hasFetched.value = true
+      isFetching.value = true;
+      const res = await getUserLike(userId);
+      const data = res.data;
+      likedTalkIds.value = new Set(data.talkLikeIds || []);
+      likedArticleIds.value = new Set(data.articleLikeIds || []);
+      likedCommentIds.value = new Set(data.commentLikeIds || []);
+      hasFetched.value = true;
     } catch (error) {
-      console.error('获取用户点赞数据失败', error)
+      console.error('获取用户点赞数据失败', error);
     } finally {
-      isFetching.value = false
+      isFetching.value = false;
     }
   }
 
@@ -209,7 +209,7 @@ const useLikeStore = defineStore('like', () => {
     clearAll,
     fetchUserLike,
     hasFetched,
-  }
-})
+  };
+});
 
-export default useLikeStore
+export default useLikeStore;

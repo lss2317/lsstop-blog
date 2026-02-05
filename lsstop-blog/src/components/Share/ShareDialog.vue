@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { useShare } from '@/utils/talk'
+import { useShare } from '@/utils/talk';
 
 const {
   shareDialogVisible,
@@ -80,12 +80,12 @@ const {
   shareToWeibo,
   shareToWeixin,
   shareToQQ,
-} = useShare()
+} = useShare();
 
 // 暴露 openShareDialog 方法供父组件调用
 defineExpose({
   openShareDialog,
-})
+});
 </script>
 
 <style scoped>

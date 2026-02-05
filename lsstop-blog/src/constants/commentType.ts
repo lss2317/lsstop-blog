@@ -8,4 +8,4 @@ export const CommentTypeDesc: Record<CommentTypeEnum, string> = {
   [CommentTypeEnum.ARTICLE]: '文章',
   [CommentTypeEnum.FRIEND_LINK]: '友链',
   [CommentTypeEnum.TALK]: '说说',
-}
+};

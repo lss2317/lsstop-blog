@@ -236,6 +236,6 @@ const EmojiList: Record<string, string> = {
   '[棒棒糖]': 'https://www.staic.lsstop.cn/emoji/bbt.gif',
 
   '[西瓜]': 'https://www.staic.lsstop.cn/emoji/xg.gif',
-}
+};
 
-export default EmojiList
+export default EmojiList;

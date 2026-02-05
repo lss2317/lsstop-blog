@@ -12,14 +12,14 @@
 </template>
 
 <script setup lang="ts">
-import EmojiList from '@/constants/emoji'
+import EmojiList from '@/constants/emoji';
 
 const emit = defineEmits<{
-  (e: 'addEmoji', key: string): void
-}>()
+  (e: 'addEmoji', key: string): void;
+}>();
 
 function addEmoji(key: string): void {
-  emit('addEmoji', key)
+  emit('addEmoji', key);
 }
 </script>
 

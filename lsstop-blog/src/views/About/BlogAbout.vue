@@ -19,29 +19,29 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { storeToRefs } from 'pinia'
-import usePageInfoStore from '@/stores/modules/pageInfo'
-import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
-import { markdownToHtml } from '@/utils/markdown'
-import { previewImages } from '@/utils/photoPreview'
+import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
+import usePageInfoStore from '@/stores/modules/pageInfo';
+import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
+import { markdownToHtml } from '@/utils/markdown';
+import { previewImages } from '@/utils/photoPreview';
 
-const pageInfoStore = usePageInfoStore()
-const websiteConfigStore = useWebsiteConfigStore()
-const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
-const { config } = storeToRefs(websiteConfigStore)
+const pageInfoStore = usePageInfoStore();
+const websiteConfigStore = useWebsiteConfigStore();
+const { currentCoverStyle: cover } = storeToRefs(pageInfoStore);
+const { config } = storeToRefs(websiteConfigStore);
 
-const avatar = computed(() => config.value.siteAvatar)
+const avatar = computed(() => config.value.siteAvatar);
 const aboutContent = computed(() => {
-  return config.value.about ? markdownToHtml(config.value.about) : ''
-})
+  return config.value.about ? markdownToHtml(config.value.about) : '';
+});
 
 // 预览头像
 const previewAvatar = () => {
   if (avatar.value) {
-    previewImages([avatar.value], 0)
+    previewImages([avatar.value], 0);
   }
-}
+};
 </script>
 
 <style scoped>

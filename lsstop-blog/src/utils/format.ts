@@ -5,9 +5,9 @@
  */
 export function formatWordNum(num: number): string {
   if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'k'
+    return (num / 1000).toFixed(1) + 'k';
   }
-  return num.toString()
+  return num.toString();
 }
 
 /**
@@ -21,7 +21,7 @@ export function escapeHtml(str: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
+    .replace(/'/g, '&#39;');
 }
 
 /**
@@ -30,12 +30,12 @@ export function escapeHtml(str: string): string {
  * @param maxHeight 最大高度，默认200px
  */
 export function adjustTextareaHeight(textarea: HTMLTextAreaElement, maxHeight = 200): void {
-  textarea.style.height = 'auto'
+  textarea.style.height = 'auto';
   if (textarea.scrollHeight > maxHeight) {
-    textarea.style.height = maxHeight + 'px'
-    textarea.style.overflowY = 'auto'
+    textarea.style.height = maxHeight + 'px';
+    textarea.style.overflowY = 'auto';
   } else {
-    textarea.style.height = textarea.scrollHeight + 'px'
-    textarea.style.overflowY = 'hidden'
+    textarea.style.height = textarea.scrollHeight + 'px';
+    textarea.style.overflowY = 'hidden';
   }
 }

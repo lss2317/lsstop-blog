@@ -52,91 +52,91 @@
 </template>
 
 <script setup lang="ts">
-import VueDanmaku from 'vue3-danmaku'
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
-import { storeToRefs } from 'pinia'
-import { listMessage, addMessage, type Message, type AddMessageParams } from '@/apis/message'
-import { ReviewStatusEnum } from '@/constants/reviewStatus'
-import useUserInfoStore from '@/stores/modules/userInfo'
-import { useSnackbarStore } from '@/stores/modules/snackbar'
-import usePageInfoStore from '@/stores/modules/pageInfo.ts'
+import VueDanmaku from 'vue3-danmaku';
+import { nextTick, onMounted, onUnmounted, ref } from 'vue';
+import { storeToRefs } from 'pinia';
+import { listMessage, addMessage, type Message, type AddMessageParams } from '@/apis/message';
+import { ReviewStatusEnum } from '@/constants/reviewStatus';
+import useUserInfoStore from '@/stores/modules/userInfo';
+import { useSnackbarStore } from '@/stores/modules/snackbar';
+import usePageInfoStore from '@/stores/modules/pageInfo.ts';
 
-const userInfoStore = useUserInfoStore()
-const snackbarStore = useSnackbarStore()
-const pageInfoStore = usePageInfoStore()
-const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
+const userInfoStore = useUserInfoStore();
+const snackbarStore = useSnackbarStore();
+const pageInfoStore = usePageInfoStore();
+const { currentCoverStyle: cover } = storeToRefs(pageInfoStore);
 
 // 状态
-const show = ref(false)
-const submitting = ref(false)
-const messageContent = ref('')
-const inputWrapperRef = ref<HTMLElement | null>(null)
-const danmakuRef = ref<InstanceType<typeof VueDanmaku> | null>(null)
-const isReady = ref(false)
-const barrageList = ref<Message[]>([])
+const show = ref(false);
+const submitting = ref(false);
+const messageContent = ref('');
+const inputWrapperRef = ref<HTMLElement | null>(null);
+const danmakuRef = ref<InstanceType<typeof VueDanmaku> | null>(null);
+const isReady = ref(false);
+const barrageList = ref<Message[]>([]);
 
 // 发送留言
 function addBlogMessage() {
   // 未登录时提示用户登录
-  if (!userInfoStore.checkLogin('留言')) return
+  if (!userInfoStore.checkLogin('留言')) return;
 
   if (messageContent.value.trim() === '') {
-    snackbarStore.error('留言不能为空')
-    return
+    snackbarStore.error('留言不能为空');
+    return;
   }
 
-  if (submitting.value) return
+  if (submitting.value) return;
 
-  submitting.value = true
+  submitting.value = true;
   const message: AddMessageParams = {
     avatar: userInfoStore.userInfo.avatar!,
     nickname: userInfoStore.userInfo.nickname!,
     messageContent: messageContent.value,
-  }
+  };
 
   addMessage(message)
     .then((res) => {
-      const data = res.data
+      const data = res.data;
       // 审核状态：0-正常 1-待审核
       if (data.review === ReviewStatusEnum.NORMAL) {
         // 添加到弹幕列表
-        danmakuRef.value?.add(data)
-        snackbarStore.success('留言成功')
+        danmakuRef.value?.add(data);
+        snackbarStore.success('留言成功');
       } else {
-        snackbarStore.success('留言成功，待审核后展示')
+        snackbarStore.success('留言成功，待审核后展示');
       }
       // 清空输入框
-      messageContent.value = ''
-      show.value = false
+      messageContent.value = '';
+      show.value = false;
     })
     .catch((error) => {
-      const msg = error.response?.data?.msg || '留言失败，请稍后重试'
-      snackbarStore.error(msg)
+      const msg = error.response?.data?.msg || '留言失败，请稍后重试';
+      snackbarStore.error(msg);
     })
     .finally(() => {
-      submitting.value = false
-    })
+      submitting.value = false;
+    });
 }
 
 onMounted(() => {
   listMessage().then((res) => {
-    barrageList.value = res.data
-  })
+    barrageList.value = res.data;
+  });
   nextTick(() => {
-    isReady.value = true
-  })
+    isReady.value = true;
+  });
   // 监听点击事件，点击输入框外部时隐藏发送按钮
-  document.addEventListener('click', handleClickOutside)
-})
+  document.addEventListener('click', handleClickOutside);
+});
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
+  document.removeEventListener('click', handleClickOutside);
+});
 
 // 点击外部隐藏发送按钮
 function handleClickOutside(event: MouseEvent) {
   if (inputWrapperRef.value && !inputWrapperRef.value.contains(event.target as Node)) {
-    show.value = false
+    show.value = false;
   }
 }
 </script>

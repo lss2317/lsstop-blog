@@ -82,85 +82,85 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { storeToRefs } from 'pinia'
-import { listArchives, type ArticleArchive } from '@/apis/archive'
-import usePageInfoStore from '@/stores/modules/pageInfo.ts'
-import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
-import { dateFormat, getYear, getMonth } from '@/utils/date'
-import { useNavigate } from '@/composables/useNavigate'
+import { computed, onMounted, ref } from 'vue';
+import { storeToRefs } from 'pinia';
+import { listArchives, type ArticleArchive } from '@/apis/archive';
+import usePageInfoStore from '@/stores/modules/pageInfo.ts';
+import { useSnackbarStore } from '@/stores/modules/snackbar.ts';
+import { dateFormat, getYear, getMonth } from '@/utils/date';
+import { useNavigate } from '@/composables/useNavigate';
 
-const pageInfoStore = usePageInfoStore()
-const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
+const pageInfoStore = usePageInfoStore();
+const { currentCoverStyle: cover } = storeToRefs(pageInfoStore);
 
-const { navigateToArticle } = useNavigate()
-const snackbarStore = useSnackbarStore()
+const { navigateToArticle } = useNavigate();
+const snackbarStore = useSnackbarStore();
 
-const archives = ref<ArticleArchive[]>([])
-const totalCount = ref(0)
-const loading = ref(true)
+const archives = ref<ArticleArchive[]>([]);
+const totalCount = ref(0);
+const loading = ref(true);
 
 /** 按年月分组的归档数据 */
 interface MonthGroup {
-  month: number
-  articles: ArticleArchive[]
+  month: number;
+  articles: ArticleArchive[];
 }
 
 interface YearGroup {
-  year: number
-  count: number
-  months: MonthGroup[]
+  year: number;
+  count: number;
+  months: MonthGroup[];
 }
 
 /** 将归档数据按年月分组 */
 const groupedArchives = computed<YearGroup[]>(() => {
-  const groups: Map<number, Map<number, ArticleArchive[]>> = new Map()
+  const groups: Map<number, Map<number, ArticleArchive[]>> = new Map();
 
   archives.value.forEach((article) => {
-    const year = getYear(article.createTime)
-    const month = getMonth(article.createTime)
+    const year = getYear(article.createTime);
+    const month = getMonth(article.createTime);
 
     if (!groups.has(year)) {
-      groups.set(year, new Map())
+      groups.set(year, new Map());
     }
-    const yearMap = groups.get(year)!
+    const yearMap = groups.get(year)!;
     if (!yearMap.has(month)) {
-      yearMap.set(month, [])
+      yearMap.set(month, []);
     }
-    yearMap.get(month)!.push(article)
-  })
+    yearMap.get(month)!.push(article);
+  });
 
   // 转换为数组并排序（年份降序，月份降序）
-  const result: YearGroup[] = []
-  const sortedYears = Array.from(groups.keys()).sort((a, b) => b - a)
+  const result: YearGroup[] = [];
+  const sortedYears = Array.from(groups.keys()).sort((a, b) => b - a);
 
   sortedYears.forEach((year) => {
-    const yearMap = groups.get(year)!
-    const sortedMonths = Array.from(yearMap.keys()).sort((a, b) => b - a)
+    const yearMap = groups.get(year)!;
+    const sortedMonths = Array.from(yearMap.keys()).sort((a, b) => b - a);
     const months: MonthGroup[] = sortedMonths.map((month) => ({
       month,
       articles: yearMap.get(month)!,
-    }))
-    const count = months.reduce((sum, m) => sum + m.articles.length, 0)
-    result.push({ year, count, months })
-  })
+    }));
+    const count = months.reduce((sum, m) => sum + m.articles.length, 0);
+    result.push({ year, count, months });
+  });
 
-  return result
-})
+  return result;
+});
 
 onMounted(() => {
   listArchives()
     .then((res) => {
-      archives.value = res.data ?? []
-      totalCount.value = archives.value.length
+      archives.value = res.data ?? [];
+      totalCount.value = archives.value.length;
     })
     .catch(() => {
-      snackbarStore.error('获取归档列表失败')
+      snackbarStore.error('获取归档列表失败');
     })
     .finally(() => {
-      loading.value = false
-    })
-})
+      loading.value = false;
+    });
+});
 </script>
 
 <style scoped>

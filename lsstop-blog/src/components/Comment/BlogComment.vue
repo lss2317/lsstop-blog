@@ -310,66 +310,66 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import CommentEmoji from '@/components/Emoji/CommentEmoji.vue'
-import ReplyInput from '@/components/Comment/ReplyInput.vue'
-import { formatTime } from '@/utils/date'
-import { parseEmoji } from '@/utils/emoji'
-import { adjustTextareaHeight } from '@/utils/format'
-import useLikeStore from '@/stores/modules/like'
-import useUserInfoStore from '@/stores/modules/userInfo'
-import { useSnackbarStore } from '@/stores/modules/snackbar'
-import { LikeTypeEnum } from '@/constants/likeType'
-import type { Comment, Reply } from '@/apis/comment'
-import { getComments, addComment, getReplyList } from '@/apis/comment'
-import { useEmoji } from '@/composables/useEmoji'
-import { CommentTypeEnum } from '@/constants/commentType'
-import { ReviewStatusEnum } from '@/constants/reviewStatus'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
+import CommentEmoji from '@/components/Emoji/CommentEmoji.vue';
+import ReplyInput from '@/components/Comment/ReplyInput.vue';
+import { formatTime } from '@/utils/date';
+import { parseEmoji } from '@/utils/emoji';
+import { adjustTextareaHeight } from '@/utils/format';
+import useLikeStore from '@/stores/modules/like';
+import useUserInfoStore from '@/stores/modules/userInfo';
+import { useSnackbarStore } from '@/stores/modules/snackbar';
+import { LikeTypeEnum } from '@/constants/likeType';
+import type { Comment, Reply } from '@/apis/comment';
+import { getComments, addComment, getReplyList } from '@/apis/comment';
+import { useEmoji } from '@/composables/useEmoji';
+import { CommentTypeEnum } from '@/constants/commentType';
+import { ReviewStatusEnum } from '@/constants/reviewStatus';
 
 // props
 const props = defineProps<{
-  type: number
-  typeId?: string
-}>()
+  type: number;
+  typeId?: string;
+}>();
 
 // stores
-const likeStore = useLikeStore()
-const userInfoStore = useUserInfoStore()
-const snackbarStore = useSnackbarStore()
+const likeStore = useLikeStore();
+const userInfoStore = useUserInfoStore();
+const snackbarStore = useSnackbarStore();
 
 // 评论状态
-const commentContent = ref('')
-const commentTextareaRef = ref<HTMLTextAreaElement | null>(null)
-const replyContent = ref('')
-const count = ref(0)
-const commentList = ref<Comment[]>([])
-const replyingTo = ref<number | null>(null)
-const replyingToReplyId = ref<number | null>(null)
-const showRepliesMap = reactive<Record<number, boolean>>({})
-const loadingReplyMap = reactive<Record<number, boolean>>({}) // 子评论加载状态
-const replyPageMap = reactive<Record<number, number>>({}) // 已加载的页码
-const noMoreRepliesMap = reactive<Record<number, boolean>>({}) // 是否已加载完所有子评论
-const expandedCommentMap = reactive<Record<number, boolean>>({}) // 主评论展开状态
-const overflowCommentMap = reactive<Record<number, boolean>>({}) // 主评论是否溢出
-const expandedReplyMap = reactive<Record<number, boolean>>({}) // 子评论展开状态
-const overflowReplyMap = reactive<Record<number, boolean>>({}) // 子评论是否溢出
-const commentContentRefs = reactive<Record<number, HTMLElement | null>>({}) // 主评论内容ref
-const replyContentRefs = reactive<Record<number, HTMLElement | null>>({}) // 子评论内容ref
-const maxCollapsedHeight = 162 // 6行约162px (line-height:1.8 * font-size:14 * 6 ≈ 151, 留余量)
-const sortType = ref<'hot' | 'new'>('hot')
-const showSortMenu = ref(false)
-const current = ref(1)
-const loading = ref(false)
-const submitting = ref(false)
-const sortBarRef = ref<HTMLElement | null>(null)
+const commentContent = ref('');
+const commentTextareaRef = ref<HTMLTextAreaElement | null>(null);
+const replyContent = ref('');
+const count = ref(0);
+const commentList = ref<Comment[]>([]);
+const replyingTo = ref<number | null>(null);
+const replyingToReplyId = ref<number | null>(null);
+const showRepliesMap = reactive<Record<number, boolean>>({});
+const loadingReplyMap = reactive<Record<number, boolean>>({}); // 子评论加载状态
+const replyPageMap = reactive<Record<number, number>>({}); // 已加载的页码
+const noMoreRepliesMap = reactive<Record<number, boolean>>({}); // 是否已加载完所有子评论
+const expandedCommentMap = reactive<Record<number, boolean>>({}); // 主评论展开状态
+const overflowCommentMap = reactive<Record<number, boolean>>({}); // 主评论是否溢出
+const expandedReplyMap = reactive<Record<number, boolean>>({}); // 子评论展开状态
+const overflowReplyMap = reactive<Record<number, boolean>>({}); // 子评论是否溢出
+const commentContentRefs = reactive<Record<number, HTMLElement | null>>({}); // 主评论内容ref
+const replyContentRefs = reactive<Record<number, HTMLElement | null>>({}); // 子评论内容ref
+const maxCollapsedHeight = 162; // 6行约162px (line-height:1.8 * font-size:14 * 6 ≈ 151, 留余量)
+const sortType = ref<'hot' | 'new'>('hot');
+const showSortMenu = ref(false);
+const current = ref(1);
+const loading = ref(false);
+const submitting = ref(false);
+const sortBarRef = ref<HTMLElement | null>(null);
 //每页默认最大条数
-const pageSize = 10
+const pageSize = 10;
 
 // 计算总页数
-const totalPages = computed(() => Math.ceil(count.value / pageSize))
+const totalPages = computed(() => Math.ceil(count.value / pageSize));
 
 // 当前用户头像
-const currentUserAvatar = computed(() => userInfoStore.userInfo.avatar ?? '')
+const currentUserAvatar = computed(() => userInfoStore.userInfo.avatar ?? '');
 
 // 主评论表情
 const {
@@ -380,49 +380,49 @@ const {
   closeEmoji,
   registerClickOutside,
   unregisterClickOutside,
-} = useEmoji()
+} = useEmoji();
 
 // 调整评论输入框高度
 const handleTextareaInput = () => {
   if (commentTextareaRef.value) {
-    adjustTextareaHeight(commentTextareaRef.value)
+    adjustTextareaHeight(commentTextareaRef.value);
   }
-}
+};
 
 // 点赞
 const like = async (item: Comment | Reply) => {
-  const isLiked = await likeStore.toggleLike(LikeTypeEnum.COMMENT, item.id)
+  const isLiked = await likeStore.toggleLike(LikeTypeEnum.COMMENT, item.id);
   if (isLiked !== null) {
-    item.likeCount += isLiked ? 1 : -1
+    item.likeCount += isLiked ? 1 : -1;
   }
-}
+};
 
 // 判断是否已点赞
 const isLike = (id: number): boolean => {
-  return likeStore.isLiked(LikeTypeEnum.COMMENT, id)
-}
+  return likeStore.isLiked(LikeTypeEnum.COMMENT, id);
+};
 
 // 提交评论
 const insertComment = async () => {
-  if (!userInfoStore.checkLogin('评论')) return
+  if (!userInfoStore.checkLogin('评论')) return;
   if (!commentContent.value.trim()) {
-    snackbarStore.error('评论内容不能为空')
-    return
+    snackbarStore.error('评论内容不能为空');
+    return;
   }
-  if (submitting.value) return
+  if (submitting.value) return;
 
-  submitting.value = true
+  submitting.value = true;
   try {
     const params = {
       targetType: props.type,
       targetId: Number(props.typeId),
       content: commentContent.value,
-    }
+    };
 
-    const res = await addComment(params)
+    const res = await addComment(params);
 
     if (res.data.review === ReviewStatusEnum.PENDING) {
-      snackbarStore.success('评论提交成功，等待审核')
+      snackbarStore.success('评论提交成功，等待审核');
     } else {
       // 不需要审核，本地插入新评论
       const newComment: Comment = {
@@ -436,78 +436,78 @@ const insertComment = async () => {
         likeCount: 0,
         replyCount: 0,
         replyList: [],
-      }
-      commentList.value.unshift(newComment)
-      count.value++
-      snackbarStore.success('评论提交成功')
+      };
+      commentList.value.unshift(newComment);
+      count.value++;
+      snackbarStore.success('评论提交成功');
     }
 
     // 清空评论内容并重置高度
-    commentContent.value = ''
+    commentContent.value = '';
     if (commentTextareaRef.value) {
-      commentTextareaRef.value.style.height = 'auto'
+      commentTextareaRef.value.style.height = 'auto';
     }
-    closeEmoji()
+    closeEmoji();
   } catch (error: unknown) {
-    const err = error as { response?: { data?: { msg?: string } } }
-    snackbarStore.error(err.response?.data?.msg || '评论提交失败')
+    const err = error as { response?: { data?: { msg?: string } } };
+    snackbarStore.error(err.response?.data?.msg || '评论提交失败');
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
-}
+};
 
 // 添加表情
 const addEmoji = (key: string) => {
-  commentContent.value += key
-}
+  commentContent.value += key;
+};
 
 // 添加回复表情
 const addReplyEmoji = (key: string) => {
-  replyContent.value += key
-}
+  replyContent.value += key;
+};
 
 // 回复评论
 const replyComment = (commentId: number) => {
-  if (!userInfoStore.checkLogin('回复')) return
+  if (!userInfoStore.checkLogin('回复')) return;
   if (replyingTo.value === commentId && replyingToReplyId.value === null) {
-    cancelReply()
+    cancelReply();
   } else {
-    replyingTo.value = commentId
-    replyingToReplyId.value = null
-    replyContent.value = ''
+    replyingTo.value = commentId;
+    replyingToReplyId.value = null;
+    replyContent.value = '';
   }
-}
+};
 
 // 回复子评论
 const replyToReply = (commentId: number, reply: Reply) => {
-  if (!userInfoStore.checkLogin('回复')) return
-  replyingTo.value = commentId
-  replyingToReplyId.value = reply.id
-  replyContent.value = ''
-}
+  if (!userInfoStore.checkLogin('回复')) return;
+  replyingTo.value = commentId;
+  replyingToReplyId.value = reply.id;
+  replyContent.value = '';
+};
 
 // 取消回复
 const cancelReply = () => {
-  replyingTo.value = null
-  replyingToReplyId.value = null
-  replyContent.value = ''
-}
+  replyingTo.value = null;
+  replyingToReplyId.value = null;
+  replyContent.value = '';
+};
 
 // 提交回复
 const submitReply = async (item: Comment) => {
-  if (!userInfoStore.checkLogin('回复')) return
+  if (!userInfoStore.checkLogin('回复')) return;
   if (!replyContent.value.trim()) {
-    snackbarStore.error('回复内容不能为空')
-    return
+    snackbarStore.error('回复内容不能为空');
+    return;
   }
-  if (submitting.value) return
+  if (submitting.value) return;
 
-  submitting.value = true
+  submitting.value = true;
   try {
     // 获取被回复的用户信息（如果是回复子评论）
     const replyToUser = replyingToReplyId.value
       ? item.replyList?.find((r) => r.id === replyingToReplyId.value)
-      : null
+      : null;
 
     const params = {
       targetType: props.type,
@@ -515,12 +515,12 @@ const submitReply = async (item: Comment) => {
       content: replyContent.value,
       parentId: item.id, // 回复目标评论
       replyUserId: replyToUser?.userId, // 只有回复子评论时才有值
-    }
+    };
 
-    const res = await addComment(params)
+    const res = await addComment(params);
 
     if (res.data.review === ReviewStatusEnum.PENDING) {
-      snackbarStore.success('回复提交成功，等待审核')
+      snackbarStore.success('回复提交成功，等待审核');
     } else {
       // 不需要审核，本地插入新回复
       const newReply: Reply = {
@@ -534,169 +534,169 @@ const submitReply = async (item: Comment) => {
         likeCount: 0,
         replyUserId: replyToUser?.userId,
         replyNickname: replyToUser?.nickname,
-      }
+      };
 
       // 插入到回复列表（通过索引更新确保响应式）
-      const index = commentList.value.findIndex((c) => c.id === item.id)
-      const comment = commentList.value[index]
+      const index = commentList.value.findIndex((c) => c.id === item.id);
+      const comment = commentList.value[index];
       if (comment) {
         if (!comment.replyList) {
-          comment.replyList = []
+          comment.replyList = [];
         }
         // 追加到回复列表末尾
-        comment.replyList.push(newReply)
-        comment.replyCount++
+        comment.replyList.push(newReply);
+        comment.replyCount++;
         // 自动展开回复列表
-        showRepliesMap[comment.id] = true
+        showRepliesMap[comment.id] = true;
       }
 
-      snackbarStore.success('回复提交成功')
+      snackbarStore.success('回复提交成功');
     }
 
     // 清空回复内容
-    cancelReply()
+    cancelReply();
   } catch (error: unknown) {
-    console.error('提交回复失败:', error)
-    const err = error as { response?: { data?: { msg?: string } } }
-    snackbarStore.error(err.response?.data?.msg || '回复提交失败')
+    console.error('提交回复失败:', error);
+    const err = error as { response?: { data?: { msg?: string } } };
+    snackbarStore.error(err.response?.data?.msg || '回复提交失败');
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
-}
+};
 
 // 切换回复列表显示
 const toggleReplies = async (commentId: number) => {
   // 如果已展开，则收起
   if (showRepliesMap[commentId]) {
-    showRepliesMap[commentId] = false
-    return
+    showRepliesMap[commentId] = false;
+    return;
   }
 
   // 展开并加载第1页数据
-  showRepliesMap[commentId] = true
+  showRepliesMap[commentId] = true;
 
-  const comment = commentList.value.find((c) => c.id === commentId)
-  if (!comment) return
+  const comment = commentList.value.find((c) => c.id === commentId);
+  if (!comment) return;
 
   // 如果已有数据，不重复加载
-  if (comment.replyList && comment.replyList.length > 0) return
+  if (comment.replyList && comment.replyList.length > 0) return;
 
   // 加载第1页
-  if (loadingReplyMap[commentId]) return
-  loadingReplyMap[commentId] = true
+  if (loadingReplyMap[commentId]) return;
+  loadingReplyMap[commentId] = true;
 
   try {
     const res = await getReplyList({
       parentId: commentId,
       current: 1,
       sortType: sortType.value,
-    })
-    comment.replyList = res.data || []
-    replyPageMap[commentId] = 1 // 记录已加载第1页
+    });
+    comment.replyList = res.data || [];
+    replyPageMap[commentId] = 1; // 记录已加载第1页
   } finally {
-    loadingReplyMap[commentId] = false
+    loadingReplyMap[commentId] = false;
   }
-}
+};
 
 // 展示更多子评论
 const showMoreReplies = async (commentId: number) => {
-  if (loadingReplyMap[commentId]) return
-  loadingReplyMap[commentId] = true
+  if (loadingReplyMap[commentId]) return;
+  loadingReplyMap[commentId] = true;
 
   try {
-    const comment = commentList.value.find((c) => c.id === commentId)
-    if (!comment || !comment.replyList) return
+    const comment = commentList.value.find((c) => c.id === commentId);
+    if (!comment || !comment.replyList) return;
 
     // 下一页
-    const nextPage = (replyPageMap[commentId] || 1) + 1
+    const nextPage = (replyPageMap[commentId] || 1) + 1;
 
     const res = await getReplyList({
       parentId: commentId,
       current: nextPage,
       sortType: sortType.value,
-    })
+    });
 
-    const responseData = res.data || []
+    const responseData = res.data || [];
     // 如果返回数据为空，标记已加载完毕
     if (responseData.length === 0) {
-      noMoreRepliesMap[commentId] = true
-      return
+      noMoreRepliesMap[commentId] = true;
+      return;
     }
 
     // 获取已存在的ID集合
-    const existingIds = new Set(comment.replyList.map((r) => r.id))
+    const existingIds = new Set(comment.replyList.map((r) => r.id));
     // 过滤去重后追加
-    const newReplies = responseData.filter((r) => !existingIds.has(r.id))
-    comment.replyList.push(...newReplies)
-    replyPageMap[commentId] = nextPage // 更新已加载页码
+    const newReplies = responseData.filter((r) => !existingIds.has(r.id));
+    comment.replyList.push(...newReplies);
+    replyPageMap[commentId] = nextPage; // 更新已加载页码
   } finally {
-    loadingReplyMap[commentId] = false
+    loadingReplyMap[commentId] = false;
   }
-}
+};
 
 // 隐藏子评论列表
 const hideReplies = (commentId: number) => {
-  showRepliesMap[commentId] = false
-}
+  showRepliesMap[commentId] = false;
+};
 
 // 获取显示的子评论列表（直接返回全部已加载的）
 const getVisibleReplies = (_commentId: number, replyList: Reply[] | undefined) => {
-  if (!replyList) return []
-  return replyList
-}
+  if (!replyList) return [];
+  return replyList;
+};
 
 // 是否还有更多子评论
 const hasMoreReplies = (commentId: number, replyList: Reply[] | undefined) => {
-  if (!replyList) return false
+  if (!replyList) return false;
   // 已标记加载完毕
-  if (noMoreRepliesMap[commentId]) return false
-  const comment = commentList.value.find((c) => c.id === commentId)
-  if (!comment) return false
-  return replyList.length < comment.replyCount
-}
+  if (noMoreRepliesMap[commentId]) return false;
+  const comment = commentList.value.find((c) => c.id === commentId);
+  if (!comment) return false;
+  return replyList.length < comment.replyCount;
+};
 
 // 重置所有展开状态
 const resetRepliesState = () => {
-  Object.keys(showRepliesMap).forEach((key) => delete showRepliesMap[Number(key)])
-  Object.keys(replyPageMap).forEach((key) => delete replyPageMap[Number(key)])
-  Object.keys(noMoreRepliesMap).forEach((key) => delete noMoreRepliesMap[Number(key)])
-  Object.keys(expandedCommentMap).forEach((key) => delete expandedCommentMap[Number(key)])
-  Object.keys(overflowCommentMap).forEach((key) => delete overflowCommentMap[Number(key)])
-  Object.keys(expandedReplyMap).forEach((key) => delete expandedReplyMap[Number(key)])
-  Object.keys(overflowReplyMap).forEach((key) => delete overflowReplyMap[Number(key)])
-  cancelReply()
-}
+  Object.keys(showRepliesMap).forEach((key) => delete showRepliesMap[Number(key)]);
+  Object.keys(replyPageMap).forEach((key) => delete replyPageMap[Number(key)]);
+  Object.keys(noMoreRepliesMap).forEach((key) => delete noMoreRepliesMap[Number(key)]);
+  Object.keys(expandedCommentMap).forEach((key) => delete expandedCommentMap[Number(key)]);
+  Object.keys(overflowCommentMap).forEach((key) => delete overflowCommentMap[Number(key)]);
+  Object.keys(expandedReplyMap).forEach((key) => delete expandedReplyMap[Number(key)]);
+  Object.keys(overflowReplyMap).forEach((key) => delete overflowReplyMap[Number(key)]);
+  cancelReply();
+};
 
 // 设置主评论内容ref
 const setCommentContentRef = (id: number, el: HTMLElement | null) => {
-  commentContentRefs[id] = el
+  commentContentRefs[id] = el;
   if (el) {
     // 使用 nextTick 确保 DOM 已渲染
     setTimeout(() => {
-      overflowCommentMap[id] = el.scrollHeight > maxCollapsedHeight
-    }, 0)
+      overflowCommentMap[id] = el.scrollHeight > maxCollapsedHeight;
+    }, 0);
   }
-}
+};
 
 // 设置子评论内容ref
 const setReplyContentRef = (id: number, el: HTMLElement | null) => {
-  replyContentRefs[id] = el
+  replyContentRefs[id] = el;
   if (el) {
     setTimeout(() => {
-      overflowReplyMap[id] = el.scrollHeight > maxCollapsedHeight
-    }, 0)
+      overflowReplyMap[id] = el.scrollHeight > maxCollapsedHeight;
+    }, 0);
   }
-}
+};
 
 // 切换主评论展开状态
 const toggleExpandComment = (id: number) => {
-  expandedCommentMap[id] = !expandedCommentMap[id]
-}
+  expandedCommentMap[id] = !expandedCommentMap[id];
+};
 
 // 切换子评论展开状态
 const toggleExpandReply = (id: number) => {
-  expandedReplyMap[id] = !expandedReplyMap[id]
-}
+  expandedReplyMap[id] = !expandedReplyMap[id];
+};
 
 // 加载评论列表
 const listComments = async () => {
@@ -705,68 +705,68 @@ const listComments = async () => {
     ([CommentTypeEnum.ARTICLE, CommentTypeEnum.TALK] as number[]).includes(props.type) &&
     (!props.typeId || isNaN(Number(props.typeId)))
   ) {
-    commentList.value = []
-    count.value = 0
-    return
+    commentList.value = [];
+    count.value = 0;
+    return;
   }
 
-  if (loading.value) return
-  loading.value = true
+  if (loading.value) return;
+  loading.value = true;
   // 重置展开状态
-  resetRepliesState()
+  resetRepliesState();
   try {
     const res = await getComments({
       type: props.type,
       typeId: props.typeId ? Number(props.typeId) : undefined,
       current: current.value,
       sortType: sortType.value,
-    })
-    commentList.value = res.data.list
-    count.value = res.data.total
+    });
+    commentList.value = res.data.list;
+    count.value = res.data.total;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // 切换分页
 const handlePageChange = () => {
   // 滚动到排序栏位置
   if (sortBarRef.value) {
-    sortBarRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    sortBarRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  listComments()
-}
+  listComments();
+};
 
 // 选择排序方式
 const selectSort = (type: 'hot' | 'new') => {
   if (sortType.value === type) {
-    showSortMenu.value = false
-    return
+    showSortMenu.value = false;
+    return;
   }
-  sortType.value = type
-  showSortMenu.value = false
-  current.value = 1
-  listComments()
-}
+  sortType.value = type;
+  showSortMenu.value = false;
+  current.value = 1;
+  listComments();
+};
 
 // 点击外部关闭下拉菜单
 const handleClickOutside = (event: MouseEvent) => {
-  const target = event.target as HTMLElement
+  const target = event.target as HTMLElement;
   if (!target.closest('.lc-sort-dropdown-wrapper')) {
-    showSortMenu.value = false
+    showSortMenu.value = false;
   }
-}
+};
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-  registerClickOutside()
-  listComments()
-})
+  document.addEventListener('click', handleClickOutside);
+  registerClickOutside();
+  listComments();
+});
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-  unregisterClickOutside()
-})
+  document.removeEventListener('click', handleClickOutside);
+  unregisterClickOutside();
+});
 </script>
 
 <style scoped>

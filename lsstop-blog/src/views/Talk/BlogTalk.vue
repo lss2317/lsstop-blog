@@ -116,92 +116,92 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import usePageInfoStore from '@/stores/modules/pageInfo.ts'
-import useLikeStore from '@/stores/modules/like.ts'
-import { listTalk } from '@/apis/talk'
-import { dateFormat } from '@/utils/date'
-import { type TalkItem, isUserDeactivated, getUserAvatar, getUserNickname } from '@/utils/talk'
-import ShareDialog from '@/components/Share/ShareDialog.vue'
-import { LikeTypeEnum } from '@/constants/likeType'
-import { TopStatusEnum } from '@/constants/topStatus'
-import { previewImages } from '@/utils/photoPreview'
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import usePageInfoStore from '@/stores/modules/pageInfo.ts';
+import useLikeStore from '@/stores/modules/like.ts';
+import { listTalk } from '@/apis/talk';
+import { dateFormat } from '@/utils/date';
+import { type TalkItem, isUserDeactivated, getUserAvatar, getUserNickname } from '@/utils/talk';
+import ShareDialog from '@/components/Share/ShareDialog.vue';
+import { LikeTypeEnum } from '@/constants/likeType';
+import { TopStatusEnum } from '@/constants/topStatus';
+import { previewImages } from '@/utils/photoPreview';
 
 // 获取路由实例
-const router = useRouter()
+const router = useRouter();
 
 // 获取封面样式
-const pageInfoStore = usePageInfoStore()
-const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
+const pageInfoStore = usePageInfoStore();
+const { currentCoverStyle: cover } = storeToRefs(pageInfoStore);
 
 // 点赞状态管理
-const likeStore = useLikeStore()
-const { likedTalkIds } = storeToRefs(likeStore)
+const likeStore = useLikeStore();
+const { likedTalkIds } = storeToRefs(likeStore);
 
 // 加载状态
-const loading = ref(true)
+const loading = ref(true);
 
 // 说说列表数据
-const talkList = ref<TalkItem[]>([])
+const talkList = ref<TalkItem[]>([]);
 
 // 跳转到说说详情页
 function goToTalkInfo(id: number) {
   router.push('/talk/' + id).then(() => {
-    window.scrollTo(0, 0)
-  })
+    window.scrollTo(0, 0);
+  });
 }
 
 // 分享弹窗引用
-const shareDialogRef = ref<InstanceType<typeof ShareDialog> | null>(null)
+const shareDialogRef = ref<InstanceType<typeof ShareDialog> | null>(null);
 
 // 点赞操作
 async function like(item: TalkItem) {
-  const isLiked = await likeStore.toggleLike(LikeTypeEnum.TALK, item.id)
+  const isLiked = await likeStore.toggleLike(LikeTypeEnum.TALK, item.id);
   // 请求失败时不更新点赞数
-  if (isLiked === null) return
+  if (isLiked === null) return;
   if (isLiked) {
-    item.likeCount = (item.likeCount || 0) + 1
+    item.likeCount = (item.likeCount || 0) + 1;
   } else {
-    item.likeCount = (item.likeCount || 1) - 1
+    item.likeCount = (item.likeCount || 1) - 1;
   }
 }
 
 // 预览图片
 function previewImg(item: TalkItem, img: string) {
-  const images = item.imgList || []
-  const index = images.indexOf(img)
-  previewImages(images, index >= 0 ? index : 0)
+  const images = item.imgList || [];
+  const index = images.indexOf(img);
+  previewImages(images, index >= 0 ? index : 0);
 }
 
 // 预览头像
 function previewAvatar(item: TalkItem) {
-  previewImages([getUserAvatar(item)], 0)
+  previewImages([getUserAvatar(item)], 0);
 }
 
 // 分享功能
 function share(item: TalkItem) {
-  const url = `${window.location.origin}/talk/${item.id}`
-  const title = item.content.replace(/<[^>]+>/g, '').substring(0, 50)
-  shareDialogRef.value?.openShareDialog(url, title)
+  const url = `${window.location.origin}/talk/${item.id}`;
+  const title = item.content.replace(/<[^>]+>/g, '').substring(0, 50);
+  shareDialogRef.value?.openShareDialog(url, title);
 }
 
 // 加载说说列表
 function listTalks() {
-  loading.value = true
+  loading.value = true;
   listTalk()
     .then((res) => {
-      talkList.value = res.data
+      talkList.value = res.data;
     })
     .finally(() => {
-      loading.value = false
-    })
+      loading.value = false;
+    });
 }
 
 onMounted(() => {
-  listTalks()
-})
+  listTalks();
+});
 </script>
 
 <style scoped>

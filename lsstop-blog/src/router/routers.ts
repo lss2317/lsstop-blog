@@ -122,4 +122,4 @@ export const constantRouter = [
   //   redirect: '/',
   //   name: 'any',
   // }
-]
+];

@@ -27,19 +27,19 @@
 </template>
 
 <script setup lang="ts">
-import { dateFormat } from '@/utils/date'
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
-import { storeToRefs } from 'pinia'
+import { dateFormat } from '@/utils/date';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
+import { storeToRefs } from 'pinia';
 
-const route = useRoute()
-const websiteConfigStore = useWebsiteConfigStore()
-const { config } = storeToRefs(websiteConfigStore)
+const route = useRoute();
+const websiteConfigStore = useWebsiteConfigStore();
+const { config } = storeToRefs(websiteConfigStore);
 
-const websiteCreateTime = computed(() => config.value.siteStartTime)
-const isMessage = computed(() => route.path === '/message')
-const websiteAuthor = computed(() => config.value.siteAuthor)
+const websiteCreateTime = computed(() => config.value.siteStartTime);
+const isMessage = computed(() => route.path === '/message');
+const websiteAuthor = computed(() => config.value.siteAuthor);
 </script>
 
 <style scoped>

@@ -60,39 +60,39 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { listTag, type Tag } from '@/apis/tag'
-import usePageInfoStore from '@/stores/modules/pageInfo.ts'
-import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { listTag, type Tag } from '@/apis/tag';
+import usePageInfoStore from '@/stores/modules/pageInfo.ts';
+import { useSnackbarStore } from '@/stores/modules/snackbar.ts';
 
-const pageInfoStore = usePageInfoStore()
-const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
+const pageInfoStore = usePageInfoStore();
+const { currentCoverStyle: cover } = storeToRefs(pageInfoStore);
 
-const router = useRouter()
-const snackbarStore = useSnackbarStore()
+const router = useRouter();
+const snackbarStore = useSnackbarStore();
 
-const tagList = ref<Tag[]>([])
-const loading = ref(true)
+const tagList = ref<Tag[]>([]);
+const loading = ref(true);
 
 onMounted(() => {
   listTag()
     .then((res) => {
-      tagList.value = res.data
+      tagList.value = res.data;
     })
     .catch(() => {
-      snackbarStore.error('获取标签列表失败')
+      snackbarStore.error('获取标签列表失败');
     })
     .finally(() => {
-      loading.value = false
-    })
-})
+      loading.value = false;
+    });
+});
 
 function goToTag(id: number) {
   router.push('/tag/' + id).then(() => {
-    window.scrollTo(0, 0)
-  })
+    window.scrollTo(0, 0);
+  });
 }
 </script>
 

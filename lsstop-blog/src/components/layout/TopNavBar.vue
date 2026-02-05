@@ -94,59 +94,59 @@
   </v-app-bar>
 </template>
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useDrawerStore } from '@/stores/modules/drawer'
-import { useLoginStore } from '@/stores/modules/login'
-import useUserInfoStore from '@/stores/modules/userInfo'
-import { useAuthStore } from '@/stores/modules/auth'
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { useDrawerStore } from '@/stores/modules/drawer';
+import { useLoginStore } from '@/stores/modules/login';
+import useUserInfoStore from '@/stores/modules/userInfo';
+import { useAuthStore } from '@/stores/modules/auth';
 
-const router = useRouter()
-const route = useRoute()
-const drawerStore = useDrawerStore()
-const { openDrawer } = drawerStore
+const router = useRouter();
+const route = useRoute();
+const drawerStore = useDrawerStore();
+const { openDrawer } = drawerStore;
 
-const loginStore = useLoginStore()
-const { openLoginDialog } = loginStore
+const loginStore = useLoginStore();
+const { openLoginDialog } = loginStore;
 
-const userInfoStore = useUserInfoStore()
-const authStore = useAuthStore()
-const { handleLogout } = authStore
-const avatar = computed(() => userInfoStore.userInfo.avatar)
-const isLoggedIn = computed(() => !!userInfoStore.userInfo.userId)
+const userInfoStore = useUserInfoStore();
+const authStore = useAuthStore();
+const { handleLogout } = authStore;
+const avatar = computed(() => userInfoStore.userInfo.avatar);
+const isLoggedIn = computed(() => !!userInfoStore.userInfo.userId);
 
 // 导航
 function navigateTo(path: string) {
   // 相同页面不滚动
-  if (route.path === path) return
+  if (route.path === path) return;
   router.push(path).then(() => {
-    window.scrollTo(0, 0)
-  })
+    window.scrollTo(0, 0);
+  });
 }
 
-const navClass = ref<'nav' | 'nav-fixed'>('nav')
+const navClass = ref<'nav' | 'nav-fixed'>('nav');
 
 const handleScroll = () => {
-  const top = window.scrollY
+  const top = window.scrollY;
   if (top > 60) {
     if (navClass.value !== 'nav-fixed') {
-      navClass.value = 'nav-fixed'
+      navClass.value = 'nav-fixed';
     }
-    return
+    return;
   }
 
   if (navClass.value !== 'nav') {
-    navClass.value = 'nav'
+    navClass.value = 'nav';
   }
-}
+};
 
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
-})
+  window.addEventListener('scroll', handleScroll);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-})
+  window.removeEventListener('scroll', handleScroll);
+});
 </script>
 
 <style scoped>

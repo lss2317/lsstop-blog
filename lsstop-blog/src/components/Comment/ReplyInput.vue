@@ -43,24 +43,24 @@
 </template>
 
 <script setup lang="ts">
-import CommentEmoji from '@/components/Emoji/CommentEmoji.vue'
-import { useEmoji } from '@/composables/useEmoji'
-import { adjustTextareaHeight } from '@/utils/format'
-import { onMounted, onUnmounted } from 'vue'
+import CommentEmoji from '@/components/Emoji/CommentEmoji.vue';
+import { useEmoji } from '@/composables/useEmoji';
+import { adjustTextareaHeight } from '@/utils/format';
+import { onMounted, onUnmounted } from 'vue';
 
 defineProps<{
-  avatar: string
-  placeholder?: string
-  modelValue: string
-  submitting?: boolean
-}>()
+  avatar: string;
+  placeholder?: string;
+  modelValue: string;
+  submitting?: boolean;
+}>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  submit: []
-  cancel: []
-  addEmoji: [key: string]
-}>()
+  'update:modelValue': [value: string];
+  submit: [];
+  cancel: [];
+  addEmoji: [key: string];
+}>();
 
 const {
   showEmoji,
@@ -69,25 +69,25 @@ const {
   toggleEmoji,
   registerClickOutside,
   unregisterClickOutside,
-} = useEmoji()
+} = useEmoji();
 
 const onInput = (event: Event) => {
-  const textarea = event.target as HTMLTextAreaElement
-  adjustTextareaHeight(textarea)
-  emit('update:modelValue', textarea.value)
-}
+  const textarea = event.target as HTMLTextAreaElement;
+  adjustTextareaHeight(textarea);
+  emit('update:modelValue', textarea.value);
+};
 
 const addEmoji = (key: string) => {
-  emit('addEmoji', key)
-}
+  emit('addEmoji', key);
+};
 
 onMounted(() => {
-  registerClickOutside()
-})
+  registerClickOutside();
+});
 
 onUnmounted(() => {
-  unregisterClickOutside()
-})
+  unregisterClickOutside();
+});
 </script>
 
 <style scoped>

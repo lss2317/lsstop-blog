@@ -85,44 +85,44 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { useDrawerStore } from '@/stores/modules/drawer'
-import { useLoginStore } from '@/stores/modules/login'
-import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
-import useUserInfoStore from '@/stores/modules/userInfo'
-import { useAuthStore } from '@/stores/modules/auth'
+import { computed, ref } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useDrawerStore } from '@/stores/modules/drawer';
+import { useLoginStore } from '@/stores/modules/login';
+import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
+import useUserInfoStore from '@/stores/modules/userInfo';
+import { useAuthStore } from '@/stores/modules/auth';
 
-const router = useRouter()
-const route = useRoute()
-const drawerStore = useDrawerStore()
-const { drawer } = storeToRefs(drawerStore)
+const router = useRouter();
+const route = useRoute();
+const drawerStore = useDrawerStore();
+const { drawer } = storeToRefs(drawerStore);
 
-const loginStore = useLoginStore()
-const { openLoginDialog } = loginStore
+const loginStore = useLoginStore();
+const { openLoginDialog } = loginStore;
 
-const websiteConfigStore = useWebsiteConfigStore()
-const { config } = storeToRefs(websiteConfigStore)
-const avatar = computed(() => config.value.siteAvatar)
+const websiteConfigStore = useWebsiteConfigStore();
+const { config } = storeToRefs(websiteConfigStore);
+const avatar = computed(() => config.value.siteAvatar);
 
-const userInfoStore = useUserInfoStore()
-const authStore = useAuthStore()
-const { handleLogout } = authStore
-const isLoggedIn = computed(() => !!userInfoStore.userInfo.userId)
+const userInfoStore = useUserInfoStore();
+const authStore = useAuthStore();
+const { handleLogout } = authStore;
+const isLoggedIn = computed(() => !!userInfoStore.userInfo.userId);
 
-const articleCount = ref(0)
-const categoriesCount = ref(0)
-const labelCount = ref(0)
+const articleCount = ref(0);
+const categoriesCount = ref(0);
+const labelCount = ref(0);
 
 // 导航
 function navigateTo(path: string) {
-  drawer.value = false
+  drawer.value = false;
   // 相同页面不滚动
-  if (route.path === path) return
+  if (route.path === path) return;
   router.push(path).then(() => {
-    window.scrollTo(0, 0)
-  })
+    window.scrollTo(0, 0);
+  });
 }
 </script>
 

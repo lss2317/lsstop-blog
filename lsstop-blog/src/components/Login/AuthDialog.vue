@@ -263,22 +263,22 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, ref } from 'vue'
-import { useLoginStore } from '@/stores/modules/login'
-import { storeToRefs } from 'pinia'
-import { emailLogin } from '@/apis/auth'
-import useUserInfoStore from '@/stores/modules/userInfo'
-import useLikeStore from '@/stores/modules/like'
-import { useSnackbarStore } from '@/stores/modules/snackbar'
-import { tokenManager } from '@/utils/token'
-import { ResponseCode } from '@/constants/http'
+import { reactive, computed, ref } from 'vue';
+import { useLoginStore } from '@/stores/modules/login';
+import { storeToRefs } from 'pinia';
+import { emailLogin } from '@/apis/auth';
+import useUserInfoStore from '@/stores/modules/userInfo';
+import useLikeStore from '@/stores/modules/like';
+import { useSnackbarStore } from '@/stores/modules/snackbar';
+import { tokenManager } from '@/utils/token';
+import { ResponseCode } from '@/constants/http';
 
-const loginStore = useLoginStore()
-const userInfoStore = useUserInfoStore()
-const likeStore = useLikeStore()
-const snackbar = useSnackbarStore()
+const loginStore = useLoginStore();
+const userInfoStore = useUserInfoStore();
+const likeStore = useLikeStore();
+const snackbar = useSnackbarStore();
 const { dialogVisible, loginDialog, codeLoginDialog, registerDialog, forgetDialog } =
-  storeToRefs(loginStore)
+  storeToRefs(loginStore);
 const {
   closeAllDialogs,
   openLoginDialog,
@@ -286,30 +286,30 @@ const {
   openRegisterDialog,
   openForgetDialog,
   onDialogClosed,
-} = loginStore
+} = loginStore;
 
 // 登录loading状态
-const loginLoading = ref(false)
+const loginLoading = ref(false);
 
 // 响应式判断
 const isMobile = computed(() => {
-  const clientWidth = document.documentElement.clientWidth
-  return clientWidth <= 960
-})
+  const clientWidth = document.documentElement.clientWidth;
+  return clientWidth <= 960;
+});
 
 // 密码登录表单
 const loginForm = reactive({
   email: '',
   password: '',
   showPwd: false,
-})
+});
 
 // 验证码登录表单
 const codeLoginForm = reactive({
   email: '',
   code: '',
   countdown: 0,
-})
+});
 
 // 注册表单
 const registerForm = reactive({
@@ -320,7 +320,7 @@ const registerForm = reactive({
   showPwd: false,
   showConfirmPwd: false,
   countdown: 0,
-})
+});
 
 // 忘记密码表单
 const forgetForm = reactive({
@@ -331,111 +331,111 @@ const forgetForm = reactive({
   showPwd: false,
   showConfirmPwd: false,
   countdown: 0,
-})
+});
 
 // 发送验证码通用函数
 const startCountdown = (form: { countdown: number }) => {
-  if (form.countdown > 0) return false
-  form.countdown = 60
+  if (form.countdown > 0) return false;
+  form.countdown = 60;
   const timer = setInterval(() => {
-    form.countdown--
+    form.countdown--;
     if (form.countdown <= 0) {
-      clearInterval(timer)
+      clearInterval(timer);
     }
-  }, 1000)
-  return true
-}
+  }, 1000);
+  return true;
+};
 
 // 发送登录验证码
 const sendCodeForLogin = () => {
   if (startCountdown(codeLoginForm)) {
     // TODO: 实现发送验证码逻辑
   }
-}
+};
 
 // 发送注册验证码
 const sendCodeForRegister = () => {
   if (startCountdown(registerForm)) {
     // TODO: 实现发送验证码逻辑
   }
-}
+};
 
 // 发送忘记密码验证码
 const sendCodeForForget = () => {
   if (startCountdown(forgetForm)) {
     // TODO: 实现发送验证码逻辑
   }
-}
+};
 
 // 密码登录
 const login = async () => {
   // 表单验证
   if (!loginForm.email) {
-    snackbar.info('请输入邮箱')
-    return
+    snackbar.info('请输入邮箱');
+    return;
   }
   if (!loginForm.password) {
-    snackbar.info('请输入密码')
-    return
+    snackbar.info('请输入密码');
+    return;
   }
 
-  loginLoading.value = true
+  loginLoading.value = true;
   try {
     const res = await emailLogin({
       email: loginForm.email,
       password: loginForm.password,
-    })
+    });
     // 判断业务状态码
     if (res.code !== ResponseCode.SUCCESS) {
-      snackbar.error(res.msg || '登录失败')
-      return
+      snackbar.error(res.msg || '登录失败');
+      return;
     }
     // 保存用户信息到store
-    userInfoStore.setUserInfo(res.data)
+    userInfoStore.setUserInfo(res.data);
     // 保存token
     if (res.data.accessToken && res.data.refreshToken) {
-      tokenManager.setTokens(res.data.accessToken, res.data.refreshToken)
+      tokenManager.setTokens(res.data.accessToken, res.data.refreshToken);
     }
     // 获取用户点赞数据
-    void likeStore.fetchUserLike()
-    snackbar.success('登录成功')
+    void likeStore.fetchUserLike();
+    snackbar.success('登录成功');
     // 关闭弹框并重置表单
-    closeAllDialogs()
-    loginForm.email = ''
-    loginForm.password = ''
+    closeAllDialogs();
+    loginForm.email = '';
+    loginForm.password = '';
   } catch (error: unknown) {
-    const err = error as { response?: { data?: { msg?: string } } }
-    const msg = err.response?.data?.msg || '网络错误，请稍后重试'
-    snackbar.error(msg)
+    const err = error as { response?: { data?: { msg?: string } } };
+    const msg = err.response?.data?.msg || '网络错误，请稍后重试';
+    snackbar.error(msg);
   } finally {
-    loginLoading.value = false
+    loginLoading.value = false;
   }
-}
+};
 
 // 验证码登录
 const codeLogin = () => {
   // TODO: 实现验证码登录逻辑
-}
+};
 
 // 注册
 const register = () => {
   // TODO: 实现注册逻辑
-}
+};
 
 // 重置密码
 const resetPassword = () => {
   // TODO: 实现重置密码逻辑
-}
+};
 
 // 微博登录
 const weiboLogin = () => {
   // TODO: 实现微博登录
-}
+};
 
 // QQ登录
 const qqLogin = () => {
   // TODO: 实现QQ登录
-}
+};
 </script>
 
 <style scoped>

@@ -243,119 +243,119 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { getArticleById, type Article } from '@/apis/article'
-import usePageInfoStore from '@/stores/modules/pageInfo'
-import { dateFormat } from '@/utils/date'
-import { markdownToHtml } from '@/utils/markdown'
-import { previewImages } from '@/utils/photoPreview'
-import { formatWordNum } from '@/utils/format'
-import { useNavigate } from '@/composables/useNavigate'
-import useWebsiteConfigStore from '@/stores/modules/websiteConfig'
-import useLikeStore from '@/stores/modules/like'
-import { LikeTypeEnum } from '@/constants/likeType'
-import BlogComment from '@/components/Comment/BlogComment.vue'
-import { CommentTypeEnum } from '@/constants/commentType'
-import ShareButtons from '@/components/Share/ShareButtons.vue'
-import tocbot from 'tocbot'
-import Clipboard from 'clipboard'
-import { useSnackbarStore } from '@/stores/modules/snackbar'
+import { ref, computed, watch, nextTick, onUnmounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { getArticleById, type Article } from '@/apis/article';
+import usePageInfoStore from '@/stores/modules/pageInfo';
+import { dateFormat } from '@/utils/date';
+import { markdownToHtml } from '@/utils/markdown';
+import { previewImages } from '@/utils/photoPreview';
+import { formatWordNum } from '@/utils/format';
+import { useNavigate } from '@/composables/useNavigate';
+import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
+import useLikeStore from '@/stores/modules/like';
+import { LikeTypeEnum } from '@/constants/likeType';
+import BlogComment from '@/components/Comment/BlogComment.vue';
+import { CommentTypeEnum } from '@/constants/commentType';
+import ShareButtons from '@/components/Share/ShareButtons.vue';
+import tocbot from 'tocbot';
+import Clipboard from 'clipboard';
+import { useSnackbarStore } from '@/stores/modules/snackbar';
 
-const route = useRoute()
-const { navigateToArticle } = useNavigate()
+const route = useRoute();
+const { navigateToArticle } = useNavigate();
 
 // 获取默认封面样式
-const pageInfoStore = usePageInfoStore()
-const { currentCoverStyle: defaultCover } = storeToRefs(pageInfoStore)
-const websiteConfigStore = useWebsiteConfigStore()
-const likeStore = useLikeStore()
-const snackbarStore = useSnackbarStore()
+const pageInfoStore = usePageInfoStore();
+const { currentCoverStyle: defaultCover } = storeToRefs(pageInfoStore);
+const websiteConfigStore = useWebsiteConfigStore();
+const likeStore = useLikeStore();
+const snackbarStore = useSnackbarStore();
 
 // Clipboard 实例
-let clipboard: Clipboard | null = null
+let clipboard: Clipboard | null = null;
 
 // 加载状态
-const loading = ref(true)
+const loading = ref(true);
 
 // 点赞防抖
-let likeDebounce = false
+let likeDebounce = false;
 
 // 文章数据
-const article = ref<Article | null>(null)
+const article = ref<Article | null>(null);
 
 // refs
-const articleRef = ref<HTMLElement | null>(null)
+const articleRef = ref<HTMLElement | null>(null);
 
 // 网站配置
-const websiteConfig = computed(() => websiteConfigStore.config)
+const websiteConfig = computed(() => websiteConfigStore.config);
 
 // 封面图样式
 const bannerStyle = computed(() => {
-  if (!article.value) return {}
+  if (!article.value) return {};
   return {
     backgroundImage: `url(${article.value.articleCover})`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-  }
-})
+  };
+});
 
 // 文章HTML内容
-const articleHtml = computed(() => markdownToHtml(article.value?.articleContent || ''))
+const articleHtml = computed(() => markdownToHtml(article.value?.articleContent || ''));
 
 // 文章链接
-const articleHref = computed(() => window.location.href)
+const articleHref = computed(() => window.location.href);
 
 // 字数统计
-const wordNum = computed(() => article.value?.articleContent.length || 0)
+const wordNum = computed(() => article.value?.articleContent.length || 0);
 
 // 阅读时长
 const readTime = computed(() => {
-  const minutes = Math.ceil(wordNum.value / 400)
-  return minutes < 1 ? '1 分钟' : `${minutes} 分钟`
-})
+  const minutes = Math.ceil(wordNum.value / 400);
+  return minutes < 1 ? '1 分钟' : `${minutes} 分钟`;
+});
 
 // 是否已点赞
-const isLiked = computed(() => likeStore.isLiked(LikeTypeEnum.ARTICLE, article.value?.id || 0))
+const isLiked = computed(() => likeStore.isLiked(LikeTypeEnum.ARTICLE, article.value?.id || 0));
 
 // 上下篇文章样式
 const postClass = computed(() => {
-  const hasPre = !!article.value?.preArticle
-  const hasNext = !!article.value?.nextArticle
-  return hasPre && hasNext ? 'post' : 'post full'
-})
+  const hasPre = !!article.value?.preArticle;
+  const hasNext = !!article.value?.nextArticle;
+  return hasPre && hasNext ? 'post' : 'post full';
+});
 
 // 格式化日期
-const formatDate = (date: string) => dateFormat.datetime(date).slice(0, 10)
+const formatDate = (date: string) => dateFormat.datetime(date).slice(0, 10);
 
 // 点赞
 const handleLike = async () => {
-  if (!article.value || likeDebounce) return
-  likeDebounce = true
+  if (!article.value || likeDebounce) return;
+  likeDebounce = true;
   try {
-    const result = await likeStore.toggleLike(LikeTypeEnum.ARTICLE, article.value.id)
+    const result = await likeStore.toggleLike(LikeTypeEnum.ARTICLE, article.value.id);
     if (result !== null) {
-      article.value.likeCount += result ? 1 : -1
+      article.value.likeCount += result ? 1 : -1;
     }
   } finally {
-    setTimeout(() => (likeDebounce = false), 500)
+    setTimeout(() => (likeDebounce = false), 500);
   }
-}
+};
 
 // 生成目录
 const generateToc = () => {
   nextTick(() => {
     // 延迟确保 DOM 完全渲染
     setTimeout(() => {
-      if (!articleRef.value) return
+      if (!articleRef.value) return;
       // 给标题添加id
-      const headings = articleRef.value.querySelectorAll('h1, h2, h3, h4, h5, h6')
+      const headings = articleRef.value.querySelectorAll('h1, h2, h3, h4, h5, h6');
       headings.forEach((heading, index) => {
-        heading.id = `heading-${index}`
-      })
+        heading.id = `heading-${index}`;
+      });
       // 先销毁旧实例
-      tocbot.destroy()
+      tocbot.destroy();
       // 初始化tocbot，使用视口高度35%作为偏移
       tocbot.init({
         tocSelector: '#toc',
@@ -365,75 +365,75 @@ const generateToc = () => {
         headingsOffset: Math.round(window.innerHeight * 0.35),
         scrollSmoothOffset: -80,
         onClick: (e) => e.preventDefault(),
-      })
+      });
       // 初始化代码复制
-      clipboard?.destroy()
-      clipboard = new Clipboard('.copy-btn')
+      clipboard?.destroy();
+      clipboard = new Clipboard('.copy-btn');
       clipboard.on('success', () => {
-        snackbarStore.success('复制成功')
-      })
+        snackbarStore.success('复制成功');
+      });
       // 图片预览
-      initImagePreview()
-    }, 100)
-  })
-}
+      initImagePreview();
+    }, 100);
+  });
+};
 
 // 初始化图片预览
 const initImagePreview = () => {
-  if (!articleRef.value) return
-  const images = articleRef.value.querySelectorAll('img')
-  const imgList = Array.from(images).map((img) => img.src)
+  if (!articleRef.value) return;
+  const images = articleRef.value.querySelectorAll('img');
+  const imgList = Array.from(images).map((img) => img.src);
   images.forEach((img, index) => {
-    img.style.cursor = 'zoom-in'
-    img.addEventListener('click', () => previewImages(imgList, index))
-  })
-}
+    img.style.cursor = 'zoom-in';
+    img.addEventListener('click', () => previewImages(imgList, index));
+  });
+};
 
 // 组件卸载时销毁
 onUnmounted(() => {
-  tocbot.destroy()
-  clipboard?.destroy()
-})
+  tocbot.destroy();
+  clipboard?.destroy();
+});
 
 // 获取文章详情
 const fetchArticle = async (id: number) => {
   // 验证 ID 是否为有效数字
   if (isNaN(id) || id <= 0) {
-    loading.value = false
-    return
+    loading.value = false;
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
   try {
-    const res = await getArticleById(id)
+    const res = await getArticleById(id);
     // 检查是否返回了有效数据
     if (!res.data || !res.data.id) {
-      article.value = null
-      return
+      article.value = null;
+      return;
     }
-    article.value = res.data
+    article.value = res.data;
     // SEO: 设置页面标题
-    document.title = res.data.articleTitle
+    document.title = res.data.articleTitle;
     // DOM 渲染后再生成目录
-    generateToc()
+    generateToc();
   } catch (error) {
-    console.error('获取文章失败', error)
-    article.value = null
+    console.error('获取文章失败', error);
+    article.value = null;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // 监听路由变化
 watch(
   () => route.params.id,
   (newId) => {
     if (newId) {
-      fetchArticle(Number(newId))
+      fetchArticle(Number(newId));
     }
   },
   { immediate: true },
-)
+);
 </script>
 
 <style scoped>

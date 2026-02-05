@@ -104,97 +104,97 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import usePageInfoStore from '@/stores/modules/pageInfo.ts'
-import useLikeStore from '@/stores/modules/like.ts'
-import { getTalk } from '@/apis/talk'
-import { dateFormat } from '@/utils/date'
-import { type TalkItem, isUserDeactivated, getUserAvatar, getUserNickname } from '@/utils/talk'
-import ShareDialog from '@/components/Share/ShareDialog.vue'
-import { LikeTypeEnum } from '@/constants/likeType'
-import Comment from '@/components/Comment/BlogComment.vue'
-import { CommentTypeEnum } from '@/constants/commentType'
-import { previewImages } from '@/utils/photoPreview'
+import { onMounted, ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import usePageInfoStore from '@/stores/modules/pageInfo.ts';
+import useLikeStore from '@/stores/modules/like.ts';
+import { getTalk } from '@/apis/talk';
+import { dateFormat } from '@/utils/date';
+import { type TalkItem, isUserDeactivated, getUserAvatar, getUserNickname } from '@/utils/talk';
+import ShareDialog from '@/components/Share/ShareDialog.vue';
+import { LikeTypeEnum } from '@/constants/likeType';
+import Comment from '@/components/Comment/BlogComment.vue';
+import { CommentTypeEnum } from '@/constants/commentType';
+import { previewImages } from '@/utils/photoPreview';
 
 // 获取路由参数
-const route = useRoute()
-const talkId = Number(route.params.talkId)
+const route = useRoute();
+const talkId = Number(route.params.talkId);
 
 // 获取封面样式
-const pageInfoStore = usePageInfoStore()
-const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
+const pageInfoStore = usePageInfoStore();
+const { currentCoverStyle: cover } = storeToRefs(pageInfoStore);
 
 // 点赞状态管理
-const likeStore = useLikeStore()
+const likeStore = useLikeStore();
 
 // 加载状态
-const loading = ref(true)
+const loading = ref(true);
 
 // 说说详情数据
-const talk = ref<TalkItem | null>(null)
+const talk = ref<TalkItem | null>(null);
 const isLiked = computed(() => {
-  if (!talk.value) return false
-  return likeStore.isLiked(LikeTypeEnum.TALK, talk.value.id)
-})
+  if (!talk.value) return false;
+  return likeStore.isLiked(LikeTypeEnum.TALK, talk.value.id);
+});
 
 // 分享弹窗引用
-const shareDialogRef = ref<InstanceType<typeof ShareDialog> | null>(null)
+const shareDialogRef = ref<InstanceType<typeof ShareDialog> | null>(null);
 
 // 点赞操作
 async function like() {
-  if (!talk.value) return
-  const liked = await likeStore.toggleLike(LikeTypeEnum.TALK, talk.value.id)
+  if (!talk.value) return;
+  const liked = await likeStore.toggleLike(LikeTypeEnum.TALK, talk.value.id);
   // 请求失败时不更新点赞数
-  if (liked === null) return
+  if (liked === null) return;
   if (liked) {
-    talk.value.likeCount = (talk.value.likeCount || 0) + 1
+    talk.value.likeCount = (talk.value.likeCount || 0) + 1;
   } else {
-    talk.value.likeCount = (talk.value.likeCount || 1) - 1
+    talk.value.likeCount = (talk.value.likeCount || 1) - 1;
   }
 }
 
 // 预览图片
 function previewImg(img: string) {
-  if (!talk.value) return
-  const images = talk.value.imgList || []
-  const index = images.indexOf(img)
-  previewImages(images, index >= 0 ? index : 0)
+  if (!talk.value) return;
+  const images = talk.value.imgList || [];
+  const index = images.indexOf(img);
+  previewImages(images, index >= 0 ? index : 0);
 }
 
 // 预览头像
 function previewAvatar() {
-  if (!talk.value) return
-  previewImages([getUserAvatar(talk.value)], 0)
+  if (!talk.value) return;
+  previewImages([getUserAvatar(talk.value)], 0);
 }
 
 // 分享功能
 function share() {
-  if (!talk.value) return
-  const url = `${window.location.origin}/talk/${talk.value.id}`
-  const title = talk.value.content.replace(/<[^>]+>/g, '').substring(0, 50)
-  shareDialogRef.value?.openShareDialog(url, title)
+  if (!talk.value) return;
+  const url = `${window.location.origin}/talk/${talk.value.id}`;
+  const title = talk.value.content.replace(/<[^>]+>/g, '').substring(0, 50);
+  shareDialogRef.value?.openShareDialog(url, title);
 }
 
 // 加载说说详情
 function loadTalkInfo() {
   if (!talkId) {
-    loading.value = false
-    return
+    loading.value = false;
+    return;
   }
   getTalk(talkId)
     .then((res) => {
-      talk.value = res.data
+      talk.value = res.data;
     })
     .finally(() => {
-      loading.value = false
-    })
+      loading.value = false;
+    });
 }
 
 onMounted(() => {
-  loadTalkInfo()
-})
+  loadTalkInfo();
+});
 </script>
 
 <style scoped>

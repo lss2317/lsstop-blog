@@ -51,55 +51,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import QRCode from 'qrcode'
+import { ref } from 'vue';
+import QRCode from 'qrcode';
 
 const props = defineProps<{
-  url: string
-  title?: string
-}>()
+  url: string;
+  title?: string;
+}>();
 
 // 二维码相关
-const weixinQrcodeVisible = ref(false)
-const weixinQrcodeUrl = ref('')
-const qqQrcodeVisible = ref(false)
-const qqQrcodeUrl = ref('')
+const weixinQrcodeVisible = ref(false);
+const weixinQrcodeUrl = ref('');
+const qqQrcodeVisible = ref(false);
+const qqQrcodeUrl = ref('');
 
 // 分享到微博
 const handleShareToWeibo = () => {
-  const url = `https://service.weibo.com/share/share.php?url=${encodeURIComponent(props.url)}&title=${encodeURIComponent(props.title || '')}`
-  window.open(url, '_blank')
-}
+  const url = `https://service.weibo.com/share/share.php?url=${encodeURIComponent(props.url)}&title=${encodeURIComponent(props.title || '')}`;
+  window.open(url, '_blank');
+};
 
 // 分享到微信
 const handleShareToWeixin = async () => {
-  weixinQrcodeUrl.value = ''
-  weixinQrcodeVisible.value = true
+  weixinQrcodeUrl.value = '';
+  weixinQrcodeVisible.value = true;
   try {
     weixinQrcodeUrl.value = await QRCode.toDataURL(props.url, {
       width: 180,
       margin: 2,
       color: { dark: '#000000', light: '#ffffff' },
-    })
+    });
   } catch (err) {
-    console.error('生成二维码失败', err)
+    console.error('生成二维码失败', err);
   }
-}
+};
 
 // 分享到QQ
 const handleShareToQQ = async () => {
-  qqQrcodeUrl.value = ''
-  qqQrcodeVisible.value = true
+  qqQrcodeUrl.value = '';
+  qqQrcodeVisible.value = true;
   try {
     qqQrcodeUrl.value = await QRCode.toDataURL(props.url, {
       width: 180,
       margin: 2,
       color: { dark: '#000000', light: '#ffffff' },
-    })
+    });
   } catch (err) {
-    console.error('生成二维码失败', err)
+    console.error('生成二维码失败', err);
   }
-}
+};
 </script>
 
 <style scoped>

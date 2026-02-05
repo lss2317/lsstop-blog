@@ -11,65 +11,65 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useTheme } from 'vuetify'
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useTheme } from 'vuetify';
 
-const theme = useTheme()
+const theme = useTheme();
 
-const isShow = ref('')
-const isOut = ref('rightside-out')
+const isShow = ref('');
+const isOut = ref('rightside-out');
 // 根据当前主题初始化图标
-const icon = ref(theme.global.current.value.dark ? 'icontaiyang' : 'iconyueliang')
+const icon = ref(theme.global.current.value.dark ? 'icontaiyang' : 'iconyueliang');
 
 const backTop = () => {
   window.scrollTo({
     behavior: 'smooth',
     top: 0,
-  })
-}
+  });
+};
 
 const scrollToTop = () => {
   const scrollTop =
-    window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+    window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
   if (scrollTop > 20) {
-    isShow.value = 'opacity: 1;transform: translateX(-38px);'
+    isShow.value = 'opacity: 1;transform: translateX(-38px);';
   } else {
-    isShow.value = ''
+    isShow.value = '';
   }
-}
+};
 
 const show = () => {
-  const flagValue = isOut.value === 'rightside-out'
-  isOut.value = flagValue ? 'rightside-in' : 'rightside-out'
-}
+  const flagValue = isOut.value === 'rightside-out';
+  isOut.value = flagValue ? 'rightside-in' : 'rightside-out';
+};
 
 const check = () => {
-  const isDark = theme.global.current.value.dark
-  const newTheme = isDark ? 'light' : 'dark'
+  const isDark = theme.global.current.value.dark;
+  const newTheme = isDark ? 'light' : 'dark';
   // 添加过渡 class
-  document.documentElement.classList.add('theme-transition')
+  document.documentElement.classList.add('theme-transition');
   // 等待下一帧再切换主题，确保 transition 已生效
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      theme.global.name.value = newTheme
-      icon.value = isDark ? 'iconyueliang' : 'icontaiyang'
+      theme.global.name.value = newTheme;
+      icon.value = isDark ? 'iconyueliang' : 'icontaiyang';
       // 保存到 localStorage
-      localStorage.setItem('theme', newTheme)
+      localStorage.setItem('theme', newTheme);
       // 过渡结束后移除 class
       setTimeout(() => {
-        document.documentElement.classList.remove('theme-transition')
-      }, 400)
-    })
-  })
-}
+        document.documentElement.classList.remove('theme-transition');
+      }, 400);
+    });
+  });
+};
 
 onMounted(() => {
-  window.addEventListener('scroll', scrollToTop)
-})
+  window.addEventListener('scroll', scrollToTop);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', scrollToTop)
-})
+  window.removeEventListener('scroll', scrollToTop);
+});
 </script>
 
 <style scoped>

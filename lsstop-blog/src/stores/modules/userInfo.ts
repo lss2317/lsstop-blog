@@ -1,24 +1,24 @@
-import { defineStore } from 'pinia'
-import { shallowRef } from 'vue'
-import { getUserInfo } from '@/apis/user'
-import { useSnackbarStore } from './snackbar'
-import { ResponseCode } from '@/constants/http'
+import { defineStore } from 'pinia';
+import { shallowRef } from 'vue';
+import { getUserInfo } from '@/apis/user';
+import { useSnackbarStore } from './snackbar';
+import { ResponseCode } from '@/constants/http';
 
 export interface UserInfo {
   /** 用户id */
-  userId: number | null
+  userId: number | null;
   /** 昵称 */
-  nickname: string | null
+  nickname: string | null;
   /** 头像 */
-  avatar: string | null
+  avatar: string | null;
   /** 个人网站 */
-  website: string | null
+  website: string | null;
   /** 个人简介 */
-  intro: string | null
+  intro: string | null;
   /** accessToken */
-  accessToken?: string | null
+  accessToken?: string | null;
   /** refreshToken */
-  refreshToken?: string | null
+  refreshToken?: string | null;
 }
 
 const defaultUserInfo: UserInfo = {
@@ -29,52 +29,52 @@ const defaultUserInfo: UserInfo = {
   intro: null,
   accessToken: null,
   refreshToken: null,
-}
+};
 
 const useUserInfoStore = defineStore('userInfo', () => {
-  const userInfo = shallowRef<UserInfo>({ ...defaultUserInfo })
-  const blogInfo = shallowRef<Record<string, unknown>>({})
+  const userInfo = shallowRef<UserInfo>({ ...defaultUserInfo });
+  const blogInfo = shallowRef<Record<string, unknown>>({});
 
   // 设置用户信息
   function setUserInfo(info: Partial<UserInfo>) {
-    userInfo.value = { ...userInfo.value, ...info }
+    userInfo.value = { ...userInfo.value, ...info };
   }
 
   // 清除用户信息
   function clearUserInfo() {
-    userInfo.value = { ...defaultUserInfo }
+    userInfo.value = { ...defaultUserInfo };
   }
 
   // 设置博客信息
   function setBlogInfo(info: Record<string, unknown>) {
-    blogInfo.value = info
+    blogInfo.value = info;
   }
 
   // 获取用户信息
   async function fetchUserInfo() {
     try {
-      const res = await getUserInfo()
+      const res = await getUserInfo();
       if (res.code === ResponseCode.SUCCESS && res.data) {
-        setUserInfo(res.data)
+        setUserInfo(res.data);
       }
     } catch (error) {
-      console.error('获取用户信息失败:', error)
+      console.error('获取用户信息失败:', error);
     }
   }
 
   // 检查登录状态，未登录则提示
   function checkLogin(action: string): boolean {
     if (!userInfo.value.userId) {
-      const snackbarStore = useSnackbarStore()
-      snackbarStore.info(`登录后即可${action}哦~`)
-      return false
+      const snackbarStore = useSnackbarStore();
+      snackbarStore.info(`登录后即可${action}哦~`);
+      return false;
     }
-    return true
+    return true;
   }
 
   // 是否已登录
   function isLoggedIn(): boolean {
-    return !!userInfo.value.userId
+    return !!userInfo.value.userId;
   }
 
   return {
@@ -86,7 +86,7 @@ const useUserInfoStore = defineStore('userInfo', () => {
     fetchUserInfo,
     checkLogin,
     isLoggedIn,
-  }
-})
+  };
+});
 
-export default useUserInfoStore
+export default useUserInfoStore;

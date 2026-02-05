@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia'
-import { computed, shallowRef } from 'vue'
-import { useRouter } from 'vue-router'
-import { listPageInfo, type PageInfoVo } from '@/apis/pageInfo'
+import { defineStore } from 'pinia';
+import { computed, shallowRef } from 'vue';
+import { useRouter } from 'vue-router';
+import { listPageInfo, type PageInfoVo } from '@/apis/pageInfo';
 
 /**
  * 生成封面背景样式
@@ -9,41 +9,41 @@ import { listPageInfo, type PageInfoVo } from '@/apis/pageInfo'
  * @param position 背景位置，默认 'center center'
  */
 export function createCoverStyle(coverUrl?: string, position = 'center center') {
-  if (!coverUrl) return {}
+  if (!coverUrl) return {};
   return {
     background: `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), #49b1f5 url(${coverUrl}) ${position} / cover no-repeat`,
-  }
+  };
 }
 
 const usePageInfoStore = defineStore('pageInfo', () => {
-  const pageList = shallowRef<PageInfoVo[]>([])
+  const pageList = shallowRef<PageInfoVo[]>([]);
 
   // 获取页面列表（已有数据则不重复请求）
   async function fetchPageList() {
-    if (pageList.value.length > 0) return
-    const res = await listPageInfo()
-    pageList.value = res.data
+    if (pageList.value.length > 0) return;
+    const res = await listPageInfo();
+    pageList.value = res.data;
   }
 
   // 根据 pageLabel 获取对应的 cover 样式
   function getCoverStyle(pageLabel: string): string {
-    const page = pageList.value.find((item) => item.pageLabel === pageLabel)
-    const cover = page?.pageCover || ''
-    return `background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), #49b1f5 url(${cover}) center center / cover no-repeat`
+    const page = pageList.value.find((item) => item.pageLabel === pageLabel);
+    const cover = page?.pageCover || '';
+    return `background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), #49b1f5 url(${cover}) center center / cover no-repeat`;
   }
 
   // 自动根据当前路由获取 cover 样式
-  const router = useRouter()
+  const router = useRouter();
   const currentCoverStyle = computed(() => {
-    const pageLabel = router.currentRoute.value.meta.pageLabel as string
-    return getCoverStyle(pageLabel)
-  })
+    const pageLabel = router.currentRoute.value.meta.pageLabel as string;
+    return getCoverStyle(pageLabel);
+  });
 
   return {
     pageList,
     fetchPageList,
     currentCoverStyle,
-  }
-})
+  };
+});
 
-export default usePageInfoStore
+export default usePageInfoStore;

@@ -1,22 +1,22 @@
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router';
 
 /**
  * 导航组合函数
  */
 export function useNavigate() {
-  const router = useRouter()
-  const route = useRoute()
+  const router = useRouter();
+  const route = useRoute();
 
   /**
    * 导航到文章详情页
    * @param id 文章ID
    */
   function navigateToArticle(id: number) {
-    const path = `/article/${id}`
-    if (route.path === path) return
+    const path = `/article/${id}`;
+    if (route.path === path) return;
     router.push(path).then(() => {
-      window.scrollTo(0, 0)
-    })
+      window.scrollTo(0, 0);
+    });
   }
 
   /**
@@ -24,14 +24,14 @@ export function useNavigate() {
    * @param path 路径
    */
   function navigateTo(path: string) {
-    if (route.path === path) return
+    if (route.path === path) return;
     router.push(path).then(() => {
-      window.scrollTo(0, 0)
-    })
+      window.scrollTo(0, 0);
+    });
   }
 
   return {
     navigateToArticle,
     navigateTo,
-  }
+  };
 }

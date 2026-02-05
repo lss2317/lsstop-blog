@@ -1,18 +1,18 @@
-import http from '@/utils/http'
+import http from '@/utils/http';
 
 /** 归档文章 */
 export interface ArticleArchive {
   /** 文章ID */
-  id: number
+  id: number;
   /** 文章标题 */
-  articleTitle: string
+  articleTitle: string;
   /** 发布时间 */
-  createTime: string
+  createTime: string;
 }
 
 /**
  * 获取文章归档列表
  */
 export const listArchives = () => {
-  return http.get<ArticleArchive[]>('/article/archives')
-}
+  return http.get<ArticleArchive[]>('/article/archives');
+};

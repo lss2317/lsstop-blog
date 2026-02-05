@@ -1,88 +1,88 @@
-import http from '@/utils/http'
+import http from '@/utils/http';
 
 /** 简单标签信息 */
 export interface TagSimple {
   /** 标签ID */
-  id: number
+  id: number;
   /** 标签名称 */
-  tagName: string
+  tagName: string;
 }
 
 /** 文章列表项 */
 export interface ArticleList {
   /** 文章ID */
-  id: number
+  id: number;
   /** 文章封面图URL */
-  articleCover: string
+  articleCover: string;
   /** 文章标题 */
-  articleTitle: string
+  articleTitle: string;
   /** 分类ID */
-  categoryId: number
+  categoryId: number;
   /** 分类名称 */
-  categoryName: string
+  categoryName: string;
   /** 标签列表 */
-  tags: TagSimple[]
+  tags: TagSimple[];
   /** 发表时间 */
-  createTime: string
+  createTime: string;
 }
 
 /** 根据分类ID获取文章列表 */
 export function getArticleListByCategory(categoryId: number) {
-  return http.get<ArticleList[]>(`/article/category/${categoryId}`)
+  return http.get<ArticleList[]>(`/article/category/${categoryId}`);
 }
 
 /** 根据标签ID获取文章列表 */
 export function getArticleListByTag(tagId: number) {
-  return http.get<ArticleList[]>(`/article/tag/${tagId}`)
+  return http.get<ArticleList[]>(`/article/tag/${tagId}`);
 }
 
 /** 简化文章（用于上一篇/下一篇/最新/推荐文章） */
 export interface ArticleSimple {
   /** 文章ID */
-  id: number
+  id: number;
   /** 文章封面图URL */
-  articleCover: string
+  articleCover: string;
   /** 文章标题 */
-  articleTitle: string
+  articleTitle: string;
   /** 创建时间 */
-  createTime: string
+  createTime: string;
 }
 
 /** 文章详情 */
 export interface Article {
   /** 文章ID */
-  id: number
+  id: number;
   /** 文章封面图URL */
-  articleCover: string
+  articleCover: string;
   /** 文章标题 */
-  articleTitle: string
+  articleTitle: string;
   /** 文章内容 */
-  articleContent: string
+  articleContent: string;
   /** 分类ID */
-  categoryId: number
+  categoryId: number;
   /** 分类名称 */
-  categoryName: string
+  categoryName: string;
   /** 标签列表 */
-  tags: TagSimple[]
+  tags: TagSimple[];
   /** 浏览量 */
-  viewCount: number
+  viewCount: number;
   /** 点赞数 */
-  likeCount: number
+  likeCount: number;
   /** 创建时间 */
-  createTime: string
+  createTime: string;
   /** 更新时间 */
-  updateTime: string
+  updateTime: string;
   /** 上一篇文章 */
-  preArticle: ArticleSimple | null
+  preArticle: ArticleSimple | null;
   /** 下一篇文章 */
-  nextArticle: ArticleSimple | null
+  nextArticle: ArticleSimple | null;
   /** 最新文章列表 */
-  newestArticles: ArticleSimple[]
+  newestArticles: ArticleSimple[];
   /** 推荐文章列表 */
-  recommendArticles: ArticleSimple[]
+  recommendArticles: ArticleSimple[];
 }
 
 /** 根据ID获取文章详情 */
 export function getArticleById(id: number) {
-  return http.get<Article>(`/article/${id}`)
+  return http.get<Article>(`/article/${id}`);
 }

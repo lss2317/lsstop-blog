@@ -51,39 +51,39 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { listCategory, type Category } from '@/apis/category'
-import usePageInfoStore from '@/stores/modules/pageInfo.ts'
-import { useSnackbarStore } from '@/stores/modules/snackbar.ts'
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { listCategory, type Category } from '@/apis/category';
+import usePageInfoStore from '@/stores/modules/pageInfo.ts';
+import { useSnackbarStore } from '@/stores/modules/snackbar.ts';
 
-const pageInfoStore = usePageInfoStore()
-const { currentCoverStyle: cover } = storeToRefs(pageInfoStore)
+const pageInfoStore = usePageInfoStore();
+const { currentCoverStyle: cover } = storeToRefs(pageInfoStore);
 
-const router = useRouter()
-const snackbarStore = useSnackbarStore()
+const router = useRouter();
+const snackbarStore = useSnackbarStore();
 
-const categoryList = ref<Category[]>([])
-const loading = ref(true)
+const categoryList = ref<Category[]>([]);
+const loading = ref(true);
 
 onMounted(() => {
   listCategory()
     .then((res) => {
-      categoryList.value = res.data
+      categoryList.value = res.data;
     })
     .catch(() => {
-      snackbarStore.error('获取分类列表失败')
+      snackbarStore.error('获取分类列表失败');
     })
     .finally(() => {
-      loading.value = false
-    })
-})
+      loading.value = false;
+    });
+});
 
 function goToCategory(id: number) {
   router.push('/category/' + id).then(() => {
-    window.scrollTo(0, 0)
-  })
+    window.scrollTo(0, 0);
+  });
 }
 </script>
 
