@@ -103,5 +103,5 @@ export interface ReplyQueryParams {
  * 获取子评论列表
  */
 export function getReplyList(params: ReplyQueryParams) {
-  return http.get<Reply[]>('/comment/listReply', { params });
+  return http.get<Reply[]>('/comment/listReply', { params, showProgress: false });
 }

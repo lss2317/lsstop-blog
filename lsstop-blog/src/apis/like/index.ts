@@ -26,6 +26,6 @@ export const toggleLike = (data: LikeParams) => {
 };
 
 // 获取用户点赞数据
-export const getUserLike = (userId: number) => {
+export const getUserLike = (userId: string) => {
   return http.get<UserLike>(`/like/userLike/${userId}`);
 };

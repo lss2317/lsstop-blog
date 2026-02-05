@@ -64,13 +64,13 @@ public class AuthServiceImpl implements AuthService {
             // 查询用户认证信息
             UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(dto.getEmail(), LoginTypeEnum.EMAIL.getCode());
             if (userAuth == null) {
-                throw new BusinessException(AuthConst.USER_NOT_FOUND);
+                throw new BusinessException(AuthConst.ACCOUNT_OR_PASSWORD_ERROR);
             }
             userId = userAuth.getUserId();
 
             // 验证密码
             if (!PasswordUtils.verify(dto.getPassword(), userAuth.getCredential())) {
-                throw new BusinessException(AuthConst.PASSWORD_ERROR);
+                throw new BusinessException(AuthConst.ACCOUNT_OR_PASSWORD_ERROR);
             }
 
             // 检查用户是否被禁用

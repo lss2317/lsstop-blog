@@ -83,6 +83,7 @@
           <!-- 用户信息 -->
           <div class="lc-user-row">
             <span class="lc-nickname">{{ item.nickname }}</span>
+            <span class="lc-self-tag" v-if="isSelf(item.userId)">我</span>
           </div>
           <!-- 时间地点 -->
           <div class="lc-meta-row">
@@ -183,6 +184,7 @@
                   <div class="lc-reply-main">
                     <div class="lc-user-row">
                       <span class="lc-nickname">{{ reply.nickname }}</span>
+                      <span class="lc-self-tag" v-if="isSelf(reply.userId)">我</span>
                     </div>
                     <div class="lc-meta-row">
                       <span>来自 {{ reply.ipRegion }}</span>
@@ -400,6 +402,11 @@ const like = async (item: Comment | Reply) => {
 // 判断是否已点赞
 const isLike = (id: number): boolean => {
   return likeStore.isLiked(LikeTypeEnum.COMMENT, id);
+};
+
+// 判断是否是自己的评论
+const isSelf = (userId: string): boolean => {
+  return userInfoStore.userInfo.userId === userId;
 };
 
 // 提交评论
@@ -992,6 +999,15 @@ onUnmounted(() => {
 
 .lc-nickname:hover {
   color: #5cb85c;
+}
+
+.lc-self-tag {
+  padding: 0 6px;
+  font-size: 11px;
+  color: #2db55d;
+  background: rgba(45, 181, 93, 0.1);
+  border-radius: 4px;
+  font-weight: 500;
 }
 
 /* 元信息 */

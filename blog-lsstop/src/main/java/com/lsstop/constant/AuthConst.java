@@ -39,14 +39,14 @@ public class AuthConst {
     public static final Integer USER_STATUS_DISABLED = 0;
 
     /**
-     * 用户不存在
+     * 账号或密码错误
      */
-    public static final String USER_NOT_FOUND = "用户不存在";
+    public static final String ACCOUNT_OR_PASSWORD_ERROR = "账号或密码错误";
 
     /**
-     * 密码错误
+     * 用户不存在（非登录场景使用）
      */
-    public static final String PASSWORD_ERROR = "密码错误";
+    public static final String USER_NOT_FOUND = "用户不存在";
 
     /**
      * 账号已被禁用

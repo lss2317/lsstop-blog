@@ -6,7 +6,7 @@ import { ResponseCode } from '@/constants/http';
 
 export interface UserInfo {
   /** 用户id */
-  userId: number | null;
+  userId: string | null;
   /** 昵称 */
   nickname: string | null;
   /** 头像 */
