@@ -52,4 +52,10 @@ function addEmoji(key: string): void {
   height: 200px;
   overflow: auto;
 }
+
+@media (max-width: 640px) {
+  .emoji-wrapper {
+    width: 200px;
+  }
+}
 </style>
