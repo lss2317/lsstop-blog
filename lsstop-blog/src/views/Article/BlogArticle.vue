@@ -279,9 +279,6 @@ let clipboard: Clipboard | null = null;
 // 加载状态
 const loading = ref(true);
 
-// 点赞防抖
-let likeDebounce = false;
-
 // 文章数据
 const article = ref<Article | null>(null);
 
@@ -331,15 +328,10 @@ const formatDate = (date: string) => dateFormat.datetime(date).slice(0, 10);
 
 // 点赞
 const handleLike = async () => {
-  if (!article.value || likeDebounce) return;
-  likeDebounce = true;
-  try {
-    const result = await likeStore.toggleLike(LikeTypeEnum.ARTICLE, article.value.id);
-    if (result !== null) {
-      article.value.likeCount += result ? 1 : -1;
-    }
-  } finally {
-    setTimeout(() => (likeDebounce = false), 500);
+  if (!article.value) return;
+  const result = await likeStore.toggleLike(LikeTypeEnum.ARTICLE, article.value.id);
+  if (result !== null) {
+    article.value.likeCount += result ? 1 : -1;
   }
 };
 

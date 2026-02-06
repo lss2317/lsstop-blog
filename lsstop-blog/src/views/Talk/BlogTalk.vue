@@ -80,15 +80,11 @@
                 :class="{ 'no-images': !item.imgList || item.imgList.length === 0 }"
               >
                 <div
-                  :class="[
-                    'talk-operation-item',
-                    'like-item',
-                    likedTalkIds.has(item.id) ? 'liked' : '',
-                  ]"
+                  :class="['talk-operation-item', 'like-item', isLike(item.id) ? 'liked' : '']"
                   @click="like(item)"
                 >
                   <v-icon size="16" class="like-btn">
-                    {{ likedTalkIds.has(item.id) ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
+                    {{ isLike(item.id) ? 'mdi-thumb-up' : 'mdi-thumb-up-outline' }}
                   </v-icon>
                   <span class="operation-count">
                     {{ item.likeCount == null ? 0 : item.likeCount }}
@@ -138,7 +134,6 @@ const { currentCoverStyle: cover } = storeToRefs(pageInfoStore);
 
 // 点赞状态管理
 const likeStore = useLikeStore();
-const { likedTalkIds } = storeToRefs(likeStore);
 
 // 加载状态
 const loading = ref(true);
@@ -155,6 +150,11 @@ function goToTalkInfo(id: number) {
 
 // 分享弹窗引用
 const shareDialogRef = ref<InstanceType<typeof ShareDialog> | null>(null);
+
+// 判断是否已点赞
+function isLike(id: number): boolean {
+  return likeStore.isLiked(LikeTypeEnum.TALK, id);
+}
 
 // 点赞操作
 async function like(item: TalkItem) {

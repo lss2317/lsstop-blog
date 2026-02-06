@@ -112,4 +112,9 @@ public class CommonConst {
      * 父评论ID不能为空
      */
     public static final String PARENT_ID_REQUIRED = "父评论ID不能为空";
+
+    /**
+     * 用户ID不能为空
+     */
+    public static final String USER_ID_REQUIRED = "用户ID不能为空";
 }

@@ -20,6 +20,8 @@ const useLikeStore = defineStore('like', () => {
   const hasFetched = ref(false);
   // 是否正在获取
   const isFetching = ref(false);
+  // 正在处理点赞请求的ID集合（防重复点击）
+  const pendingLikeIds = ref<Set<string>>(new Set());
 
   /**
    * 判断是否已点赞
@@ -56,6 +58,13 @@ const useLikeStore = defineStore('like', () => {
       return null;
     }
 
+    // 防重复点击：生成唯一key
+    const pendingKey = `${type}_${id}`;
+    if (pendingLikeIds.value.has(pendingKey)) {
+      return null;
+    }
+    pendingLikeIds.value.add(pendingKey);
+
     // 发送点赞请求
     try {
       await toggleLikeApi({
@@ -68,6 +77,8 @@ const useLikeStore = defineStore('like', () => {
       snackbarStore.error('点赞失败，请稍后重试');
       // 请求失败时返回 null，让调用方知道失败了
       return null;
+    } finally {
+      pendingLikeIds.value.delete(pendingKey);
     }
 
     // 请求成功，更新本地状态

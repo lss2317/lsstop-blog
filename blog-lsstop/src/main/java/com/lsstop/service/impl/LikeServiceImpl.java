@@ -1,5 +1,6 @@
 package com.lsstop.service.impl;
 
+import com.lsstop.constant.CommonConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.vo.UserLikeVO;
 import com.lsstop.enums.LikeTypeEnum;
@@ -36,10 +37,10 @@ public class LikeServiceImpl implements LikeService {
     public boolean toggleLike(String userId, Integer targetId, LikeTypeEnum type) {
         // 前置校验，防止无效数据写入Redis
         if (userId == null || userId.trim().isEmpty()) {
-            throw new IllegalArgumentException("用户id不能为空");
+            throw new IllegalArgumentException(CommonConst.USER_ID_REQUIRED);
         }
         if (targetId == null) {
-            throw new IllegalArgumentException("目标id不能为空");
+            throw new IllegalArgumentException(CommonConst.TARGET_ID_REQUIRED);
         }
 
         String likeCountKey = getLikeCountKey(type, targetId);
