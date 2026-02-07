@@ -6,6 +6,16 @@ import useLikeStore from '@/stores/modules/like';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
 
 /**
+ * 清除认证状态（token、用户信息、点赞数据）
+ * 可在 store 外部直接调用
+ */
+export function clearAuthState() {
+  tokenManager.clearTokens();
+  useUserInfoStore().clearUserInfo();
+  useLikeStore().clearAll();
+}
+
+/**
  * 认证业务逻辑状态管理
  */
 export const useAuthStore = defineStore('auth', () => {
@@ -15,9 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (refreshToken) {
       await logout({ refreshToken });
     }
-    tokenManager.clearTokens();
-    useUserInfoStore().clearUserInfo();
-    useLikeStore().clearAll();
+    clearAuthState();
     useSnackbarStore().success('退出成功');
   }
 

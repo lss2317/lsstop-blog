@@ -4,8 +4,7 @@ import type { AxiosRequestConfig, InternalAxiosRequestConfig, AxiosError } from 
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import { tokenManager } from '@/utils/token';
-import useUserInfoStore from '@/stores/modules/userInfo';
-import useLikeStore from '@/stores/modules/like';
+import { clearAuthState } from '@/stores/modules/auth';
 import { ResponseCode, HttpStatus } from '@/constants/http';
 
 // 统一响应结构
@@ -67,6 +66,12 @@ interface QueuedRequest {
 let requestsQueue: QueuedRequest[] = [];
 // 请求计数器，用于控制NProgress
 let requestCount = 0;
+
+// 拒绝队列中所有请求并清空
+function rejectQueuedRequests(reason: unknown) {
+  requestsQueue.forEach(({ reject }) => reject(reason));
+  requestsQueue = [];
+}
 
 // request拦截器
 instance.interceptors.request.use(
@@ -141,9 +146,8 @@ instance.interceptors.response.use(
     if (error.response?.status === HttpStatus.UNAUTHORIZED && !originalRequest._tokenRefreshed) {
       // 刷新token的请求不重试
       if (originalRequest.url?.includes('/auth/refresh')) {
-        tokenManager.clearTokens();
-        useUserInfoStore().clearUserInfo();
-        useLikeStore().clearAll();
+        clearAuthState();
+        rejectQueuedRequests(error);
         return Promise.reject(error);
       }
 
@@ -163,9 +167,8 @@ instance.interceptors.response.use(
 
       const refreshTokenValue = tokenManager.getRefreshToken();
       if (!refreshTokenValue) {
-        tokenManager.clearTokens();
-        useUserInfoStore().clearUserInfo();
-        useLikeStore().clearAll();
+        clearAuthState();
+        rejectQueuedRequests(error);
         isRefreshing = false;
         return Promise.reject(error);
       }
@@ -185,7 +188,7 @@ instance.interceptors.response.use(
           tokenManager.setTokens(accessToken, refreshToken);
 
           // 执行队列中的请求
-          requestsQueue.forEach(({ resolve, config }) => {
+          requestsQueue.forEach(({ resolve, reject, config }) => {
             (config.headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
             (
               config as InternalAxiosRequestConfig & {
@@ -196,28 +199,24 @@ instance.interceptors.response.use(
             (
               config as InternalAxiosRequestConfig & { _isReplayRequest?: boolean }
             )._isReplayRequest = true;
-            resolve(instance(config));
+            instance(config).then(resolve).catch(reject);
           });
           requestsQueue = [];
 
           // 重试原请求，标记为重试请求
           (originalRequest.headers as Record<string, string>)['Authorization'] =
             `Bearer ${accessToken}`;
+          originalRequest._tokenRefreshed = true;
           originalRequest._isReplayRequest = true;
           return instance(originalRequest);
         } else {
-          tokenManager.clearTokens();
-          useUserInfoStore().clearUserInfo();
-          useLikeStore().clearAll();
+          clearAuthState();
+          rejectQueuedRequests(error);
           return Promise.reject(error);
         }
       } catch (refreshError) {
-        tokenManager.clearTokens();
-        useUserInfoStore().clearUserInfo();
-        useLikeStore().clearAll();
-        // 刷新失败，reject队列中所有请求
-        requestsQueue.forEach(({ reject }) => reject(refreshError));
-        requestsQueue = [];
+        clearAuthState();
+        rejectQueuedRequests(refreshError);
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
