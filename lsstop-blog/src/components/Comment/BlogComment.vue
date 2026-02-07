@@ -176,7 +176,7 @@
 
             <!-- 子评论列表 -->
             <template v-if="item.replyList && item.replyList.length">
-              <template v-for="reply of getVisibleReplies(item.id, item.replyList)" :key="reply.id">
+              <template v-for="reply of item.replyList ?? []" :key="reply.id">
                 <div class="lc-reply-item">
                   <div class="lc-avatar small">
                     <img :src="reply.avatar" alt="用户头像" />
@@ -325,7 +325,8 @@ import { LikeTypeEnum } from '@/constants/likeType';
 import type { Comment, Reply } from '@/apis/comment';
 import { getComments, addComment, getReplyList } from '@/apis/comment';
 import { useEmoji } from '@/composables/useEmoji';
-import { CommentTypeEnum } from '@/constants/commentType';
+import { useContentOverflow } from '@/composables/useContentOverflow';
+import { requiresTypeId } from '@/constants/commentType';
 import { ReviewStatusEnum } from '@/constants/reviewStatus';
 
 // props
@@ -352,12 +353,19 @@ const loadingReplyMap = reactive<Record<number, boolean>>({}); // 子评论加�
 const replyPageMap = reactive<Record<number, number>>({}); // 已加载的页码
 const noMoreRepliesMap = reactive<Record<number, boolean>>({}); // 是否已加载完所有子评论
 const expandedCommentMap = reactive<Record<number, boolean>>({}); // 主评论展开状态
-const overflowCommentMap = reactive<Record<number, boolean>>({}); // 主评论是否溢出
 const expandedReplyMap = reactive<Record<number, boolean>>({}); // 子评论展开状态
-const overflowReplyMap = reactive<Record<number, boolean>>({}); // 子评论是否溢出
-const commentContentRefs = reactive<Record<number, HTMLElement | null>>({}); // 主评论内容ref
-const replyContentRefs = reactive<Record<number, HTMLElement | null>>({}); // 子评论内容ref
-const maxCollapsedHeight = 162; // 6行约162px (line-height:1.8 * font-size:14 * 6 ≈ 151, 留余量)
+
+// 内容溢出检测
+const {
+  overflowMap: overflowCommentMap,
+  observe: observeComment,
+  reset: resetCommentOverflow,
+} = useContentOverflow();
+const {
+  overflowMap: overflowReplyMap,
+  observe: observeReply,
+  reset: resetReplyOverflow,
+} = useContentOverflow();
 const sortType = ref<'hot' | 'new'>('hot');
 const showSortMenu = ref(false);
 const current = ref(1);
@@ -646,12 +654,6 @@ const hideReplies = (commentId: number) => {
   showRepliesMap[commentId] = false;
 };
 
-// 获取显示的子评论列表（直接返回全部已加载的）
-const getVisibleReplies = (_commentId: number, replyList: Reply[] | undefined) => {
-  if (!replyList) return [];
-  return replyList;
-};
-
 // 是否还有更多子评论
 const hasMoreReplies = (commentId: number, replyList: Reply[] | undefined) => {
   if (!replyList) return false;
@@ -668,31 +670,20 @@ const resetRepliesState = () => {
   Object.keys(replyPageMap).forEach((key) => delete replyPageMap[Number(key)]);
   Object.keys(noMoreRepliesMap).forEach((key) => delete noMoreRepliesMap[Number(key)]);
   Object.keys(expandedCommentMap).forEach((key) => delete expandedCommentMap[Number(key)]);
-  Object.keys(overflowCommentMap).forEach((key) => delete overflowCommentMap[Number(key)]);
   Object.keys(expandedReplyMap).forEach((key) => delete expandedReplyMap[Number(key)]);
-  Object.keys(overflowReplyMap).forEach((key) => delete overflowReplyMap[Number(key)]);
+  resetCommentOverflow();
+  resetReplyOverflow();
   cancelReply();
 };
 
 // 设置主评论内容ref
 const setCommentContentRef = (id: number, el: HTMLElement | null) => {
-  commentContentRefs[id] = el;
-  if (el) {
-    // 使用 nextTick 确保 DOM 已渲染
-    setTimeout(() => {
-      overflowCommentMap[id] = el.scrollHeight > maxCollapsedHeight;
-    }, 0);
-  }
+  observeComment(id, el);
 };
 
 // 设置子评论内容ref
 const setReplyContentRef = (id: number, el: HTMLElement | null) => {
-  replyContentRefs[id] = el;
-  if (el) {
-    setTimeout(() => {
-      overflowReplyMap[id] = el.scrollHeight > maxCollapsedHeight;
-    }, 0);
-  }
+  observeReply(id, el);
 };
 
 // 切换主评论展开状态
@@ -708,10 +699,7 @@ const toggleExpandReply = (id: number) => {
 // 加载评论列表
 const listComments = async () => {
   // 对于需要typeId的类型，如果typeId为空或不是数字，则不发起请求
-  if (
-    ([CommentTypeEnum.ARTICLE, CommentTypeEnum.TALK] as number[]).includes(props.type) &&
-    (!props.typeId || isNaN(Number(props.typeId)))
-  ) {
+  if (requiresTypeId(props.type) && (!props.typeId || isNaN(Number(props.typeId)))) {
     commentList.value = [];
     count.value = 0;
     return;

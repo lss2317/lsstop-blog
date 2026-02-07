@@ -9,3 +9,8 @@ export const CommentTypeDesc: Record<CommentTypeEnum, string> = {
   [CommentTypeEnum.FRIEND_LINK]: '友链',
   [CommentTypeEnum.TALK]: '说说',
 };
+
+// 判断评论类型是否需要 typeId
+export function requiresTypeId(type: number): boolean {
+  return Object.values(CommentTypeEnum).includes(type);
+}

@@ -1,11 +1,6 @@
 <template>
   <div class="emoji-wrapper">
-    <span
-      class="emoji-item"
-      v-for="(value, key, index) of EmojiList"
-      :key="index"
-      @click="addEmoji(key)"
-    >
+    <span class="emoji-item" v-for="(value, key) in EmojiList" :key="key" @click="addEmoji(key)">
       <v-img :lazy-src="value" :src="value" :title="key" class="emoji" width="24" height="24" />
     </span>
   </div>
@@ -26,7 +21,6 @@ function addEmoji(key: string): void {
 <style scoped>
 .emoji {
   user-select: none;
-  margin: 0.4rem;
   display: inline-block;
   vertical-align: middle;
   cursor: pointer;
@@ -39,11 +33,12 @@ function addEmoji(key: string): void {
 .emoji-item {
   cursor: pointer;
   display: inline-block;
+  padding: 4px;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
 }
 
 .emoji-item:hover {
-  transition: all 0.2s;
-  border-radius: 0.25rem;
   background: #dddddd;
 }
 
