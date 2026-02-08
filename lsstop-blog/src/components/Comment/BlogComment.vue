@@ -143,7 +143,7 @@
               v-if="isSelf(item.userId)"
               @click="handleDeleteComment(item.id)"
             >
-              <v-icon size="16">mdi-delete-outline</v-icon>
+              <v-icon size="16">mdi-trash-can-outline</v-icon>
               <span>删除</span>
             </span>
           </div>
@@ -248,7 +248,7 @@
                         v-if="isSelf(reply.userId)"
                         @click="handleDeleteReply(item.id, reply.id)"
                       >
-                        <v-icon size="16">mdi-delete-outline</v-icon>
+                        <v-icon size="16">mdi-trash-can-outline</v-icon>
                         <span>删除</span>
                       </span>
                     </div>
@@ -528,7 +528,7 @@ const insertComment = async () => {
     const res = await addComment(params);
 
     if (res.data.review === ReviewStatusEnum.PENDING) {
-      snackbarStore.success('评论提交成功，等待审核');
+      snackbarStore.success('评论成功，等待审核');
     } else {
       // 不需要审核，本地插入新评论
       const newComment: Comment = {
@@ -545,7 +545,7 @@ const insertComment = async () => {
       };
       commentList.value.unshift(newComment);
       count.value++;
-      snackbarStore.success('评论提交成功');
+      snackbarStore.success('评论成功');
     }
 
     // 清空评论内容并重置高度
@@ -626,7 +626,7 @@ const submitReply = async (item: Comment) => {
     const res = await addComment(params);
 
     if (res.data.review === ReviewStatusEnum.PENDING) {
-      snackbarStore.success('回复提交成功，等待审核');
+      snackbarStore.success('回复成功，等待审核');
     } else {
       // 不需要审核，构建新回复对象
       const newReply: Reply = {
@@ -651,7 +651,8 @@ const submitReply = async (item: Comment) => {
         // 检查是否已加载过子评论（>=1 就表示加载过）
         const hasLoadedReplies = !!replyPageMap[comment.id];
 
-        if (!hasLoadedReplies) {
+        // 只有原本就有子评论（replyCount > 1，因为已经+1了）且未加载过时，才需要调用接口
+        if (!hasLoadedReplies && comment.replyCount > 1) {
           // 未加载过，先调用接口初始化子评论列表
           loadingReplyMap[comment.id] = true;
           try {
@@ -665,6 +666,9 @@ const submitReply = async (item: Comment) => {
           } finally {
             loadingReplyMap[comment.id] = false;
           }
+        } else if (!comment.replyList) {
+          // 第一条子评论，初始化空数组
+          comment.replyList = [];
         }
 
         // 添加新回复（先删除可能存在的重复项，再添加到正确位置）
@@ -683,7 +687,7 @@ const submitReply = async (item: Comment) => {
         }
       }
 
-      snackbarStore.success('回复提交成功');
+      snackbarStore.success('回复成功');
     }
 
     // 清空回复内容

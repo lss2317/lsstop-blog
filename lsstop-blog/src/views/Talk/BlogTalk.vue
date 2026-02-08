@@ -91,7 +91,7 @@
                   </span>
                 </div>
                 <div class="talk-operation-item comment-btn" @click="goToTalkInfo(item.id)">
-                  <v-icon size="16">mdi-chat-outline</v-icon>
+                  <v-icon size="16">mdi-comment-processing-outline</v-icon>
                   <span class="operation-count">
                     {{ item.commentCount == null ? 0 : item.commentCount }}
                   </span>
