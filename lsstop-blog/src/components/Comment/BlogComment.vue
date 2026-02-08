@@ -138,6 +138,14 @@
               <v-icon size="16">mdi-reply</v-icon>
               <span>回复</span>
             </span>
+            <span
+              class="lc-action-item delete-btn"
+              v-if="isSelf(item.userId)"
+              @click="handleDeleteComment(item.id)"
+            >
+              <v-icon size="16">mdi-delete-outline</v-icon>
+              <span>删除</span>
+            </span>
           </div>
 
           <!-- 回复输入框（回复主评论） -->
@@ -235,6 +243,14 @@
                         <v-icon size="16">mdi-reply</v-icon>
                         <span>回复</span>
                       </span>
+                      <span
+                        class="lc-action-item delete-btn"
+                        v-if="isSelf(reply.userId)"
+                        @click="handleDeleteReply(item.id, reply.id)"
+                      >
+                        <v-icon size="16">mdi-delete-outline</v-icon>
+                        <span>删除</span>
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -308,6 +324,16 @@
 
     <!-- 空状态 -->
     <div class="lc-empty" v-else-if="!loading">来发评论吧~</div>
+
+    <!-- 删除确认弹框 -->
+    <ConfirmDialog
+      v-model="deleteDialog"
+      type="error"
+      content="确定删除该条评论？"
+      confirm-text="删除"
+      :loading="deleting"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
@@ -315,6 +341,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import CommentEmoji from '@/components/Emoji/CommentEmoji.vue';
 import ReplyInput from '@/components/Comment/ReplyInput.vue';
+import ConfirmDialog from '@/components/Dialog/ConfirmDialog.vue';
 import { formatTime } from '@/utils/date';
 import { parseEmoji } from '@/utils/emoji';
 import { adjustTextareaHeight } from '@/utils/format';
@@ -323,7 +350,7 @@ import useUserInfoStore from '@/stores/modules/userInfo';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
 import { LikeTypeEnum } from '@/constants/likeType';
 import type { Comment, Reply } from '@/apis/comment';
-import { getComments, addComment, getReplyList } from '@/apis/comment';
+import { getComments, addComment, getReplyList, deleteComment } from '@/apis/comment';
 import { useEmoji } from '@/composables/useEmoji';
 import { useContentOverflow } from '@/composables/useContentOverflow';
 import { requiresTypeId } from '@/constants/commentType';
@@ -354,6 +381,13 @@ const replyPageMap = reactive<Record<number, number>>({}); // 已加载的页码
 const noMoreRepliesMap = reactive<Record<number, boolean>>({}); // 是否已加载完所有子评论
 const expandedCommentMap = reactive<Record<number, boolean>>({}); // 主评论展开状态
 const expandedReplyMap = reactive<Record<number, boolean>>({}); // 子评论展开状态
+
+// 删除确认弹框状态
+const deleteDialog = ref(false);
+const deleting = ref(false);
+const deleteTarget = ref<{ type: 'comment' | 'reply'; commentId: number; replyId?: number } | null>(
+  null,
+);
 
 // 内容溢出检测
 const {
@@ -415,6 +449,63 @@ const isLike = (id: number): boolean => {
 // 判断是否是自己的评论
 const isSelf = (userId: string): boolean => {
   return userInfoStore.userInfo.userId === userId;
+};
+
+// 删除主评论
+const handleDeleteComment = (commentId: number) => {
+  deleteTarget.value = { type: 'comment', commentId };
+  deleteDialog.value = true;
+};
+
+// 删除子评论
+const handleDeleteReply = (parentId: number, replyId: number) => {
+  deleteTarget.value = { type: 'reply', commentId: parentId, replyId };
+  deleteDialog.value = true;
+};
+
+// 确认删除
+const confirmDelete = async () => {
+  if (!deleteTarget.value || deleting.value) return;
+
+  deleting.value = true;
+  try {
+    const { type, commentId, replyId } = deleteTarget.value;
+    const targetId = type === 'reply' ? replyId! : commentId;
+
+    await deleteComment(targetId);
+
+    if (type === 'comment') {
+      // 从列表中移除主评论
+      const index = commentList.value.findIndex((c) => c.id === commentId);
+      if (index !== -1) {
+        commentList.value.splice(index, 1);
+        count.value--;
+      }
+    } else {
+      // 从回复列表中移除子评论
+      const comment = commentList.value.find((c) => c.id === commentId);
+      if (comment && comment.replyList) {
+        const index = comment.replyList.findIndex((r) => r.id === replyId);
+        if (index !== -1) {
+          comment.replyList.splice(index, 1);
+          comment.replyCount--;
+          // 如果子评论全部删除，自动隐藏回复列表
+          if (comment.replyCount === 0) {
+            showRepliesMap[commentId] = false;
+          }
+        }
+      }
+    }
+
+    snackbarStore.success('删除成功');
+    deleteDialog.value = false;
+    deleteTarget.value = null;
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { msg?: string } } };
+    snackbarStore.error(err.response?.data?.msg || '删除失败');
+  } finally {
+    deleting.value = false;
+  }
 };
 
 // 提交评论
@@ -1158,6 +1249,16 @@ onUnmounted(() => {
   transform: scale(1.2);
 }
 
+/* 删除按钮样式 */
+.delete-btn:hover {
+  color: #f56c6c;
+}
+
+.delete-btn:hover :deep(.v-icon) {
+  color: #f56c6c !important;
+  transform: scale(1.2);
+}
+
 /* 回复列表 */
 .lc-reply-list {
   margin-top: 16px;
@@ -1525,8 +1626,8 @@ onUnmounted(() => {
   background-color: #fff !important;
   color: rgba(0, 0, 0, 0.85) !important;
   box-shadow:
-    0px 0px 1px 0px rgba(0, 0, 0, 0.1),
-    0px 0.5px 5px 0px rgba(0, 0, 0, 0.1) !important;
+    0 0 1px 0 rgba(0, 0, 0, 0.1),
+    0 0.5px 5px 0 rgba(0, 0, 0, 0.1) !important;
   pointer-events: none !important;
 }
 
@@ -1560,8 +1661,8 @@ onUnmounted(() => {
   background-color: rgba(255, 255, 255, 0.9) !important;
   color: rgba(0, 0, 0, 0.85) !important;
   box-shadow:
-    0px 0px 1px 0px rgba(0, 0, 0, 0.3),
-    0px 0.5px 5px 0px rgba(0, 0, 0, 0.3) !important;
+    0 0 1px 0 rgba(0, 0, 0, 0.3),
+    0 0.5px 5px 0 rgba(0, 0, 0, 0.3) !important;
 }
 
 .v-theme--dark .lc-pagination .v-pagination .v-btn--disabled {

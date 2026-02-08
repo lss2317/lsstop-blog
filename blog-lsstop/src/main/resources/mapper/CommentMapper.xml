@@ -140,4 +140,29 @@
         limit #{offset}, #{size}
     </select>
 
+    <!-- 根据ID查询评论 -->
+    <select id="selectById" resultType="com.lsstop.domain.entity.CommentEntity">
+        select id, user_id, target_id, target_type, content, parent_id,
+               reply_user_id, ip_region, review, deleted_at, create_time, update_time
+        from blog_comment
+        where id = #{id}
+          and deleted_at = 0
+    </select>
+
+    <!-- 软删除评论 -->
+    <update id="deleteById">
+        update blog_comment
+        set deleted_at = #{deletedAt}, update_time = now()
+        where id = #{id}
+          and deleted_at = 0
+    </update>
+
+    <!-- 软删除某个父评论下的所有子评论 -->
+    <update id="deleteByParentId">
+        update blog_comment
+        set deleted_at = #{deletedAt}, update_time = now()
+        where parent_id = #{parentId}
+          and deleted_at = 0
+    </update>
+
 </mapper>

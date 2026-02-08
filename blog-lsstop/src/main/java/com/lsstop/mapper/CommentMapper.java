@@ -79,4 +79,29 @@ public interface CommentMapper {
                                          @Param("sortType") String sortType,
                                          @Param("offset") Integer offset,
                                          @Param("size") Integer size);
+
+    /**
+     * 根据ID查询评论
+     *
+     * @param id 评论ID
+     * @return 评论实体
+     */
+    CommentEntity selectById(@Param("id") Integer id);
+
+    /**
+     * 软删除评论
+     *
+     * @param id        评论ID
+     * @param deletedAt 删除时间戳
+     */
+    void deleteById(@Param("id") Integer id, @Param("deletedAt") Long deletedAt);
+
+    /**
+     * 软删除某个父评论下的所有子评论
+     *
+     * @param parentId  父评论ID
+     * @param deletedAt 删除时间戳
+     * @return 删除的子评论数量
+     */
+    int deleteByParentId(@Param("parentId") Integer parentId, @Param("deletedAt") Long deletedAt);
 }

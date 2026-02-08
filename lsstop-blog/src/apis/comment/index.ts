@@ -105,3 +105,11 @@ export interface ReplyQueryParams {
 export function getReplyList(params: ReplyQueryParams) {
   return http.get<Reply[]>('/comment/listReply', { params, showProgress: false });
 }
+
+/**
+ * 删除评论
+ * @param commentId 评论ID
+ */
+export function deleteComment(commentId: number) {
+  return http.post('/comment/deleteComment', { commentId }, { showProgress: false });
+}

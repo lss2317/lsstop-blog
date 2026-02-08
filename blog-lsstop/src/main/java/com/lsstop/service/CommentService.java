@@ -54,4 +54,12 @@ public interface CommentService {
      * @return 子评论列表
      */
     List<CommentReplyVO> getReplyList(Integer parentId, Integer current, Integer size, String sortType);
+
+    /**
+     * 删除评论
+     *
+     * @param commentId 评论ID
+     * @param userId    当前用户ID
+     */
+    void deleteComment(Integer commentId, String userId);
 }

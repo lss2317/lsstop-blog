@@ -117,4 +117,19 @@ public class CommonConst {
      * 用户ID不能为空
      */
     public static final String USER_ID_REQUIRED = "用户ID不能为空";
+
+    /**
+     * 评论不存在
+     */
+    public static final String COMMENT_NOT_FOUND = "评论不存在";
+
+    /**
+     * 无权限删除该评论
+     */
+    public static final String NO_PERMISSION_DELETE_COMMENT = "无权限删除该评论";
+
+    /**
+     * 评论ID不能为空
+     */
+    public static final String COMMENT_ID_REQUIRED = "评论ID不能为空";
 }

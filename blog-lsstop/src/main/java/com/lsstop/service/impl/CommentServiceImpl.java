@@ -10,6 +10,8 @@ import com.lsstop.domain.vo.CommentReplyVO;
 import com.lsstop.domain.vo.CommentVO;
 import com.lsstop.enums.CommentTypeEnum;
 import com.lsstop.enums.IllegalPolicyEnum;
+import com.lsstop.enums.StatusEnum;
+import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.mapper.CommentMapper;
 import com.lsstop.service.CommentService;
@@ -18,6 +20,7 @@ import com.lsstop.utils.RedisUtils;
 import com.lsstop.utils.SensitiveWordUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -167,5 +170,52 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentReplyVO> getReplyList(Integer parentId, Integer current, Integer size, String sortType) {
         int offset = (current - 1) * size;
         return commentMapper.selectReplyList(parentId, sortType, offset, size);
+    }
+
+    /**
+     * 删除评论
+     *
+     * @param commentId 评论ID
+     * @param userId    当前用户ID
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteComment(Integer commentId, String userId) {
+        // 查询评论是否存在
+        CommentEntity comment = commentMapper.selectById(commentId);
+        if (comment == null) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.COMMENT_NOT_FOUND);
+        }
+
+        // 校验权限：只有评论作者才能删除
+        if (!userId.equals(comment.getUserId())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.NO_PERMISSION_DELETE_COMMENT);
+        }
+
+        long deletedAt = System.currentTimeMillis();
+
+        // 删除评论
+        commentMapper.deleteById(commentId, deletedAt);
+
+        // 如果是顶级评论，级联删除所有子评论
+        if (comment.getParentId() == null) {
+            int deletedChildCount = commentMapper.deleteByParentId(commentId, deletedAt);
+            // 删除该评论的回复数缓存
+            redisUtils.delete(RedisConst.COMMENT_REPLY_COUNT + commentId);
+            // 如果是说说类型，更新说说评论数（顾级评论 + 子评论）
+            if (CommentTypeEnum.TALK.getType().equals(comment.getTargetType())) {
+                redisUtils.decrement(RedisConst.TALK_COMMENT_COUNT + comment.getTargetId(), 1 + deletedChildCount);
+            }
+        } else {
+            // 子评论：更新父评论的回复数
+            redisUtils.decrement(RedisConst.COMMENT_REPLY_COUNT + comment.getParentId());
+            // 如果是说说类型，更新说说评论数
+            if (CommentTypeEnum.TALK.getType().equals(comment.getTargetType())) {
+                redisUtils.decrement(RedisConst.TALK_COMMENT_COUNT + comment.getTargetId());
+            }
+        }
+
+        // 删除评论点赞数缓存
+        redisUtils.delete(RedisConst.COMMENT_LIKE_COUNT + commentId);
     }
 }

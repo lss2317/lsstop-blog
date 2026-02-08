@@ -4,6 +4,7 @@ import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
 import com.lsstop.constant.CommonConst;
 import com.lsstop.domain.dto.CommentDTO;
+import com.lsstop.domain.dto.DeleteCommentDTO;
 import com.lsstop.domain.entity.CommentEntity;
 import com.lsstop.domain.vo.AddCommentVO;
 import com.lsstop.domain.vo.CommentPageVO;
@@ -129,5 +130,24 @@ public class CommentController {
         }
         List<CommentReplyVO> replyList = commentService.getReplyList(parentId, current, CommonConst.DEFAULT_CHILD_COMMENT_LIMIT, sortType);
         return Result.success(replyList);
+    }
+
+    /**
+     * 删除评论
+     *
+     * @param deleteCommentDTO 删除评论请求参数
+     * @param request          请求对象（拦截器已验证token并存入userId）
+     * @return 删除结果
+     */
+    @PostMapping("/front/comment/deleteComment")
+    @AccessLimit(seconds = 60, maxCount = 30)
+    public Result<Void> deleteComment(@RequestBody @Validated DeleteCommentDTO deleteCommentDTO,
+                                      HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        if (userId == null || userId.isBlank()) {
+            throw new BusinessException(StatusEnum.NOT_LOGIN);
+        }
+        commentService.deleteComment(deleteCommentDTO.getCommentId(), userId);
+        return Result.success();
     }
 }

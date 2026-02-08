@@ -30,6 +30,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(frontAuthInterceptor)
                 .addPathPatterns("/front/like/**",
                         "/front/comment/addComment",
+                        "/front/comment/deleteComment",
                         "/front/message/addMessage",
                         "/front/user/info");
     }
