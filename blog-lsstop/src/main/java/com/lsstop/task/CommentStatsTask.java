@@ -9,6 +9,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -36,6 +37,24 @@ public class CommentStatsTask {
      */
     @PostConstruct
     public void init() {
+        syncCommentStats();
+    }
+
+    /**
+     * 每天凌暨3点同步评论统计数据
+     * 保证Redis与数据库数据一致性
+     */
+    @Scheduled(cron = "0 0 3 * * ?")
+    public void dailySyncCommentStats() {
+        log.info("开始执行每日评论统计数据同步任务...");
+        syncCommentStats();
+        log.info("每日评论统计数据同步任务完成");
+    }
+
+    /**
+     * 同步评论统计数据到Redis
+     */
+    private void syncCommentStats() {
         clearOldData();
         initCommentCounts();
         initReplyCounts();

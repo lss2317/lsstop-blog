@@ -2,6 +2,7 @@ package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
+import com.lsstop.constant.CommentConst;
 import com.lsstop.constant.CommonConst;
 import com.lsstop.domain.dto.CommentDTO;
 import com.lsstop.domain.dto.DeleteCommentDTO;
@@ -54,11 +55,11 @@ public class CommentController {
         }
         CommentTypeEnum commentType = CommentTypeEnum.of(commentDTO.getTargetType());
         if (commentType == null) {
-            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.INVALID_COMMENT_TYPE);
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.INVALID_COMMENT_TYPE);
         }
         // 友链类型时targetId默认0
         if (commentType == CommentTypeEnum.FRIEND_LINK) {
-            commentDTO.setTargetId(CommonConst.FRIEND_LINK_DEFAULT_TARGET_ID);
+            commentDTO.setTargetId(CommentConst.FRIEND_LINK_DEFAULT_TARGET_ID);
         }
         CommentEntity comment = commentDTO.asViewObject(CommentEntity.class);
         comment.setUserId(userId);
@@ -86,21 +87,21 @@ public class CommentController {
         // 参数校验
         CommentTypeEnum commentType = CommentTypeEnum.of(type);
         if (commentType == null) {
-            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.INVALID_COMMENT_TYPE);
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.INVALID_COMMENT_TYPE);
         }
         if (current < 1) {
-            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.INVALID_PAGE_PARAM);
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.INVALID_PAGE_PARAM);
         }
-        if (!CommonConst.SORT_TYPE_HOT.equals(sortType) && !CommonConst.SORT_TYPE_NEW.equals(sortType)) {
-            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.INVALID_SORT_TYPE);
+        if (!CommentConst.SORT_TYPE_HOT.equals(sortType) && !CommentConst.SORT_TYPE_NEW.equals(sortType)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.INVALID_SORT_TYPE);
         }
         // 友链类型时typeId默认0，其他类型必传且大于0
         if (type.equals(CommentTypeEnum.FRIEND_LINK.getType())) {
-            typeId = CommonConst.FRIEND_LINK_DEFAULT_TARGET_ID;
+            typeId = CommentConst.FRIEND_LINK_DEFAULT_TARGET_ID;
         } else if (typeId == null || typeId < 1) {
             throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.TARGET_ID_REQUIRED);
         }
-        List<CommentVO> commentList = commentService.getCommentList(typeId, type, current, CommonConst.DEFAULT_PAGE_SIZE, sortType);
+        List<CommentVO> commentList = commentService.getCommentList(typeId, type, current, CommentConst.DEFAULT_PAGE_SIZE, sortType);
         Integer total = commentService.getCommentCount(typeId, type);
         return Result.success(new CommentPageVO(commentList, total));
     }
@@ -120,15 +121,15 @@ public class CommentController {
                                                   @RequestParam(defaultValue = "new") String sortType) {
         // 参数校验
         if (parentId == null || parentId < 1) {
-            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.PARENT_ID_REQUIRED);
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.PARENT_ID_REQUIRED);
         }
         if (current < 1) {
-            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.INVALID_PAGE_PARAM);
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.INVALID_PAGE_PARAM);
         }
-        if (!CommonConst.SORT_TYPE_HOT.equals(sortType) && !CommonConst.SORT_TYPE_NEW.equals(sortType)) {
-            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.INVALID_SORT_TYPE);
+        if (!CommentConst.SORT_TYPE_HOT.equals(sortType) && !CommentConst.SORT_TYPE_NEW.equals(sortType)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.INVALID_SORT_TYPE);
         }
-        List<CommentReplyVO> replyList = commentService.getReplyList(parentId, current, CommonConst.DEFAULT_CHILD_COMMENT_LIMIT, sortType);
+        List<CommentReplyVO> replyList = commentService.getReplyList(parentId, current, CommentConst.DEFAULT_CHILD_COMMENT_LIMIT, sortType);
         return Result.success(replyList);
     }
 

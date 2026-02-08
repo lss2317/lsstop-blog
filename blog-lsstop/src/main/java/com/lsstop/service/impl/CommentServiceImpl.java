@@ -1,5 +1,6 @@
 package com.lsstop.service.impl;
 
+import com.lsstop.constant.CommentConst;
 import com.lsstop.constant.CommonConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.entity.CommentEntity;
@@ -184,12 +185,12 @@ public class CommentServiceImpl implements CommentService {
         // 查询评论是否存在
         CommentEntity comment = commentMapper.selectById(commentId);
         if (comment == null) {
-            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.COMMENT_NOT_FOUND);
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.COMMENT_NOT_FOUND);
         }
 
         // 校验权限：只有评论作者才能删除
         if (!userId.equals(comment.getUserId())) {
-            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.NO_PERMISSION_DELETE_COMMENT);
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.NO_PERMISSION_DELETE_COMMENT);
         }
 
         long deletedAt = System.currentTimeMillis();

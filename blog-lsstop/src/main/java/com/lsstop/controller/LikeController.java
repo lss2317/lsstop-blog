@@ -2,7 +2,7 @@ package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
-import com.lsstop.constant.CommonConst;
+import com.lsstop.constant.LikeConst;
 import com.lsstop.domain.dto.LikeDTO;
 import com.lsstop.domain.vo.UserLikeVO;
 import com.lsstop.enums.LikeTypeEnum;
@@ -42,7 +42,7 @@ public class LikeController {
         }
         LikeTypeEnum likeType = LikeTypeEnum.of(likeDTO.getType());
         if (likeType == null) {
-            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.INVALID_LIKE_TYPE);
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), LikeConst.INVALID_LIKE_TYPE);
         }
         boolean isLiked = likeService.toggleLike(userId, likeDTO.getTargetId(), likeType);
         return Result.success(isLiked);

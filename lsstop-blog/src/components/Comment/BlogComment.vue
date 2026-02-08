@@ -1074,6 +1074,10 @@ onUnmounted(() => {
   font-weight: 600;
   color: #262626;
   text-decoration: none;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .lc-nickname:hover {

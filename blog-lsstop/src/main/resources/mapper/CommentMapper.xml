@@ -62,6 +62,7 @@
                c.ip_region,
                c.create_time,
                c.content,
+               ifnull(lc.like_count, 0) as like_count,
                ifnull(rc.reply_count, 0) as reply_count
         from blog_comment c
                  left join blog_user_profile up on c.user_id = up.user_id and up.deleted_at = 0
@@ -69,6 +70,10 @@
                             from blog_comment
                             where deleted_at = 0 and review = 0
                             group by parent_id) rc on c.id = rc.parent_id
+                 left join (select target_id, count(*) as like_count
+                            from blog_like_record
+                            where type = 3 and status = 1
+                            group by target_id) lc on c.id = lc.target_id
         where c.target_type = #{type}
           and c.target_id = #{typeId}
           and c.parent_id is null
@@ -76,7 +81,7 @@
           and c.review = 0
         <choose>
             <when test="sortType == 'hot'">
-        order by reply_count desc, c.create_time desc
+        order by (ifnull(lc.like_count, 0) * 0.6 + ifnull(rc.reply_count, 0) * 0.4) desc, c.create_time desc
             </when>
             <otherwise>
         order by c.create_time desc

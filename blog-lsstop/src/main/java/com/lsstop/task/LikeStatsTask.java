@@ -41,6 +41,24 @@ public class LikeStatsTask {
      */
     @PostConstruct
     public void init() {
+        syncLikeStats();
+    }
+
+    /**
+     * 每天凌暨3点同步点赞统计数据
+     * 保证Redis与数据库数据一致性
+     */
+    @Scheduled(cron = "0 0 3 * * ?")
+    public void dailySyncLikeStats() {
+        log.info("开始执行每日点赞统计数据同步任务...");
+        syncLikeStats();
+        log.info("每日点赞统计数据同步任务完成");
+    }
+
+    /**
+     * 同步点赞统计数据到Redis
+     */
+    private void syncLikeStats() {
         clearOldData();
         initLikeCounts();
         initUserLikes();
