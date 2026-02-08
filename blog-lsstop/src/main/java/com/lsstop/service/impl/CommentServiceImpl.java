@@ -124,7 +124,7 @@ public class CommentServiceImpl implements CommentService {
         List<Integer> parentIds = parentComments.stream()
                 .map(CommentVO::getId)
                 .toList();
-        
+
         // 批量从 Redis 获取顶级评论回复数和点赞数
         List<String> parentReplyKeys = parentIds.stream()
                 .map(id -> RedisConst.COMMENT_REPLY_COUNT + id)
@@ -134,7 +134,7 @@ public class CommentServiceImpl implements CommentService {
                 .collect(Collectors.toList());
         List<Integer> parentReplyCounts = redisUtils.mGet(parentReplyKeys, Integer.class);
         List<Integer> parentLikeCounts = redisUtils.mGet(parentLikeKeys, Integer.class);
-        
+
         // 设置顶级评论回复数和点赞数
         for (int i = 0; i < parentComments.size(); i++) {
             Integer replyCount = parentReplyCounts.get(i);
@@ -142,7 +142,7 @@ public class CommentServiceImpl implements CommentService {
             parentComments.get(i).setReplyCount(replyCount == null ? 0 : replyCount);
             parentComments.get(i).setLikeCount(likeCount == null ? 0 : likeCount);
         }
-        
+
         return parentComments;
     }
 
@@ -170,7 +170,24 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public List<CommentReplyVO> getReplyList(Integer parentId, Integer current, Integer size, String sortType) {
         int offset = (current - 1) * size;
-        return commentMapper.selectReplyList(parentId, sortType, offset, size);
+        List<CommentReplyVO> replyList = commentMapper.selectReplyList(parentId, sortType, offset, size);
+        if (replyList.isEmpty()) {
+            return replyList;
+        }
+
+        // 批量从 Redis 获取子评论点赞数
+        List<String> likeKeys = replyList.stream()
+                .map(reply -> RedisConst.COMMENT_LIKE_COUNT + reply.getId())
+                .collect(Collectors.toList());
+        List<Integer> likeCounts = redisUtils.mGet(likeKeys, Integer.class);
+
+        // 设置子评论点赞数
+        for (int i = 0; i < replyList.size(); i++) {
+            Integer likeCount = likeCounts.get(i);
+            replyList.get(i).setLikeCount(likeCount == null ? 0 : likeCount);
+        }
+
+        return replyList;
     }
 
     /**
