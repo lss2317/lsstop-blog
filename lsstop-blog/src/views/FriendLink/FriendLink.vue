@@ -247,6 +247,7 @@ blockquote {
     max-height var(--transition-slow);
   display: -webkit-box;
   -webkit-line-clamp: 1;
+  line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -267,6 +268,7 @@ blockquote {
 
 .link-wrapper:hover .link-intro {
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   height: auto;
   max-height: 56px;
 }

@@ -22,7 +22,7 @@
           title="表情"
           @click="toggleEmoji"
         >
-          <i class="iconfont iconbiaoqing" />
+          <v-icon size="20">mdi-emoticon-outline</v-icon>
         </span>
         <div :class="['lc-emoji-panel', emojiDirection]" v-show="showEmoji">
           <CommentEmoji @addEmoji="addEmoji" />

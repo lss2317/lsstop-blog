@@ -14,7 +14,7 @@
       <div v-else-if="categoryList.length > 0">
         <!-- 统计头部 -->
         <div class="category-header">
-          <v-icon class="stat-icon" size="28">mdi-layers-outline</v-icon>
+          <v-icon class="stat-icon" size="28">mdi-format-list-bulleted</v-icon>
           <span class="stat-text"
             >共计 <strong>{{ categoryList.length }}</strong> 个分类</span
           >

@@ -18,7 +18,7 @@
               title="表情"
               @click="toggleEmoji"
             >
-              <i class="iconfont iconbiaoqing" />
+              <v-icon size="20">mdi-emoticon-outline</v-icon>
             </span>
             <!-- 表情框 -->
             <div :class="['lc-emoji-panel', emojiDirection]" v-show="showEmoji">
@@ -628,7 +628,7 @@ const submitReply = async (item: Comment) => {
     if (res.data.review === ReviewStatusEnum.PENDING) {
       snackbarStore.success('回复提交成功，等待审核');
     } else {
-      // 不需要审核，本地插入新回复
+      // 不需要审核，构建新回复对象
       const newReply: Reply = {
         id: res.data.id,
         avatar: res.data.avatar,
@@ -642,18 +642,45 @@ const submitReply = async (item: Comment) => {
         replyNickname: replyToUser?.nickname,
       };
 
-      // 插入到回复列表（通过索引更新确保响应式）
       const index = commentList.value.findIndex((c) => c.id === item.id);
       const comment = commentList.value[index];
       if (comment) {
-        if (!comment.replyList) {
-          comment.replyList = [];
-        }
-        // 追加到回复列表末尾
-        comment.replyList.push(newReply);
         comment.replyCount++;
-        // 自动展开回复列表
         showRepliesMap[comment.id] = true;
+
+        // 检查是否已加载过子评论（>=1 就表示加载过）
+        const hasLoadedReplies = !!replyPageMap[comment.id];
+
+        if (!hasLoadedReplies) {
+          // 未加载过，先调用接口初始化子评论列表
+          loadingReplyMap[comment.id] = true;
+          try {
+            const replyRes = await getReplyList({
+              parentId: comment.id,
+              current: 1,
+              sortType: sortType.value,
+            });
+            comment.replyList = replyRes.data || [];
+            replyPageMap[comment.id] = 1;
+          } finally {
+            loadingReplyMap[comment.id] = false;
+          }
+        }
+
+        // 添加新回复（先删除可能存在的重复项，再添加到正确位置）
+        const existingIndex = comment.replyList!.findIndex((r) => r.id === newReply.id);
+        if (existingIndex !== -1) {
+          comment.replyList!.splice(existingIndex, 1);
+        }
+        // 清除“没有更多”标记，因为新增了回复
+        delete noMoreRepliesMap[comment.id];
+        if (sortType.value === 'new') {
+          // 最新排序：添加到顶部
+          comment.replyList!.unshift(newReply);
+        } else {
+          // 最热排序：添加到末尾
+          comment.replyList!.push(newReply);
+        }
       }
 
       snackbarStore.success('回复提交成功');
@@ -684,8 +711,8 @@ const toggleReplies = async (commentId: number) => {
   const comment = commentList.value.find((c) => c.id === commentId);
   if (!comment) return;
 
-  // 如果已有数据，不重复加载
-  if (comment.replyList && comment.replyList.length > 0) return;
+  // 如果已加载过，不重复加载
+  if (replyPageMap[commentId]) return;
 
   // 加载第1页
   if (loadingReplyMap[commentId]) return;
@@ -937,11 +964,6 @@ onUnmounted(() => {
 .lc-submit-btn:disabled {
   background: #88d4a0;
   cursor: not-allowed;
-}
-
-/* 回复表情面板位置调整 */
-.lc-emoji-panel.reply-panel {
-  left: 0;
 }
 
 /* 排序 */
@@ -1306,14 +1328,6 @@ onUnmounted(() => {
 .lc-sub-reply-input {
   border-radius: 8px;
   padding: 16px;
-}
-
-.lc-sub-reply-input .lc-reply-input-box {
-  margin-top: 0;
-}
-
-.lc-sub-reply-input .lc-reply-actions {
-  margin-top: 12px;
 }
 
 /* 展示更多/隐藏操作栏 */
