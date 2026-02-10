@@ -73,17 +73,17 @@ public class CommentController {
      * 获取评论列表（分页）
      *
      * @param type     评论类型：1=文章, 2=友链, 3=说说
-     * @param typeId   对应内容的ID（友链时可不传，默认0）
-     * @param current  当前页码，默认1
+     * @param typeId   对应内容的ID（友链时传0）
+     * @param current  当前页码
      * @param sortType 排序方式：hot=最热, new=最新
      * @return 评论列表及总数
      */
     @GetMapping("/front/comment/listComment")
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<CommentPageVO> listComment(@RequestParam Integer type,
-                                             @RequestParam(required = false) Integer typeId,
-                                             @RequestParam(defaultValue = "1") Integer current,
-                                             @RequestParam(defaultValue = "new") String sortType) {
+                                             @RequestParam Integer typeId,
+                                             @RequestParam Integer current,
+                                             @RequestParam String sortType) {
         // 参数校验
         CommentTypeEnum commentType = CommentTypeEnum.of(type);
         if (commentType == null) {
@@ -95,9 +95,11 @@ public class CommentController {
         if (!CommentConst.SORT_TYPE_HOT.equals(sortType) && !CommentConst.SORT_TYPE_NEW.equals(sortType)) {
             throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.INVALID_SORT_TYPE);
         }
-        // 友链类型时typeId默认0，其他类型必传且大于0
+        // 友链类型时typeId必须为0，其他类型必须大于0
         if (type.equals(CommentTypeEnum.FRIEND_LINK.getType())) {
-            typeId = CommentConst.FRIEND_LINK_DEFAULT_TARGET_ID;
+            if (!CommentConst.FRIEND_LINK_DEFAULT_TARGET_ID.equals(typeId)) {
+                throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.TARGET_ID_REQUIRED);
+            }
         } else if (typeId == null || typeId < 1) {
             throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommonConst.TARGET_ID_REQUIRED);
         }
@@ -110,15 +112,15 @@ public class CommentController {
      * 获取子评论列表（分页）
      *
      * @param parentId 父评论id
-     * @param current  当前页码，默认1
+     * @param current  当前页码
      * @param sortType 排序方式：hot=最热, new=最新
      * @return 子评论列表
      */
     @GetMapping("/front/comment/listReply")
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<List<CommentReplyVO>> listReply(@RequestParam Integer parentId,
-                                                  @RequestParam(defaultValue = "1") Integer current,
-                                                  @RequestParam(defaultValue = "new") String sortType) {
+                                                  @RequestParam Integer current,
+                                                  @RequestParam String sortType) {
         // 参数校验
         if (parentId == null || parentId < 1) {
             throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.PARENT_ID_REQUIRED);
@@ -137,7 +139,7 @@ public class CommentController {
      * 删除评论
      *
      * @param deleteCommentDTO 删除评论请求参数
-     * @param request          请求对象（拦截器已验证token并存入userId）
+     * @param request          请求对象
      * @return 删除结果
      */
     @PostMapping("/front/comment/deleteComment")

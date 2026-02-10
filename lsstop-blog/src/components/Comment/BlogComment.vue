@@ -489,6 +489,10 @@ const confirmDelete = async () => {
         if (index !== -1) {
           comment.replyList.splice(index, 1);
           comment.replyCount--;
+          // 如果正在回复被删的这条，自动取消回复
+          if (replyingToReplyId.value === replyId) {
+            cancelReply();
+          }
           // 如果子评论全部删除，自动隐藏回复列表
           if (comment.replyCount === 0) {
             showRepliesMap[commentId] = false;
