@@ -109,4 +109,12 @@ public interface ArticleMapper {
      */
     void batchUpdateViewCounts(@Param("list") List<ArticleViewCountVO> viewCounts);
 
+    /**
+     * 根据ID查询文章标题
+     *
+     * @param id 文章ID
+     * @return 文章标题
+     */
+    String selectTitleById(@Param("id") Integer id);
+
 }

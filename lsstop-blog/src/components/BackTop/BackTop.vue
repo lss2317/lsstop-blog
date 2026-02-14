@@ -1,12 +1,12 @@
 <template>
-  <div class="rightside" :style="isShow">
-    <div :class="'rightside-config-hide ' + isOut">
-      <i :class="'iconfont rightside-icon ' + icon" @click="check" />
+  <div class="rightSide" :class="{ visible: isVisible }">
+    <div class="rightSideConfigHide" :class="{ expanded: isExpanded }">
+      <i :class="'iconfont rightSideIcon ' + icon" @click="toggleTheme" />
     </div>
-    <div class="setting-container" @click="show">
+    <div class="settingContainer" @click="toggleSettings">
       <i class="iconfont iconshezhi setting" />
     </div>
-    <i @click="backTop" class="iconfont rightside-icon iconziyuanldpi" />
+    <i @click="backTop" class="iconfont rightSideIcon iconziyuanldpi" />
   </div>
 </template>
 
@@ -16,88 +16,72 @@ import { useTheme } from 'vuetify';
 
 const theme = useTheme();
 
-const isShow = ref('');
-const isOut = ref('rightside-out');
+const isVisible = ref(false);
+const isExpanded = ref(false);
 // 根据当前主题初始化图标
 const icon = ref(theme.global.current.value.dark ? 'icontaiyang' : 'iconyueliang');
 
 const backTop = () => {
-  window.scrollTo({
-    behavior: 'smooth',
-    top: 0,
-  });
+  window.scrollTo({ behavior: 'smooth', top: 0 });
 };
 
-const scrollToTop = () => {
-  const scrollTop =
-    window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
-  if (scrollTop > 20) {
-    isShow.value = 'opacity: 1;transform: translateX(-38px);';
-  } else {
-    isShow.value = '';
-  }
+const handleScroll = () => {
+  isVisible.value = window.scrollY > 20;
 };
 
-const show = () => {
-  const flagValue = isOut.value === 'rightside-out';
-  isOut.value = flagValue ? 'rightside-in' : 'rightside-out';
+const toggleSettings = () => {
+  isExpanded.value = !isExpanded.value;
 };
 
-const check = () => {
+const toggleTheme = () => {
   const isDark = theme.global.current.value.dark;
   const newTheme = isDark ? 'light' : 'dark';
-  // 添加过渡 class
   document.documentElement.classList.add('theme-transition');
-  // 等待下一帧再切换主题，确保 transition 已生效
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      theme.global.name.value = newTheme;
-      icon.value = isDark ? 'iconyueliang' : 'icontaiyang';
-      // 保存到 localStorage
-      localStorage.setItem('theme', newTheme);
-      // 过渡结束后移除 class
-      setTimeout(() => {
-        document.documentElement.classList.remove('theme-transition');
-      }, 400);
-    });
-  });
+  theme.global.name.value = newTheme;
+  icon.value = isDark ? 'iconyueliang' : 'icontaiyang';
+  localStorage.setItem('theme', newTheme);
+  setTimeout(() => {
+    document.documentElement.classList.remove('theme-transition');
+  }, 400);
 };
 
 onMounted(() => {
-  window.addEventListener('scroll', scrollToTop);
+  window.addEventListener('scroll', handleScroll);
 });
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', scrollToTop);
+  window.removeEventListener('scroll', handleScroll);
 });
 </script>
 
 <style scoped>
-.rightside {
+.rightSide {
   z-index: 4;
   position: fixed;
   right: -38px;
   bottom: 85px;
+  opacity: 0;
   transition:
     opacity 0.5s,
     transform 0.5s;
 }
 
-.rightside-config-hide {
-  transform: translate(35px, 0);
+.rightSide.visible {
+  opacity: 1;
+  transform: translateX(-38px);
 }
 
-.rightside-out {
-  animation: rightsideOut 0.3s;
+.rightSideConfigHide {
+  transform: translateX(30px);
+  transition: transform 0.3s;
 }
 
-.rightside-in {
-  transform: translate(0, 0) !important;
-  animation: rightsideIn 0.3s;
+.rightSideConfigHide.expanded {
+  transform: translateX(0);
 }
 
-.rightside-icon,
-.setting-container {
+.rightSideIcon,
+.settingContainer {
   display: block;
   margin-bottom: 2px;
   width: 30px;
@@ -110,40 +94,22 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-.rightside-icon:hover,
-.setting-container:hover {
+.rightSideIcon:hover,
+.settingContainer:hover {
   background-color: #ff7242;
 }
 
-.setting-container i {
+.settingContainer i {
   display: block;
-  animation: turn-around 2s linear infinite;
+  animation: turnAround 2s linear infinite;
 }
 
-@keyframes turn-around {
-  0% {
+@keyframes turnAround {
+  from {
     transform: rotate(0);
   }
-  100% {
+  to {
     transform: rotate(360deg);
-  }
-}
-
-@keyframes rightsideOut {
-  0% {
-    transform: translate(0, 0);
-  }
-  100% {
-    transform: translate(30px, 0);
-  }
-}
-
-@keyframes rightsideIn {
-  0% {
-    transform: translate(30px, 0);
-  }
-  100% {
-    transform: translate(0, 0);
   }
 }
 </style>

@@ -46,4 +46,12 @@ public interface AuthMapper {
      */
     void updateLastLoginTime(@Param("userId") String userId);
 
+    /**
+     * 根据用户ID查询用户邮箱（邮箱登录方式）
+     *
+     * @param userId 用户ID
+     * @return 用户邮箱，不存在返回null
+     */
+    String selectEmailByUserId(@Param("userId") String userId);
+
 }

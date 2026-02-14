@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="visible" :max-width="maxWidth" persistent>
+  <v-dialog v-model="visible" :max-width="maxWidth" persistent scroll-strategy="none">
     <v-card class="confirm-dialog-card">
       <div class="confirm-dialog-header">
         <div class="confirm-dialog-icon" :style="{ color: iconColor }">

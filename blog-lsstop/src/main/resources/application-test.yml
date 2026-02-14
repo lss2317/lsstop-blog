@@ -64,6 +64,38 @@ spring:
         # 每次从队列获取的消息数量
         prefetch: 1
 
+  # 邮箱配置 (QQ邮箱)
+  mail:
+    # SMTP 服务器地址
+    host: smtp.qq.com
+    # SMTP 端口 (SSL)
+    port: 465
+    # QQ 邮箱账号
+    username: your-qq-email@qq.com
+    # QQ 邮箱授权码 (非QQ密码)
+    password: your-qq-authorization-code
+    # 默认编码
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          # 启用认证
+          auth: true
+          ssl:
+            # 启用 SSL
+            enable: true
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+
+# 博客配置
+blog:
+  # 博客名称 (用于邮件模板)
+  name: Your Blog Name
+  # 博主邮箱 (用于接收评论通知)
+  owner-email: your-owner-email@qq.com
+  # 博客前台地址 (用于邮件链接)
+  url: https://your-blog-url.com
+
 # MyBatis-Plus 配置
 mybatis-plus:
   configuration:

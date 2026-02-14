@@ -200,4 +200,11 @@
         </foreach>
     </update>
 
+    <select id="selectTitleById" resultType="java.lang.String">
+        select article_title
+        from blog_article
+        where id = #{id}
+          and deleted_at = 0
+    </select>
+
 </mapper>

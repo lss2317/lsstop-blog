@@ -1,6 +1,7 @@
 package com.lsstop.mapper;
 
 import com.lsstop.domain.vo.TalkVO;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -26,5 +27,13 @@ public interface TalkMapper {
      * @return 说说
      */
     TalkVO getTalkById(Integer id);
+
+    /**
+     * 根据ID查询说说内容
+     *
+     * @param id 说说ID
+     * @return 说说内容
+     */
+    String selectContentById(@Param("id") Integer id);
 
 }

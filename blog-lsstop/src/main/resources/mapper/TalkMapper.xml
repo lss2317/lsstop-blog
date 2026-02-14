@@ -58,4 +58,11 @@
         order by bti.sort
     </select>
 
+    <select id="selectContentById" resultType="java.lang.String">
+        select content
+        from blog_talk
+        where id = #{id}
+          and deleted_at = 0
+    </select>
+
 </mapper>

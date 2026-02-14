@@ -23,7 +23,6 @@ public class RabbitMQConst {
      */
     public static final String EMAIL_ROUTING_KEY = "blog.email";
 
-
     /**
      * 操作日志队列
      */
@@ -33,7 +32,6 @@ public class RabbitMQConst {
      * 操作日志路由键
      */
     public static final String OPERATION_LOG_ROUTING_KEY = "blog.operation.log";
-
 
     /**
      * 登录日志队列

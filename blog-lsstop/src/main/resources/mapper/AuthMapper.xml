@@ -67,4 +67,13 @@
         WHERE user_uid = #{userId}
     </update>
 
+    <!-- 根据用户ID查询用户邮箱 -->
+    <select id="selectEmailByUserId" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT identifier
+        FROM blog_user_auth
+        WHERE user_id = #{userId}
+          AND login_type = 1
+          AND deleted_at = 0
+    </select>
+
 </mapper>

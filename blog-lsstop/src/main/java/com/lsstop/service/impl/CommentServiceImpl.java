@@ -16,6 +16,7 @@ import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.mapper.CommentMapper;
 import com.lsstop.service.CommentService;
+import com.lsstop.service.EmailService;
 import com.lsstop.service.WebsiteConfigService;
 import com.lsstop.utils.RedisUtils;
 import com.lsstop.utils.SensitiveWordUtils;
@@ -48,6 +49,9 @@ public class CommentServiceImpl implements CommentService {
     @Resource
     private WebsiteConfigService websiteConfigService;
 
+    @Resource
+    private EmailService emailService;
+
     /**
      * 新增评论
      *
@@ -56,7 +60,7 @@ public class CommentServiceImpl implements CommentService {
      */
     @Override
     public AddCommentVO insertComment(CommentEntity comment) {
-        // 获取敏感词处理策略
+        // 获取网站配置
         WebsiteConfigEntity config = websiteConfigService.getWebsiteConfig();
         IllegalPolicyEnum policy = IllegalPolicyEnum.of(config.getCommentIllegalPolicy());
 
@@ -83,6 +87,12 @@ public class CommentServiceImpl implements CommentService {
             vo.setAvatar(userProfile.getAvatar());
             vo.setNickname(userProfile.getNickname());
         }
+
+        // 发送邮件通知（不需要审核的评论才发送）
+        if (CommonConst.REVIEW_NORMAL.equals(comment.getReview()) && CommonConst.ENABLED.equals(config.getEnableCommentEmailNotice())) {
+            emailService.sendCommentNotice(comment, userProfile);
+        }
+
         return vo;
     }
 
