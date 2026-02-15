@@ -75,7 +75,7 @@
             <i class="iconfont icondenglu" /> 登录
           </a>
           <template v-else>
-            <img v-if="avatar" class="user-avatar" :src="avatar" height="30" width="30" />
+            <img v-if="avatar" class="user-avatar" :src="avatar" alt="个人头像" />
             <i v-else class="iconfont icongerenzhongxin user-icon" />
             <ul class="menus-submenu">
               <li>
@@ -260,8 +260,29 @@ ul {
 }
 
 .user-avatar {
+  width: 32px;
+  height: 32px;
   cursor: pointer;
   border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  object-fit: cover;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.user-avatar:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.nav-fixed .user-avatar {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.v-theme--dark .user-avatar {
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .user-menu {

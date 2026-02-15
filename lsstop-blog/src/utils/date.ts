@@ -9,6 +9,9 @@ export const dateFormat = {
   year(value: DateValue): string {
     return dayjs(value).format('YYYY');
   },
+  date(value: DateValue): string {
+    return dayjs(value).format('YYYY-MM-DD');
+  },
   datetime(value: DateValue): string {
     return dayjs(value).format('YYYY-MM-DD HH:mm:ss');
   },

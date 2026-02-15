@@ -66,3 +66,16 @@ const md = new MarkdownIt({
 export const markdownToHtml = (content: string): string => {
   return md.render(content);
 };
+
+/**
+ * 去除 Markdown 语法，提取纯文本
+ */
+export const stripMarkdown = (content: string): string => {
+  return content
+    .replace(/```[\s\S]*?```/g, '') // 代码块
+    .replace(/`[^`]+`/g, '') // 行内代码
+    .replace(/!?\[[^\]]*\]\([^)]*\)/g, '') // 图片和链接
+    .replace(/<[^>]+>/g, '') // HTML标签
+    .replace(/[#*_~>\-|]/g, '') // Markdown符号
+    .replace(/\s+/g, ''); // 空白
+};

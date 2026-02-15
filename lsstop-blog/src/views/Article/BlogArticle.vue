@@ -34,44 +34,39 @@
           <!-- 文章标题 -->
           <div class="article-title">{{ article.articleTitle }}</div>
           <div class="article-info">
-            <div class="first-line">
-              <!-- 发表时间 -->
+            <div class="info-line">
               <span>
-                <i class="iconfont iconrili" />
-                发表于 {{ formatDate(article.createTime) }}
+                <v-icon size="small">mdi-calendar</v-icon>
+                {{ formatDate(article.createTime) }}
               </span>
               <span class="separator">|</span>
-              <!-- 更新时间 -->
               <span>
-                <i class="iconfont icongengxinshijian" />
-                更新于 {{ formatDate(article.updateTime) }}
+                <v-icon size="small">mdi-update</v-icon>
+                {{ formatDate(article.updateTime) }}
               </span>
               <span class="separator">|</span>
-              <!-- 文章分类 -->
               <span class="article-category">
-                <i class="iconfont iconfenlei1" />
+                <v-icon size="small">mdi-folder-outline</v-icon>
                 <router-link :to="'/category/' + article.categoryId">
                   {{ article.categoryName }}
                 </router-link>
               </span>
             </div>
-            <div class="second-line">
-              <!-- 字数统计 -->
+            <div class="info-line">
               <span>
-                <i class="iconfont iconzishu" />
-                字数统计: {{ formatWordNum(wordNum) }}
+                <v-icon size="small">mdi-text-box-outline</v-icon>
+                {{ formatWordNum(wordNum) }}
               </span>
               <span class="separator">|</span>
-              <!-- 阅读时长 -->
               <span>
-                <i class="iconfont iconshijian" />
-                阅读时长: {{ readTime }}
+                <v-icon size="small">mdi-clock-outline</v-icon>
+                {{ readTime }}
               </span>
-            </div>
-            <div class="third-line">
               <span class="separator">|</span>
-              <!-- 阅读量 -->
-              <span> <i class="iconfont iconliulan" /> 阅读量: {{ article.viewCount }} </span>
+              <span>
+                <v-icon size="small">mdi-eye-outline</v-icon>
+                {{ article.viewCount }}
+              </span>
             </div>
           </div>
         </div>
@@ -186,7 +181,7 @@
                     />
                     <div class="recommend-info">
                       <div class="recommend-date">
-                        <i class="iconfont iconrili" />
+                        <v-icon size="small">mdi-calendar</v-icon>
                         {{ formatDate(item.createTime) }}
                       </div>
                       <div class="recommend-article-title">{{ item.articleTitle }}</div>
@@ -210,7 +205,7 @@
             <!-- 文章目录 -->
             <v-card class="right-container">
               <div class="right-title">
-                <i class="iconfont iconhanbao" style="font-size: 16px" />
+                <v-icon size="16">mdi-menu</v-icon>
                 <span style="margin-left: 10px">目录</span>
               </div>
               <div id="toc" />
@@ -218,7 +213,7 @@
             <!-- 最新文章 -->
             <v-card class="right-container" style="margin-top: 20px">
               <div class="right-title">
-                <i class="iconfont icongengxinshijian" style="font-size: 16px" />
+                <v-icon size="16">mdi-clock-outline</v-icon>
                 <span style="margin-left: 10px">最新文章</span>
               </div>
               <div class="article-list">
@@ -249,7 +244,7 @@ import { storeToRefs } from 'pinia';
 import { getArticleById, type Article } from '@/apis/article';
 import usePageInfoStore from '@/stores/modules/pageInfo';
 import { dateFormat } from '@/utils/date';
-import { markdownToHtml } from '@/utils/markdown';
+import { markdownToHtml, stripMarkdown } from '@/utils/markdown';
 import { previewImages } from '@/utils/photoPreview';
 import { formatWordNum } from '@/utils/format';
 import { useNavigate } from '@/composables/useNavigate';
@@ -304,12 +299,12 @@ const articleHtml = computed(() => markdownToHtml(article.value?.articleContent 
 // 文章链接
 const articleHref = computed(() => window.location.href);
 
-// 字数统计
-const wordNum = computed(() => article.value?.articleContent.length || 0);
+// 字数统计（去除Markdown语法）
+const wordNum = computed(() => stripMarkdown(article.value?.articleContent || '').length);
 
-// 阅读时长
+// 阅读时长（300字/分钟）
 const readTime = computed(() => {
-  const minutes = Math.ceil(wordNum.value / 400);
+  const minutes = Math.ceil(wordNum.value / 300);
   return minutes < 1 ? '1 分钟' : `${minutes} 分钟`;
 });
 
@@ -324,7 +319,7 @@ const postClass = computed(() => {
 });
 
 // 格式化日期
-const formatDate = (date: string) => dateFormat.datetime(date).slice(0, 10);
+const formatDate = (date: string) => dateFormat.date(date);
 
 // 点赞
 const handleLike = async () => {
@@ -454,23 +449,34 @@ watch(
   background-color: rgba(0, 0, 0, 0.5);
 }
 
-.article-info i {
-  font-size: 14px;
-}
-
+/* 文章元信息 */
 .article-info {
   font-size: 14px;
-  line-height: 1.9;
-  display: inline-block;
+  line-height: 2;
+}
+
+.info-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.info-line span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.separator {
+  margin: 0 4px;
+  opacity: 0.6;
 }
 
 @media (min-width: 760px) {
   .banner {
     color: #eee !important;
-  }
-
-  .article-info span {
-    font-size: 95%;
   }
 
   .article-info-container {
@@ -481,14 +487,9 @@ watch(
     text-align: center;
   }
 
-  .second-line,
-  .third-line {
-    display: inline;
-  }
-
   .article-title {
     font-size: 35px;
-    margin: 20px 0 8px;
+    margin: 20px 0 12px;
   }
 
   .pagination-post {
@@ -517,14 +518,6 @@ watch(
     height: 360px;
   }
 
-  .article-info span {
-    font-size: 90%;
-  }
-
-  .separator:first-child {
-    display: none;
-  }
-
   .blog-container {
     margin: 322px 5px 0 5px;
   }
@@ -541,6 +534,14 @@ watch(
   .article-title {
     font-size: 1.5rem;
     margin-bottom: 0.4rem;
+  }
+
+  .info-line {
+    justify-content: flex-start;
+  }
+
+  .separator:first-child {
+    display: none;
   }
 
   .post {
