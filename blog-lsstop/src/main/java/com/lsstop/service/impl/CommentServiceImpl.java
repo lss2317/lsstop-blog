@@ -21,6 +21,7 @@ import com.lsstop.service.WebsiteConfigService;
 import com.lsstop.utils.RedisUtils;
 import com.lsstop.utils.SensitiveWordUtils;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
  * @author lishusheng
  * @date 2026/01/28
  */
+@Slf4j
 @Service
 public class CommentServiceImpl implements CommentService {
 
@@ -90,7 +92,12 @@ public class CommentServiceImpl implements CommentService {
 
         // 发送邮件通知（不需要审核的评论才发送）
         if (CommonConst.REVIEW_NORMAL.equals(comment.getReview()) && CommonConst.ENABLED.equals(config.getEnableCommentEmailNotice())) {
-            emailService.sendCommentNotice(comment, userProfile);
+            try {
+                emailService.sendCommentNotice(comment, userProfile);
+            } catch (Exception e) {
+                // 邮件通知失败不能影响评论主流程
+                log.warn("评论邮件通知发送失败: {}", e.getMessage());
+            }
         }
 
         return vo;

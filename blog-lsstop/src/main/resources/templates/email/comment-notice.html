@@ -12,12 +12,12 @@
         </div>
         <!-- Content -->
         <div style="padding: 0 32px 32px;">
-            <h1 style="font-size: 24px; font-weight: 700; color: #22c55e; margin: 0 0 24px; text-align: center;">新评论通知</h1>
+            <h1 style="font-size: 24px; font-weight: 700; color: #22c55e; margin: 0 0 24px; text-align: center;">评论通知</h1>
             <p style="font-size: 15px; color: #4a4a4a; margin: 0 0 24px; line-height: 1.7;">您好，</p>
             <p style="font-size: 15px; color: #4a4a4a; margin: 0 0 24px; line-height: 1.7;">您的<span th:text="${topicType}"></span> <span style="color: #22c55e; font-weight: 500;" th:text="${topic}"></span> 收到了新评论：</p>
             <div style="background: #f9fafb; border-left: 4px solid #22c55e; padding: 16px 20px; margin-bottom: 32px;">
                 <p style="font-size: 13px; color: #6b7280; margin: 0 0 8px;">来自 <span th:text="${nickname}">用户</span></p>
-                <p style="font-size: 15px; color: #1a1a1a; margin: 0; line-height: 1.6;" th:text="${content}">评论内容</p>
+                <p style="font-size: 15px; color: #1a1a1a; margin: 0; line-height: 1.6;" th:utext="${content}">评论内容</p>
             </div>
             <div style="text-align: center;">
                 <a th:href="${url}" style="display: inline-block; padding: 12px 24px; background: #22c55e; color: #fff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">查看详情</a>
