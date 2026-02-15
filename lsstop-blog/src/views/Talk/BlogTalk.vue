@@ -120,6 +120,7 @@ import useLikeStore from '@/stores/modules/like.ts';
 import { listTalk } from '@/apis/talk';
 import { dateFormat } from '@/utils/date';
 import { type TalkItem, isUserDeactivated, getUserAvatar, getUserNickname } from '@/utils/talk';
+import { parseEmoji } from '@/utils/emoji';
 import ShareDialog from '@/components/Share/ShareDialog.vue';
 import { LikeTypeEnum } from '@/constants/likeType';
 import { TopStatusEnum } from '@/constants/topStatus';
@@ -192,7 +193,10 @@ function listTalks() {
   loading.value = true;
   listTalk()
     .then((res) => {
-      talkList.value = res.data;
+      talkList.value = res.data.map((item) => ({
+        ...item,
+        content: parseEmoji(item.content),
+      }));
     })
     .finally(() => {
       loading.value = false;

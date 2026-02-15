@@ -1,5 +1,13 @@
 export const constantRouter = [
   {
+    path: '/',
+    name: 'Home',
+    component: () => import('@/views/Home/BlogHome.vue'),
+    meta: {
+      pageLabel: 'home',
+    },
+  },
+  {
     path: '/article/:id',
     name: 'Article',
     component: () => import('@/views/Article/BlogArticle.vue'),

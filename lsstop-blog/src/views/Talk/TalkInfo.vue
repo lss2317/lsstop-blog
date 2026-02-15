@@ -112,6 +112,7 @@ import useLikeStore from '@/stores/modules/like.ts';
 import { getTalk } from '@/apis/talk';
 import { dateFormat } from '@/utils/date';
 import { type TalkItem, isUserDeactivated, getUserAvatar, getUserNickname } from '@/utils/talk';
+import { parseEmoji } from '@/utils/emoji';
 import ShareDialog from '@/components/Share/ShareDialog.vue';
 import { LikeTypeEnum } from '@/constants/likeType';
 import Comment from '@/components/Comment/BlogComment.vue';
@@ -185,7 +186,10 @@ function loadTalkInfo() {
   }
   getTalk(talkId)
     .then((res) => {
-      talk.value = res.data;
+      talk.value = {
+        ...res.data,
+        content: parseEmoji(res.data.content),
+      };
     })
     .finally(() => {
       loading.value = false;
