@@ -6,6 +6,7 @@
       </div>
       <div class="reply-input-wrapper">
         <textarea
+          ref="textareaRef"
           class="reply-input"
           :value="modelValue"
           :placeholder="placeholder"
@@ -46,9 +47,9 @@
 import CommentEmoji from '@/components/Emoji/CommentEmoji.vue';
 import { useEmoji } from '@/composables/useEmoji';
 import { adjustTextareaHeight } from '@/utils/format';
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref, watch, nextTick } from 'vue';
 
-defineProps<{
+const props = defineProps<{
   avatar: string;
   placeholder?: string;
   modelValue: string;
@@ -61,6 +62,8 @@ const emit = defineEmits<{
   cancel: [];
   addEmoji: [key: string];
 }>();
+
+const textareaRef = ref<HTMLTextAreaElement | null>(null);
 
 const {
   showEmoji,
@@ -80,6 +83,18 @@ const onInput = (event: Event) => {
 const addEmoji = (key: string) => {
   emit('addEmoji', key);
 };
+
+// 监听 modelValue 变化（表情等程序化更新），调整高度
+watch(
+  () => props.modelValue,
+  () => {
+    nextTick(() => {
+      if (textareaRef.value) {
+        adjustTextareaHeight(textareaRef.value);
+      }
+    });
+  },
+);
 
 onMounted(() => {
   registerClickOutside();

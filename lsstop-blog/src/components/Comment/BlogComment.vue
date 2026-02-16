@@ -338,7 +338,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import CommentEmoji from '@/components/Emoji/CommentEmoji.vue';
 import ReplyInput from '@/components/Comment/ReplyInput.vue';
 import ConfirmDialog from '@/components/Dialog/ConfirmDialog.vue';
@@ -569,6 +569,11 @@ const insertComment = async () => {
 // 添加表情
 const addEmoji = (key: string) => {
   commentContent.value += key;
+  nextTick(() => {
+    if (commentTextareaRef.value) {
+      adjustTextareaHeight(commentTextareaRef.value);
+    }
+  });
 };
 
 // 添加回复表情
