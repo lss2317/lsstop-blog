@@ -8,6 +8,9 @@
         v-model="commentContent"
         placeholder="请输入评论..."
         @input="handleTextareaInput"
+        @focus="saveCursor"
+        @keyup="saveCursor"
+        @mouseup="saveCursor"
       />
       <div class="lc-input-toolbar">
         <div class="lc-toolbar-left">
@@ -16,12 +19,13 @@
               ref="emojiTriggerRef"
               :class="['lc-tool-icon', showEmoji ? 'active' : '']"
               title="表情"
-              @click="toggleEmoji"
+              @mousedown.prevent
+              @click="handleToggleEmoji"
             >
               <v-icon size="20">mdi-emoticon-outline</v-icon>
             </span>
             <!-- 表情框 -->
-            <div :class="['lc-emoji-panel', emojiDirection]" v-show="showEmoji">
+            <div :class="['lc-emoji-panel', emojiDirection]" v-show="showEmoji" @mousedown.prevent>
               <CommentEmoji @addEmoji="addEmoji" />
             </div>
           </div>
@@ -424,8 +428,29 @@ const {
   unregisterClickOutside,
 } = useEmoji();
 
-// 调整评论输入框高度
-const handleTextareaInput = () => {
+// 保存的光标位置（打开表情框时记录）
+const savedCursorPos = ref<{ start: number; end: number } | null>(null);
+
+// 保存光标位置（focus/keyup/mouseup 时调用）
+const saveCursor = () => {
+  if (!commentTextareaRef.value) return;
+  const textarea = commentTextareaRef.value;
+  savedCursorPos.value = {
+    start: textarea.selectionStart ?? commentContent.value.length,
+    end: textarea.selectionEnd ?? commentContent.value.length,
+  };
+};
+
+// 打开表情框时保存光标位置
+const handleToggleEmoji = (event?: MouseEvent) => {
+  if (!showEmoji.value && commentTextareaRef.value) {
+    saveCursor();
+  }
+  toggleEmoji(event);
+};
+
+// 实际高度计算逻辑（不带节流）
+const updateTextareaHeight = () => {
   if (!commentTextareaRef.value) return;
   const textarea = commentTextareaRef.value;
   // 兜底：如果初始高度还未获取，先获取一次
@@ -435,7 +460,7 @@ const handleTextareaInput = () => {
   // 从 CSS 读取 max-height
   const maxHeight = parseInt(getComputedStyle(textarea).maxHeight) || 200;
   textarea.style.height = 'auto';
-  void textarea.offsetHeight; // 强制重排，确保 scrollHeight 计算准确
+  void getComputedStyle(textarea).height; // 强制同步布局计算
   const scrollHeight = textarea.scrollHeight;
   if (scrollHeight > initialTextareaHeight.value) {
     textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
@@ -444,6 +469,13 @@ const handleTextareaInput = () => {
     textarea.style.height = initialTextareaHeight.value + 'px';
     textarea.style.overflowY = 'hidden';
   }
+};
+
+// 调整评论输入框高度（rAF 节流，用于 @input）
+let textareaRafId = 0;
+const handleTextareaInput = () => {
+  if (textareaRafId) cancelAnimationFrame(textareaRafId);
+  textareaRafId = requestAnimationFrame(updateTextareaHeight);
 };
 
 // 点赞
@@ -580,23 +612,27 @@ const insertComment = async () => {
   }
 };
 
-// 添加表情（插入到光标位置）
+// 添加表情（插入到保存的光标位置）
 const addEmoji = (key: string) => {
   const textarea = commentTextareaRef.value;
   if (!textarea) {
     commentContent.value += key;
     return;
   }
-  const start = textarea.selectionStart ?? commentContent.value.length;
-  const end = textarea.selectionEnd ?? commentContent.value.length;
+  // 使用保存的光标位置，如果没有则使用当前位置或末尾
+  const start =
+    savedCursorPos.value?.start ?? textarea.selectionStart ?? commentContent.value.length;
+  const end = savedCursorPos.value?.end ?? textarea.selectionEnd ?? commentContent.value.length;
   const text = commentContent.value;
   commentContent.value = text.slice(0, start) + key + text.slice(end);
-  // 恢复光标位置（表情后面）
+  // 更新保存的光标位置（表情后面），以便连续插入
+  const newPos = start + key.length;
+  savedCursorPos.value = { start: newPos, end: newPos };
+  // 恢复光标位置
   nextTick(() => {
-    const newPos = start + key.length;
     textarea.setSelectionRange(newPos, newPos);
     textarea.focus();
-    handleTextareaInput();
+    updateTextareaHeight(); // 直接调用，不走 rAF 节流
   });
 };
 
@@ -917,6 +953,7 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
   unregisterClickOutside();
+  if (textareaRafId) cancelAnimationFrame(textareaRafId);
 });
 </script>
 
