@@ -1002,6 +1002,7 @@ onUnmounted(() => {
   box-sizing: border-box;
   background: transparent;
   overflow-y: hidden;
+  word-break: break-all;
 }
 
 .lc-textarea::placeholder {
@@ -1223,7 +1224,7 @@ onUnmounted(() => {
   line-height: 1.8;
   color: #262626;
   margin: 12px 0;
-  word-break: break-word;
+  word-break: break-all;
 }
 
 .lc-content.collapsed {

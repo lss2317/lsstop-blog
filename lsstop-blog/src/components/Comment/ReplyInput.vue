@@ -225,6 +225,7 @@ onUnmounted(() => {
   line-height: 1.5;
   font-family: inherit;
   box-sizing: border-box;
+  word-break: break-all;
 }
 
 .reply-input::placeholder {
