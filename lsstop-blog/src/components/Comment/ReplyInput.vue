@@ -46,7 +46,6 @@
 <script setup lang="ts">
 import CommentEmoji from '@/components/Emoji/CommentEmoji.vue';
 import { useEmoji } from '@/composables/useEmoji';
-import { adjustTextareaHeight } from '@/utils/format';
 import { onMounted, onUnmounted, ref, watch, nextTick } from 'vue';
 
 const props = defineProps<{
@@ -60,10 +59,10 @@ const emit = defineEmits<{
   'update:modelValue': [value: string];
   submit: [];
   cancel: [];
-  addEmoji: [key: string];
 }>();
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
+const initialHeight = ref(0);
 
 const {
   showEmoji,
@@ -74,14 +73,53 @@ const {
   unregisterClickOutside,
 } = useEmoji();
 
-const onInput = (event: Event) => {
-  const textarea = event.target as HTMLTextAreaElement;
-  adjustTextareaHeight(textarea);
-  emit('update:modelValue', textarea.value);
+// 调整高度
+const adjustHeight = () => {
+  if (!textareaRef.value) return;
+  const textarea = textareaRef.value;
+  // 兜底：如果初始高度还未获取，先获取一次
+  if (!initialHeight.value) {
+    initialHeight.value = textarea.offsetHeight;
+  }
+  // 从 CSS 读取 max-height
+  const maxHeight = parseInt(getComputedStyle(textarea).maxHeight) || 200;
+  textarea.style.height = 'auto';
+  void textarea.offsetHeight; // 强制重排，确保 scrollHeight 计算准确
+  const scrollHeight = textarea.scrollHeight;
+  if (scrollHeight > initialHeight.value) {
+    textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+    textarea.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
+  } else {
+    textarea.style.height = initialHeight.value + 'px';
+    textarea.style.overflowY = 'hidden';
+  }
 };
 
+const onInput = (event: Event) => {
+  const textarea = event.target as HTMLTextAreaElement;
+  emit('update:modelValue', textarea.value);
+  adjustHeight();
+};
+
+// 添加表情（插入到光标位置）
 const addEmoji = (key: string) => {
-  emit('addEmoji', key);
+  const textarea = textareaRef.value;
+  if (!textarea) {
+    emit('update:modelValue', props.modelValue + key);
+    return;
+  }
+  const start = textarea.selectionStart ?? props.modelValue.length;
+  const end = textarea.selectionEnd ?? props.modelValue.length;
+  const text = props.modelValue;
+  const newValue = text.slice(0, start) + key + text.slice(end);
+  emit('update:modelValue', newValue);
+  // 恢复光标位置（表情后面）
+  nextTick(() => {
+    const newPos = start + key.length;
+    textarea.setSelectionRange(newPos, newPos);
+    textarea.focus();
+    adjustHeight();
+  });
 };
 
 // 监听 modelValue 变化（表情等程序化更新），调整高度
@@ -89,15 +127,19 @@ watch(
   () => props.modelValue,
   () => {
     nextTick(() => {
-      if (textareaRef.value) {
-        adjustTextareaHeight(textareaRef.value);
-      }
+      adjustHeight();
     });
   },
 );
 
 onMounted(() => {
   registerClickOutside();
+  // 获取初始高度
+  nextTick(() => {
+    if (textareaRef.value) {
+      initialHeight.value = textareaRef.value.offsetHeight;
+    }
+  });
 });
 
 onUnmounted(() => {

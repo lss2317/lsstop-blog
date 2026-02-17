@@ -157,7 +157,6 @@
             :submitting="submitting"
             @submit="submitReply(item)"
             @cancel="cancelReply"
-            @add-emoji="addReplyEmoji"
           />
 
           <!-- 回复列表 -->
@@ -266,7 +265,6 @@
                     :submitting="submitting"
                     @submit="submitReply(item)"
                     @cancel="cancelReply"
-                    @add-emoji="addReplyEmoji"
                   />
                 </div>
               </template>
@@ -344,7 +342,6 @@ import ReplyInput from '@/components/Comment/ReplyInput.vue';
 import ConfirmDialog from '@/components/Dialog/ConfirmDialog.vue';
 import { formatTime } from '@/utils/date';
 import { parseEmoji } from '@/utils/emoji';
-import { adjustTextareaHeight } from '@/utils/format';
 import useLikeStore from '@/stores/modules/like';
 import useUserInfoStore from '@/stores/modules/userInfo';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
@@ -370,6 +367,7 @@ const snackbarStore = useSnackbarStore();
 // 评论状态
 const commentContent = ref('');
 const commentTextareaRef = ref<HTMLTextAreaElement | null>(null);
+const initialTextareaHeight = ref(0);
 const replyContent = ref('');
 const count = ref(0);
 const commentList = ref<Comment[]>([]);
@@ -428,8 +426,23 @@ const {
 
 // 调整评论输入框高度
 const handleTextareaInput = () => {
-  if (commentTextareaRef.value) {
-    adjustTextareaHeight(commentTextareaRef.value);
+  if (!commentTextareaRef.value) return;
+  const textarea = commentTextareaRef.value;
+  // 兜底：如果初始高度还未获取，先获取一次
+  if (!initialTextareaHeight.value) {
+    initialTextareaHeight.value = textarea.offsetHeight;
+  }
+  // 从 CSS 读取 max-height
+  const maxHeight = parseInt(getComputedStyle(textarea).maxHeight) || 200;
+  textarea.style.height = 'auto';
+  void textarea.offsetHeight; // 强制重排，确保 scrollHeight 计算准确
+  const scrollHeight = textarea.scrollHeight;
+  if (scrollHeight > initialTextareaHeight.value) {
+    textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+    textarea.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
+  } else {
+    textarea.style.height = initialTextareaHeight.value + 'px';
+    textarea.style.overflowY = 'hidden';
   }
 };
 
@@ -555,7 +568,8 @@ const insertComment = async () => {
     // 清空评论内容并重置高度
     commentContent.value = '';
     if (commentTextareaRef.value) {
-      commentTextareaRef.value.style.height = 'auto';
+      commentTextareaRef.value.style.height = initialTextareaHeight.value + 'px';
+      commentTextareaRef.value.style.overflowY = 'hidden';
     }
     closeEmoji();
   } catch (error: unknown) {
@@ -566,19 +580,24 @@ const insertComment = async () => {
   }
 };
 
-// 添加表情
+// 添加表情（插入到光标位置）
 const addEmoji = (key: string) => {
-  commentContent.value += key;
+  const textarea = commentTextareaRef.value;
+  if (!textarea) {
+    commentContent.value += key;
+    return;
+  }
+  const start = textarea.selectionStart ?? commentContent.value.length;
+  const end = textarea.selectionEnd ?? commentContent.value.length;
+  const text = commentContent.value;
+  commentContent.value = text.slice(0, start) + key + text.slice(end);
+  // 恢复光标位置（表情后面）
   nextTick(() => {
-    if (commentTextareaRef.value) {
-      adjustTextareaHeight(commentTextareaRef.value);
-    }
+    const newPos = start + key.length;
+    textarea.setSelectionRange(newPos, newPos);
+    textarea.focus();
+    handleTextareaInput();
   });
-};
-
-// 添加回复表情
-const addReplyEmoji = (key: string) => {
-  replyContent.value += key;
 };
 
 // 回复评论
@@ -887,6 +906,12 @@ onMounted(() => {
   document.addEventListener('click', handleClickOutside);
   registerClickOutside();
   listComments();
+  // 获取初始高度
+  nextTick(() => {
+    if (commentTextareaRef.value) {
+      initialTextareaHeight.value = commentTextareaRef.value.offsetHeight;
+    }
+  });
 });
 
 onUnmounted(() => {
@@ -928,14 +953,14 @@ onUnmounted(() => {
 
 .lc-textarea {
   width: 100%;
-  min-height: 42px;
+  min-height: 54px;
   max-height: 200px;
   padding: 16px;
   border: none;
   outline: none;
   resize: none;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 22px;
   color: #262626;
   box-sizing: border-box;
   background: transparent;

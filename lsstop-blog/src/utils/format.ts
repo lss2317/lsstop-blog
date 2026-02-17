@@ -23,19 +23,3 @@ export function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
-
-/**
- * 调整textarea高度，自动擑开贴合内容
- * @param textarea textarea元素
- * @param maxHeight 最大高度，默认200px
- */
-export function adjustTextareaHeight(textarea: HTMLTextAreaElement, maxHeight = 200): void {
-  textarea.style.height = 'auto';
-  if (textarea.scrollHeight > maxHeight) {
-    textarea.style.height = maxHeight + 'px';
-    textarea.style.overflowY = 'auto';
-  } else {
-    textarea.style.height = textarea.scrollHeight + 'px';
-    textarea.style.overflowY = 'hidden';
-  }
-}
