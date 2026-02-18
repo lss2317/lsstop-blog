@@ -129,6 +129,11 @@ public class RedisConst {
     public static final String ADMIN_REFRESH_TOKEN = PREFIX + "admin:refresh:token:";
 
     /**
+     * 页面信息列表缓存
+     */
+    public static final String PAGE_INFO_LIST = PREFIX + "page:info:list";
+
+    /**
      * 过期时间：1分钟（秒）
      */
     public static final long EXPIRE_ONE_MINUTE = 60;

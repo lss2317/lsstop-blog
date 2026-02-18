@@ -133,7 +133,7 @@
         where deleted_at = 0
           and status = 1
           and create_time <![CDATA[>]]> #{createTime}
-        order by create_time asc
+        order by create_time
         limit 1
     </select>
 

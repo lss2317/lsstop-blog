@@ -46,11 +46,6 @@ public class ArticleEntity implements BaseData {
     private String articleTitle;
 
     /**
-     * 文章摘要
-     */
-    private String articleAbstract;
-
-    /**
      * 文章正文内容
      */
     private String articleContent;

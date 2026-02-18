@@ -30,9 +30,9 @@ public class ArticleHomeVO {
     private String articleTitle;
 
     /**
-     * 文章摘要
+     * 文章正文内容
      */
-    private String articleAbstract;
+    private String articleContent;
 
     /**
      * 分类ID
