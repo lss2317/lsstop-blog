@@ -32,3 +32,8 @@ export interface WebsiteConfigVo {
 export function getWebsiteConfig() {
   return http.get<WebsiteConfigVo>('/websiteConfig/getWebsiteConfig');
 }
+
+// 上报访问并获取访问量
+export function reportVisit() {
+  return http.get<number>('/visit/report');
+}

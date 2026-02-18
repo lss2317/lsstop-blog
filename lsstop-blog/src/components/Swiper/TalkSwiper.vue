@@ -1,5 +1,5 @@
 <template>
-  <router-link to="/talk" class="swiper-container">
+  <div class="swiper-container" @click="goToTalk">
     <v-icon size="20" color="#4c4948">mdi-chat-outline</v-icon>
     <div
       :style="{ height: height * lineNum + 'px' }"
@@ -30,11 +30,18 @@
       </ul>
     </div>
     <v-icon size="20" color="#4c4948" class="arrow"> mdi-chevron-double-right </v-icon>
-  </router-link>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue';
+import { useNavigate } from '@/composables/useNavigate';
+
+const { navigateTo } = useNavigate();
+
+function goToTalk() {
+  navigateTo('/talk');
+}
 
 interface Props {
   list: string[];
@@ -90,6 +97,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   font-size: 15px;
+  cursor: pointer;
 }
 .rollScreen_container {
   width: 100%;
