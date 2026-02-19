@@ -76,6 +76,10 @@ export const stripMarkdown = (content: string): string => {
     .replace(/`[^`]+`/g, '') // 行内代码
     .replace(/!?\[[^\]]*\]\([^)]*\)/g, '') // 图片和链接
     .replace(/<[^>]+>/g, '') // HTML标签
-    .replace(/[#*_~>\-|]/g, '') // Markdown符号
-    .replace(/\s+/g, ''); // 空白
+    .replace(/^#{1,6}\s+/gm, '') // 标题符号
+    .replace(/[*_~]/g, '') // 加粗、斜体、删除线
+    .replace(/^[>\-|]+\s*/gm, '') // 引用、列表、表格
+    .replace(/\n+/g, ' ') // 换行转空格
+    .replace(/\s+/g, ' ') // 多空格合并
+    .trim();
 };

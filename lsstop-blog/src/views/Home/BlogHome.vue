@@ -39,7 +39,7 @@
     </div>
 
     <!-- 主页内容 -->
-    <v-row class="home-container">
+    <v-row class="home-container" ref="articleListRef">
       <v-col md="9" cols="12">
         <!-- 说说轮播 -->
         <v-card class="animate__animated animate__zoomIn" v-if="talkList.length > 0">
@@ -95,7 +95,7 @@
             </div>
             <!-- 文章内容 -->
             <div class="article-content">
-              {{ item.articleContent }}
+              {{ stripMarkdown(item.articleContent) }}
             </div>
           </div>
         </v-card>
@@ -107,7 +107,7 @@
             :total-visible="5"
             density="comfortable"
             variant="flat"
-            @update:model-value="loadArticles"
+            @update:model-value="() => loadArticles(true)"
           />
         </div>
       </v-col>
@@ -187,6 +187,7 @@ import ScrollNumber from '@/components/ScrollNumber/ScrollNumber.vue';
 import { getArticleHomeList, type ArticleHome } from '@/apis/article';
 import { dateFormat } from '@/utils/date';
 import { useNavigate } from '@/composables/useNavigate';
+import { stripMarkdown } from '@/utils/markdown';
 
 // 导航
 const { navigateTo } = useNavigate();
@@ -207,11 +208,18 @@ const total = ref(0);
 const pageSize = 10;
 const totalPage = computed(() => Math.ceil(total.value / pageSize));
 
+// 文章列表容器引用
+const articleListRef = ref<HTMLElement | null>(null);
+
 // 加载文章列表
-async function loadArticles() {
+async function loadArticles(isPageChange = false) {
   const res = await getArticleHomeList(current.value);
   articleList.value = res.data.list;
   total.value = res.data.total;
+  // 分页切换时滚动到文章列表顶部
+  if (isPageChange && articleListRef.value) {
+    articleListRef.value.scrollIntoView({ behavior: 'smooth' });
+  }
 }
 
 // 页面封面（按旧代码方式获取）
@@ -611,6 +619,8 @@ onUnmounted(() => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  max-height: calc(2em * 2);
+  overflow: hidden;
 }
 
 .article-info a {
@@ -648,6 +658,9 @@ onUnmounted(() => {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+  color: #5a5a5a;
+  letter-spacing: 0.3px;
+  font-size: 0.95rem;
 }
 
 .separator {
