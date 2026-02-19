@@ -2,6 +2,21 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lsstop.mapper.ArticleMapper">
 
+    <resultMap id="articleHomeVoResult" type="com.lsstop.domain.vo.ArticleHomeVO">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="articleCover" column="article_cover" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="articleTitle" column="article_title" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="articleContent" column="article_content" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="categoryId" column="category_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="categoryName" column="category_name" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="isTop" column="is_top" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <collection property="tags" ofType="com.lsstop.domain.vo.TagSimpleVO">
+            <id property="id" column="tag_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+            <result property="tagName" column="tag_name" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        </collection>
+    </resultMap>
+
     <resultMap id="archiveVoResult" type="com.lsstop.domain.vo.ArticleArchiveVO">
         <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result property="articleTitle" column="article_title" jdbcType="VARCHAR" javaType="java.lang.String"/>
@@ -67,6 +82,34 @@
           and a.status = 1
           and a.id in (select article_id from blog_article_tag where tag_id = #{tagId} and deleted_at = 0)
         order by a.create_time desc
+    </select>
+
+    <select id="getHomeArticleList" resultMap="articleHomeVoResult">
+        select a.id,
+               a.article_cover,
+               a.article_title,
+               a.article_content,
+               a.category_id,
+               c.category_name,
+               a.is_top,
+               a.create_time,
+               t.id as tag_id,
+               t.tag_name
+        from blog_article a
+                 left join blog_category c on a.category_id = c.id
+                 left join blog_article_tag bat on a.id = bat.article_id and bat.deleted_at = 0
+                 left join blog_tag t on bat.tag_id = t.id and t.deleted_at = 0
+        where a.deleted_at = 0
+          and a.status = 1
+        order by a.is_top desc, a.create_time desc
+        limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="getArticleCount" resultType="java.lang.Integer">
+        select count(*)
+        from blog_article
+        where deleted_at = 0
+          and status = 1
     </select>
 
     <resultMap id="articleVoResult" type="com.lsstop.domain.vo.ArticleVO">

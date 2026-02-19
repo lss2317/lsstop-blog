@@ -1,6 +1,7 @@
 package com.lsstop.service;
 
 import com.lsstop.domain.vo.ArticleArchiveVO;
+import com.lsstop.domain.vo.ArticleHomePageVO;
 import com.lsstop.domain.vo.ArticleListVO;
 import com.lsstop.domain.vo.ArticleVO;
 
@@ -13,6 +14,14 @@ import java.util.List;
  * @date 2026/01/18
  */
 public interface ArticleService {
+
+    /**
+     * 获取主页文章列表
+     *
+     * @param current 页码
+     * @return 文章列表和总数
+     */
+    ArticleHomePageVO getHomeArticleList(Integer current);
 
     /**
      * 获取文章归档列表

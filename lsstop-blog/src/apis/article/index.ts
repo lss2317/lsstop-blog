@@ -86,3 +86,38 @@ export interface Article {
 export function getArticleById(id: number) {
   return http.get<Article>(`/article/${id}`);
 }
+
+/** 主页文章列表项 */
+export interface ArticleHome {
+  /** 文章ID */
+  id: number;
+  /** 文章封面图URL */
+  articleCover: string;
+  /** 文章标题 */
+  articleTitle: string;
+  /** 文章正文内容 */
+  articleContent: string;
+  /** 分类ID */
+  categoryId: number;
+  /** 分类名称 */
+  categoryName: string;
+  /** 标签列表 */
+  tags: TagSimple[];
+  /** 是否置顶：0否 1是 */
+  isTop: number;
+  /** 发表时间 */
+  createTime: string;
+}
+
+/** 主页文章分页结果 */
+export interface ArticleHomePage {
+  /** 文章列表 */
+  list: ArticleHome[];
+  /** 文章总数 */
+  total: number;
+}
+
+/** 获取主页文章列表 */
+export function getArticleHomeList(current: number) {
+  return http.get<ArticleHomePage>('/article/listArticleHome', { params: { current } });
+}

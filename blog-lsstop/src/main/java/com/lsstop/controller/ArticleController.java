@@ -2,15 +2,20 @@ package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
+import com.lsstop.constant.CommentConst;
 import com.lsstop.domain.vo.ArticleArchiveVO;
+import com.lsstop.domain.vo.ArticleHomePageVO;
 import com.lsstop.domain.vo.ArticleListVO;
 import com.lsstop.domain.vo.ArticleVO;
+import com.lsstop.enums.StatusEnum;
+import com.lsstop.exception.BusinessException;
 import com.lsstop.service.ArticleService;
 import com.lsstop.utils.IpUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -26,6 +31,21 @@ public class ArticleController {
 
     @Resource
     private ArticleService articleService;
+
+    /**
+     * 获取主页文章列表
+     *
+     * @param current 页码
+     * @return 文章列表和总数
+     */
+    @GetMapping("/front/article/listArticleHome")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<ArticleHomePageVO> getHomeArticleList(@RequestParam Integer current) {
+        if (current < 1) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.INVALID_PAGE_PARAM);
+        }
+        return Result.success(articleService.getHomeArticleList(current));
+    }
 
     /**
      * 获取文章归档列表

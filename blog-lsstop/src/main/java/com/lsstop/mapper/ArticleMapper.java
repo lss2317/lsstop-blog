@@ -1,6 +1,7 @@
 package com.lsstop.mapper;
 
 import com.lsstop.domain.vo.ArticleArchiveVO;
+import com.lsstop.domain.vo.ArticleHomeVO;
 import com.lsstop.domain.vo.ArticleListVO;
 import com.lsstop.domain.vo.ArticleSimpleVO;
 import com.lsstop.domain.vo.ArticleVO;
@@ -17,6 +18,22 @@ import java.util.List;
  * @date 2026/01/18
  */
 public interface ArticleMapper {
+
+    /**
+     * 获取主页文章列表
+     *
+     * @param offset   偏移量
+     * @param pageSize 每页数量
+     * @return 文章列表
+     */
+    List<ArticleHomeVO> getHomeArticleList(@Param("offset") Integer offset, @Param("pageSize") Integer pageSize);
+
+    /**
+     * 获取文章总数
+     *
+     * @return 文章总数
+     */
+    Integer getArticleCount();
 
     /**
      * 获取文章归档列表

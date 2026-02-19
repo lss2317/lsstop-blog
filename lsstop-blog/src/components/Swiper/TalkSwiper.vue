@@ -1,6 +1,6 @@
 <template>
   <div class="swiper-container" @click="goToTalk">
-    <v-icon size="20" color="#4c4948">mdi-chat-outline</v-icon>
+    <v-icon size="20" class="talk-icon">mdi-chat-outline</v-icon>
     <div
       :style="{ height: height * lineNum + 'px' }"
       class="rollScreen_container"
@@ -29,7 +29,7 @@
         </li>
       </ul>
     </div>
-    <v-icon size="20" color="#4c4948" class="arrow"> mdi-chevron-double-right </v-icon>
+    <v-icon size="20" class="talk-icon arrow"> mdi-chevron-double-right </v-icon>
   </div>
 </template>
 
@@ -144,5 +144,17 @@ onUnmounted(() => {
     transform: translateX(50%);
     opacity: 0;
   }
+}
+
+.talk-icon {
+  color: #4c4948;
+}
+
+.v-theme--dark .talk-icon {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.v-theme--dark .item {
+  color: rgba(255, 255, 255, 0.85);
 }
 </style>

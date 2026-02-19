@@ -45,6 +45,71 @@
         <v-card class="animate__animated animate__zoomIn" v-if="talkList.length > 0">
           <TalkSwiper :list="talkList" />
         </v-card>
+        <!-- 文章列表 -->
+        <v-card
+          class="animate__animated animate__zoomIn article-card"
+          v-for="(item, index) in articleList"
+          :key="item.id"
+        >
+          <!-- 文章封面图 -->
+          <div
+            :class="index % 2 === 0 ? 'article-cover left-radius' : 'article-cover right-radius'"
+          >
+            <a @click="navigateTo('/article/' + item.id)">
+              <v-img class="on-hover" width="100%" height="100%" :src="item.articleCover" cover />
+            </a>
+          </div>
+          <!-- 文章信息 -->
+          <div class="article-wrapper">
+            <div class="article-title">
+              <a @click="navigateTo('/article/' + item.id)">
+                {{ item.articleTitle }}
+              </a>
+            </div>
+            <div class="article-info">
+              <!-- 是否置顶 -->
+              <span v-if="item.isTop === 1">
+                <span style="color: #ff7242"> <i class="iconfont iconzhiding" /> 置顶 </span>
+                <span class="separator">|</span>
+              </span>
+              <!-- 发表时间 -->
+              <v-icon size="14">mdi-calendar-month-outline</v-icon>
+              {{ dateFormat.date(item.createTime) }}
+              <span class="separator">|</span>
+              <!-- 文章分类 -->
+              <a class="category-link" @click="navigateTo('/category/' + item.categoryId)">
+                <v-icon size="14">mdi-inbox-full</v-icon>
+                <span class="category-name">{{ item.categoryName }}</span>
+              </a>
+              <span class="separator">|</span>
+              <!-- 文章标签 -->
+              <a
+                class="tag-link"
+                @click="navigateTo('/tag/' + tag.id)"
+                v-for="tag of item.tags"
+                :key="tag.id"
+              >
+                <v-icon size="14">mdi-tag-multiple</v-icon>
+                <span class="tag-name">{{ tag.tagName }}</span>
+              </a>
+            </div>
+            <!-- 文章内容 -->
+            <div class="article-content">
+              {{ item.articleContent }}
+            </div>
+          </div>
+        </v-card>
+        <!-- 分页 -->
+        <div class="article-pagination" v-if="totalPage > 1">
+          <v-pagination
+            v-model="current"
+            :length="totalPage"
+            :total-visible="5"
+            density="comfortable"
+            variant="flat"
+            @update:model-value="loadArticles"
+          />
+        </div>
       </v-col>
 
       <!-- 博主信息 -->
@@ -119,6 +184,12 @@ import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
 import { previewImages } from '@/utils/photoPreview';
 import { useTypedEffect } from '@/composables/useTypedEffect';
 import ScrollNumber from '@/components/ScrollNumber/ScrollNumber.vue';
+import { getArticleHomeList, type ArticleHome } from '@/apis/article';
+import { dateFormat } from '@/utils/date';
+import { useNavigate } from '@/composables/useNavigate';
+
+// 导航
+const { navigateTo } = useNavigate();
 
 // stores
 const websiteConfigStore = useWebsiteConfigStore();
@@ -130,6 +201,18 @@ const { output: typedOutput, start: startTyped } = useTypedEffect();
 // 状态
 const talkList = ref<string[]>([]);
 const runTime = ref('');
+const articleList = ref<ArticleHome[]>([]);
+const current = ref(1);
+const total = ref(0);
+const pageSize = 10;
+const totalPage = computed(() => Math.ceil(total.value / pageSize));
+
+// 加载文章列表
+async function loadArticles() {
+  const res = await getArticleHomeList(current.value);
+  articleList.value = res.data.list;
+  total.value = res.data.total;
+}
 
 // 页面封面（按旧代码方式获取）
 const pageInfoStore = usePageInfoStore();
@@ -171,6 +254,9 @@ onMounted(async () => {
   // 获取说说列表
   const talkRes = await listTalk();
   talkList.value = talkRes.data.map((item) => parseEmoji(item.content));
+
+  // 获取文章列表
+  await loadArticles();
 
   // 设置页面标题
   document.title = config.value.siteName || '博客首页';
@@ -271,6 +357,38 @@ onUnmounted(() => {
     margin: calc(100vh + 10px) auto 28px auto;
     padding: 0 5px;
   }
+
+  .article-card {
+    display: flex;
+    align-items: center;
+    height: 280px;
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  .article-cover {
+    overflow: hidden;
+    height: 100%;
+    width: 45%;
+  }
+
+  .on-hover {
+    transition: all 0.6s;
+  }
+
+  .article-card:hover .on-hover {
+    transform: scale(1.1);
+  }
+
+  .article-wrapper {
+    padding: 0 2.5rem;
+    width: 55%;
+  }
+
+  .article-wrapper a {
+    font-size: 1.5rem;
+    transition: all 0.3s;
+  }
 }
 
 @media (max-width: 759px) {
@@ -287,6 +405,29 @@ onUnmounted(() => {
     animation: main 1s;
     width: 100%;
     margin: calc(100vh - 8px) auto 0 auto;
+  }
+
+  .article-card {
+    margin-top: 1rem;
+  }
+
+  .article-cover {
+    border-radius: 8px 8px 0 0 !important;
+    height: 230px !important;
+    width: 100%;
+  }
+
+  .article-cover :deep(.v-img) {
+    border-radius: 8px 8px 0 0 !important;
+  }
+
+  .article-wrapper {
+    padding: 1.25rem 1.25rem 1.875rem;
+  }
+
+  .article-wrapper a {
+    font-size: 1.25rem;
+    transition: all 0.3s;
   }
 }
 
@@ -439,5 +580,212 @@ onUnmounted(() => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.left-radius {
+  border-radius: 8px 0 0 8px !important;
+  order: 0;
+}
+
+.right-radius {
+  border-radius: 0 8px 8px 0 !important;
+  order: 1;
+}
+
+.article-wrapper a:hover {
+  color: #8e8cd8;
+}
+
+.article-title {
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.article-info {
+  font-size: 95%;
+  color: #858585;
+  line-height: 2;
+  margin: 0.375rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.article-info a {
+  font-size: 95%;
+  color: #858585 !important;
+  cursor: pointer;
+}
+
+.article-info a:hover {
+  color: #8e8cd8 !important;
+}
+
+.category-link,
+.tag-link {
+  display: inline-flex;
+  align-items: center;
+  max-width: 120px;
+}
+
+.tag-link {
+  margin-right: 0.25rem;
+}
+
+.category-name,
+.tag-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.article-content {
+  line-height: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.separator {
+  margin: 0 0.25rem;
+}
+
+.pagination-wrapper {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+/* 文章分页样式 */
+.article-pagination {
+  padding: 24px 0 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.article-pagination :deep(.v-pagination__list) {
+  gap: 4px;
+}
+
+.article-pagination :deep(.v-pagination .v-btn) {
+  min-width: 32px !important;
+  height: 32px !important;
+  border-radius: 5px !important;
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  box-shadow: none !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.article-pagination :deep(.v-pagination .v-btn .v-btn__overlay),
+.article-pagination :deep(.v-pagination .v-btn .v-btn__underlay) {
+  display: none !important;
+}
+
+.article-pagination :deep(.v-pagination .v-btn:hover) {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.article-pagination :deep(.v-pagination__item--is-active .v-btn) {
+  background-color: #fff !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  box-shadow:
+    0 0 1px 0 rgba(0, 0, 0, 0.1),
+    0 0.5px 5px 0 rgba(0, 0, 0, 0.1) !important;
+  pointer-events: none !important;
+}
+
+.article-pagination :deep(.v-pagination .v-btn--disabled) {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  box-shadow: none !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+  opacity: 0.4 !important;
+}
+
+.article-pagination :deep(.v-pagination__more .v-btn) {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  box-shadow: none !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+  opacity: 0.4 !important;
+}
+
+/* 夜间模式 */
+.v-theme--dark .article-info {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.v-theme--dark .article-info a {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.v-theme--dark .article-pagination :deep(.v-pagination .v-btn) {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.v-theme--dark .article-pagination :deep(.v-pagination .v-btn:hover) {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.v-theme--dark .article-pagination :deep(.v-pagination__item--is-active .v-btn) {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  box-shadow:
+    0 0 1px 0 rgba(0, 0, 0, 0.3),
+    0 0.5px 5px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.v-theme--dark .article-pagination :deep(.v-pagination .v-btn--disabled) {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.v-theme--dark .article-pagination :deep(.v-pagination__more .v-btn) {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.v-theme--dark .article-title a {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.v-theme--dark .article-title a:hover,
+.v-theme--dark .article-info a:hover {
+  color: #8e8cd8 !important;
+}
+
+.v-theme--dark .article-content {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.v-theme--dark .web-info-title {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.v-theme--dark .web-info {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.v-theme--dark .card-info-social a {
+  filter: brightness(1.2);
+}
+
+.v-theme--dark .card-info-social .icongithub {
+  color: #fff !important;
+}
+
+.v-theme--dark .article-card,
+.v-theme--dark .blog-card {
+  background-color: #3a3a3a !important;
+}
+
+.v-theme--dark .home-container :deep(.v-card) {
+  background-color: #3a3a3a !important;
 }
 </style>

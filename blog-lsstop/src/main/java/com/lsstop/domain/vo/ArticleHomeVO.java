@@ -50,16 +50,6 @@ public class ArticleHomeVO {
     private List<TagSimpleVO> tags;
 
     /**
-     * 浏览量
-     */
-    private Integer viewCount;
-
-    /**
-     * 文章类型：1原创 2转载 3翻译
-     */
-    private Integer type;
-
-    /**
      * 是否置顶：0否 1是
      */
     private Integer isTop;

@@ -1,8 +1,11 @@
 package com.lsstop.service.impl;
 
 import com.lsstop.constant.ArticleConst;
+import com.lsstop.constant.CommentConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.vo.ArticleArchiveVO;
+import com.lsstop.domain.vo.ArticleHomePageVO;
+import com.lsstop.domain.vo.ArticleHomeVO;
 import com.lsstop.domain.vo.ArticleListVO;
 import com.lsstop.domain.vo.ArticleSimpleVO;
 import com.lsstop.domain.vo.ArticleVO;
@@ -31,6 +34,20 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Resource
     private RedisUtils redisUtils;
+
+    /**
+     * 获取主页文章列表
+     *
+     * @param current 页码
+     * @return 文章列表和总数
+     */
+    @Override
+    public ArticleHomePageVO getHomeArticleList(Integer current) {
+        int offset = (current - 1) * CommentConst.DEFAULT_PAGE_SIZE;
+        List<ArticleHomeVO> list = articleMapper.getHomeArticleList(offset, CommentConst.DEFAULT_PAGE_SIZE);
+        Integer total = articleMapper.getArticleCount();
+        return new ArticleHomePageVO(list, total);
+    }
 
     /**
      * 获取文章归档列表
