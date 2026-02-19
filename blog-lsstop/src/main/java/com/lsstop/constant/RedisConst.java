@@ -19,11 +19,6 @@ public class RedisConst {
     public static final String WEBSITE_CONFIG = PREFIX + "website:config";
 
     /**
-     * 访客总数
-     */
-    public static final String VISITOR_COUNT = PREFIX + "visitor:count";
-
-    /**
      * 独立访客
      */
     public static final String UNIQUE_VISITOR = PREFIX + "visitor:uv:";
@@ -37,11 +32,6 @@ public class RedisConst {
      * 历史总访问量
      */
     public static final String HISTORY_VIEW_COUNT = PREFIX + "visitor:history:count";
-
-    /**
-     * 页面浏览量
-     */
-    public static final String PAGE_VIEW = PREFIX + "pv:";
 
     /**
      * 文章浏览量

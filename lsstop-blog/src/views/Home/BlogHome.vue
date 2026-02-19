@@ -86,7 +86,7 @@
               <a
                 class="tag-link"
                 @click="navigateTo('/tag/' + tag.id)"
-                v-for="tag of item.tags"
+                v-for="tag of item.tags?.slice(0, 3)"
                 :key="tag.id"
               >
                 <v-icon size="14">mdi-tag-multiple</v-icon>
@@ -457,10 +457,6 @@ onUnmounted(() => {
   width: 100%;
 }
 
-.scroll-down i {
-  font-size: 2rem;
-}
-
 .blog-wrapper {
   position: sticky;
   top: 10px;
@@ -473,57 +469,6 @@ onUnmounted(() => {
 
 .author-wrapper {
   text-align: center;
-}
-
-.blog-info-wrapper {
-  display: flex;
-  justify-content: space-evenly;
-  padding: 0.875rem 0;
-  margin: 0.5rem 0;
-}
-
-.blog-info-data {
-  flex: 1;
-  text-align: center;
-}
-
-.blog-info-data a {
-  text-decoration: none;
-}
-
-.collection-btn {
-  text-align: center;
-  z-index: 1;
-  font-size: 14px;
-  position: relative;
-  display: block;
-  background-color: #49b1f5;
-  color: #fff !important;
-  height: 32px;
-  line-height: 32px;
-  transition-duration: 1s;
-  transition-property: color;
-}
-
-.collection-btn:before {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: -1;
-  background: #ff7242;
-  content: '';
-  transition-timing-function: ease-out;
-  transition-duration: 0.5s;
-  transition-property: transform;
-  transform: scaleX(0);
-  transform-origin: 0 50%;
-}
-
-.collection-btn:hover:before {
-  transition-timing-function: cubic-bezier(0.45, 1.64, 0.47, 0.66);
-  transform: scaleX(1);
 }
 
 .author-avatar {
@@ -665,12 +610,6 @@ onUnmounted(() => {
 
 .separator {
   margin: 0 0.25rem;
-}
-
-.pagination-wrapper {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
 }
 
 /* 文章分页样式 */

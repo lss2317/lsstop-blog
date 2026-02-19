@@ -44,7 +44,12 @@
             </div>
             <div class="divider-line"></div>
             <div class="tag-wrapper">
-              <a class="tag-btn" v-for="tag of item.tags" :key="tag.id" @click="goToTag(tag.id)">
+              <a
+                class="tag-btn"
+                v-for="tag of item.tags?.slice(0, 3)"
+                :key="tag.id"
+                @click="goToTag(tag.id)"
+              >
                 {{ tag.tagName }}
               </a>
             </div>

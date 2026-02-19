@@ -19,7 +19,7 @@
 
     <!-- 空状态 -->
     <template v-else-if="!article">
-      <div class="banner" :style="defaultCover" />
+      <div class="banner" :style="archiveCover" />
       <v-card class="blog-container empty-state">
         <v-icon size="64" color="grey">mdi-file-document-outline</v-icon>
         <p>文章不存在</p>
@@ -105,7 +105,7 @@
             <div class="article-operation">
               <div class="tag-container">
                 <a
-                  v-for="tag of article.tags?.slice(0, 4)"
+                  v-for="tag of article.tags?.slice(0, 3)"
                   :key="tag.id"
                   @click="navigateTo('/tag/' + tag.id)"
                 >
@@ -267,7 +267,18 @@ const { navigateToArticle, navigateTo } = useNavigate();
 
 // 获取默认封面样式
 const pageInfoStore = usePageInfoStore();
-const { currentCoverStyle: defaultCover } = storeToRefs(pageInfoStore);
+
+// 文章不存在时使用归档页封面
+const archiveCover = computed(() => {
+  const page = pageInfoStore.pageList.find((item) => item.pageLabel === 'archive');
+  const cover = page?.pageCover || '';
+  return {
+    backgroundImage: `url(${cover})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  };
+});
+
 const websiteConfigStore = useWebsiteConfigStore();
 const likeStore = useLikeStore();
 const snackbarStore = useSnackbarStore();
@@ -563,10 +574,6 @@ watch(
     justify-content: flex-start;
   }
 
-  .separator:first-child {
-    display: none;
-  }
-
   .post {
     width: 100%;
   }
@@ -843,10 +850,6 @@ watch(
   line-height: 2;
   font-size: 16px;
   margin-bottom: 6px;
-}
-
-.right-title i {
-  font-weight: bold;
 }
 
 .recommend-container {
