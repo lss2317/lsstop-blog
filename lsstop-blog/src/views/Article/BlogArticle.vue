@@ -244,7 +244,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { storeToRefs } from 'pinia';
 import { getArticleById, type Article } from '@/apis/article';
 import usePageInfoStore from '@/stores/modules/pageInfo';
 import { dateFormat } from '@/utils/date';
@@ -990,6 +989,11 @@ watch(
 #toc :deep(.toc-link:hover),
 #toc :deep(.is-active-link) {
   color: #49b1f5;
+  border-radius: 4px;
+}
+
+#toc :deep(.is-active-link) {
+  border-left: none !important;
 }
 
 #toc :deep(.toc-list .toc-list) {
