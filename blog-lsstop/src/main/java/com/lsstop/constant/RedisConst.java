@@ -29,6 +29,16 @@ public class RedisConst {
     public static final String UNIQUE_VISITOR = PREFIX + "visitor:uv:";
 
     /**
+     * 今日访问量
+     */
+    public static final String TODAY_VIEW_COUNT = PREFIX + "visitor:today:count";
+
+    /**
+     * 历史总访问量
+     */
+    public static final String HISTORY_VIEW_COUNT = PREFIX + "visitor:history:count";
+
+    /**
      * 页面浏览量
      */
     public static final String PAGE_VIEW = PREFIX + "pv:";

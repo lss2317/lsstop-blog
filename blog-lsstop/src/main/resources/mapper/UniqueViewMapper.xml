@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.UniqueViewMapper">
+
+    <resultMap id="uniqueViewResult" type="com.lsstop.domain.entity.UniqueViewEntity">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="viewDate" column="view_date" jdbcType="DATE" javaType="java.time.LocalDate"/>
+        <result property="viewsCount" column="views_count" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    </resultMap>
+
+    <select id="getTotalViewsCount" resultType="java.lang.Integer">
+        select ifnull(sum(views_count), 0)
+        from blog_unique_view
+    </select>
+
+    <select id="getByViewDate" resultMap="uniqueViewResult">
+        select id, view_date, views_count
+        from blog_unique_view
+        where view_date = #{viewDate}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into blog_unique_view (view_date, views_count)
+        values (#{viewDate}, #{viewsCount})
+    </insert>
+
+    <update id="updateViewsCount">
+        update blog_unique_view
+        set views_count = #{viewsCount}
+        where view_date = #{viewDate}
+    </update>
+
+</mapper>

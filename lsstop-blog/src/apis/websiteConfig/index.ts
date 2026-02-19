@@ -33,7 +33,13 @@ export function getWebsiteConfig() {
   return http.get<WebsiteConfigVo>('/websiteConfig/getWebsiteConfig');
 }
 
+/** 访问统计 */
+export interface VisitStats {
+  /** 总访问量 */
+  viewsCount: number;
+}
+
 // 上报访问并获取访问量
 export function reportVisit() {
-  return http.get<number>('/visit/report');
+  return http.get<VisitStats>('/websiteConfig/visit/report');
 }

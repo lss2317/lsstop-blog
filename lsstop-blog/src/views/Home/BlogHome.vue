@@ -98,6 +98,9 @@
               <div style="padding: 4px 0 0">
                 总访问量:<span class="float-right">{{ websiteConfigStore.viewCount }}</span>
               </div>
+              <div style="padding: 4px 0 0">
+                运行时间:<span class="float-right"><ScrollNumber :value="runTime" /></span>
+              </div>
             </div>
           </v-card>
         </div>
@@ -114,14 +117,19 @@ import { parseEmoji } from '@/utils/emoji';
 import usePageInfoStore from '@/stores/modules/pageInfo';
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
 import { previewImages } from '@/utils/photoPreview';
+import { useTypedEffect } from '@/composables/useTypedEffect';
+import ScrollNumber from '@/components/ScrollNumber/ScrollNumber.vue';
 
 // stores
 const websiteConfigStore = useWebsiteConfigStore();
 const config = computed(() => websiteConfigStore.config);
 
+// 打字机效果
+const { output: typedOutput, start: startTyped } = useTypedEffect();
+
 // 状态
-const typedOutput = ref('');
 const talkList = ref<string[]>([]);
+const runTime = ref('');
 
 // 页面封面（按旧代码方式获取）
 const pageInfoStore = usePageInfoStore();
@@ -131,48 +139,16 @@ const cover = computed(() => {
   return `background: #49b1f5 url(${pageCover}) center center / cover no-repeat`;
 });
 
-// 打字机效果
-let typedTimer: ReturnType<typeof setTimeout> | null = null;
-let typedIndex = 0;
-let typedText = '';
-let isDeleting = false;
+// 运行时间定时器
+let runTimeInterval: ReturnType<typeof setInterval> | null = null;
 
-function typeEffect() {
-  if (!typedText) return;
-
-  if (!isDeleting) {
-    typedOutput.value = typedText.slice(0, typedIndex + 1);
-    typedIndex++;
-    if (typedIndex >= typedText.length) {
-      isDeleting = true;
-      typedTimer = setTimeout(typeEffect, 3000); // 打完后等待 3 秒
-      return;
-    }
-  } else {
-    typedOutput.value = typedText.slice(0, typedIndex);
-    typedIndex--;
-    if (typedIndex < 0) {
-      isDeleting = false;
-      typedIndex = 0;
-      fetchHitokoto();
-      return;
-    }
-  }
-  typedTimer = setTimeout(typeEffect, isDeleting ? 50 : 300); // 打字 300ms，删除 50ms
-}
-
-async function fetchHitokoto() {
-  try {
-    const res = await fetch('https://v1.hitokoto.cn?c=i');
-    const data = await res.json();
-    typedText = data.hitokoto;
-    typedIndex = 0;
-    isDeleting = false;
-    typeEffect();
-  } catch {
-    typedText = '欢迎来到我的博客';
-    typeEffect();
-  }
+function updateRunTime() {
+  const startTime = config.value.siteStartTime;
+  if (!startTime) return;
+  const elapsed = Date.now() - new Date(startTime).getTime();
+  const days = Math.floor(elapsed / (24 * 60 * 60 * 1000));
+  const now = new Date();
+  runTime.value = `${days}天${now.getHours()}时${now.getMinutes()}分${now.getSeconds()}秒`;
 }
 
 // 向下滚动
@@ -192,9 +168,6 @@ function previewAvatar() {
 
 // 初始化数据
 onMounted(async () => {
-  // 获取访问量
-  websiteConfigStore.fetchViewCount();
-
   // 获取说说列表
   const talkRes = await listTalk();
   talkList.value = talkRes.data.map((item) => parseEmoji(item.content));
@@ -203,12 +176,16 @@ onMounted(async () => {
   document.title = config.value.siteName || '博客首页';
 
   // 启动打字机效果
-  fetchHitokoto();
+  startTyped();
+
+  // 启动运行时间计时器
+  updateRunTime();
+  runTimeInterval = setInterval(updateRunTime, 1000);
 });
 
 onUnmounted(() => {
-  if (typedTimer) {
-    clearTimeout(typedTimer);
+  if (runTimeInterval) {
+    clearInterval(runTimeInterval);
   }
 });
 </script>

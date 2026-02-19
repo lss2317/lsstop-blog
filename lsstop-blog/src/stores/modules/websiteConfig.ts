@@ -33,7 +33,7 @@ const useWebsiteConfigStore = defineStore('websiteConfig', () => {
   // 上报访问并获取访问量
   async function fetchViewCount() {
     const res = await reportVisit();
-    viewCount.value = res.data ?? 0;
+    viewCount.value = res.data?.viewsCount ?? 0;
   }
 
   return {

@@ -44,6 +44,7 @@ useScrollRestore();
 
 onMounted(async () => {
   void websiteConfigStore.fetchWebsiteConfig();
+  void websiteConfigStore.fetchViewCount();
   void pageInfoStore.fetchPageList();
   // 有token时先获取用户信息，再获取点赞数据
   if (tokenManager.hasToken()) {

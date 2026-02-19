@@ -2,11 +2,17 @@ package com.lsstop.service.impl;
 
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.entity.WebsiteConfigEntity;
+import com.lsstop.domain.vo.VisitStatsVO;
+import com.lsstop.mapper.UniqueViewMapper;
 import com.lsstop.mapper.WebsiteConfigMapper;
 import com.lsstop.service.WebsiteConfigService;
 import com.lsstop.utils.RedisUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 网站配置服务实现类
@@ -19,6 +25,9 @@ public class WebsiteConfigServiceImpl implements WebsiteConfigService {
 
     @Resource
     private WebsiteConfigMapper websiteConfigMapper;
+
+    @Resource
+    private UniqueViewMapper uniqueViewMapper;
 
     @Resource
     private RedisUtils redisUtils;
@@ -42,6 +51,50 @@ public class WebsiteConfigServiceImpl implements WebsiteConfigService {
             redisUtils.set(RedisConst.WEBSITE_CONFIG, config, RedisConst.EXPIRE_ONE_DAY);
         }
         return config;
+    }
+
+    /**
+     * 上报访问并获取访问统计
+     * 同一IP每3小时计数一次
+     *
+     * @param ipAddress 访客IP地址
+     * @return 访问统计信息
+     */
+    @Override
+    public VisitStatsVO reportVisit(String ipAddress) {
+        String today = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String uvKey = RedisConst.UNIQUE_VISITOR + ipAddress;
+
+        // 检查该IP是否3小时内已访问，未访问则增加访问量
+        Boolean isNew = redisUtils.setIfAbsent(uvKey, 1, 3 * RedisConst.EXPIRE_ONE_HOUR, TimeUnit.SECONDS);
+        if (Boolean.TRUE.equals(isNew)) {
+            // 增加今日访问量，返回1说明是首次创建，设置过期时间
+            String todayKey = RedisConst.TODAY_VIEW_COUNT + today;
+            Long count = redisUtils.increment(todayKey);
+            if (count != null && count == 1) {
+                redisUtils.expire(todayKey, RedisConst.EXPIRE_ONE_DAY + 2 * 3600);
+            }
+        }
+
+        // 获取历史总访问量，优先从Redis取
+        Integer historyCount = redisUtils.get(RedisConst.HISTORY_VIEW_COUNT, Integer.class);
+        if (historyCount == null) {
+            historyCount = uniqueViewMapper.getTotalViewsCount();
+            if (historyCount == null) {
+                historyCount = 0;
+            }
+            redisUtils.set(RedisConst.HISTORY_VIEW_COUNT, historyCount);
+        }
+
+        // 获取今日访问量
+        Integer todayCount = redisUtils.get(RedisConst.TODAY_VIEW_COUNT + today, Integer.class);
+        if (todayCount == null) {
+            todayCount = 0;
+        }
+
+        return VisitStatsVO.builder()
+                .viewsCount(historyCount + todayCount)
+                .build();
     }
 
 }

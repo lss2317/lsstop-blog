@@ -3,9 +3,12 @@ package com.lsstop.controller;
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
 import com.lsstop.domain.entity.WebsiteConfigEntity;
+import com.lsstop.domain.vo.VisitStatsVO;
 import com.lsstop.domain.vo.WebsiteConfigVO;
 import com.lsstop.service.WebsiteConfigService;
+import com.lsstop.utils.IpUtils;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,5 +34,19 @@ public class WebsiteConfigController {
     public Result<WebsiteConfigVO> getWebsiteConfig() {
         WebsiteConfigEntity websiteConfig = websiteConfigService.getWebsiteConfig();
         return Result.success(websiteConfig.asViewObject(WebsiteConfigVO.class));
+    }
+
+    /**
+     * 上报访问并获取总访问量
+     *
+     * @param request 请求对象
+     * @return 访问统计信息
+     */
+    @GetMapping("/front/websiteConfig/visit/report")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<VisitStatsVO> reportVisit(HttpServletRequest request) {
+        String ipAddress = IpUtils.getIpAddress(request);
+        VisitStatsVO visitStats = websiteConfigService.reportVisit(ipAddress);
+        return Result.success(visitStats);
     }
 }
