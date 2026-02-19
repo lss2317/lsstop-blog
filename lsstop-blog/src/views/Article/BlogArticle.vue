@@ -30,7 +30,7 @@
     <template v-else>
       <!-- 封面图 -->
       <div class="banner" :style="bannerStyle">
-        <div class="article-info-container">
+        <div class="article-info-container fadeInUp" style="--delay: 0.1s">
           <!-- 文章标题 -->
           <div class="article-title">{{ article.articleTitle }}</div>
           <div class="article-info">
@@ -47,9 +47,9 @@
               <span class="separator">|</span>
               <span class="article-category">
                 <v-icon size="small">mdi-folder-outline</v-icon>
-                <router-link :to="'/category/' + article.categoryId">
+                <a @click="navigateTo('/category/' + article.categoryId)">
                   {{ article.categoryName }}
-                </router-link>
+                </a>
               </span>
             </div>
             <div class="info-line">
@@ -74,7 +74,7 @@
       <!-- 内容 -->
       <v-row class="article-container">
         <v-col md="9" cols="12">
-          <v-card class="article-wrapper">
+          <v-card class="article-wrapper fadeInUp" style="--delay: 0.2s">
             <article
               id="write"
               ref="articleRef"
@@ -85,9 +85,9 @@
             <div class="aritcle-copyright">
               <div>
                 <span>文章作者：</span>
-                <router-link to="/">
+                <a @click="navigateTo('/')">
                   {{ websiteConfig.siteAuthor }}
-                </router-link>
+                </a>
               </div>
               <div>
                 <span>文章链接：</span>
@@ -104,9 +104,13 @@
             <!-- 标签、点赞和分享 -->
             <div class="article-operation">
               <div class="tag-container">
-                <router-link v-for="tag of article.tags" :key="tag.id" :to="'/tags/' + tag.id">
+                <a
+                  v-for="tag of article.tags?.slice(0, 4)"
+                  :key="tag.id"
+                  @click="navigateTo('/tag/' + tag.id)"
+                >
                   {{ tag.tagName }}
-                </router-link>
+                </a>
               </div>
               <div class="operation-right">
                 <!-- 点赞按钮 -->
@@ -203,7 +207,7 @@
         <v-col md="3" cols="12" class="d-md-block d-none">
           <div style="position: sticky; top: 20px">
             <!-- 文章目录 -->
-            <v-card class="right-container">
+            <v-card class="right-container fadeInUp" style="--delay: 0.3s">
               <div class="right-title">
                 <v-icon size="16">mdi-menu</v-icon>
                 <span style="margin-left: 10px">目录</span>
@@ -211,7 +215,7 @@
               <div id="toc" />
             </v-card>
             <!-- 最新文章 -->
-            <v-card class="right-container" style="margin-top: 20px">
+            <v-card class="right-container fadeInUp" style="margin-top: 20px; --delay: 0.4s">
               <div class="right-title">
                 <v-icon size="16">mdi-clock-outline</v-icon>
                 <span style="margin-left: 10px">最新文章</span>
@@ -259,7 +263,7 @@ import Clipboard from 'clipboard';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
 
 const route = useRoute();
-const { navigateToArticle } = useNavigate();
+const { navigateToArticle, navigateTo } = useNavigate();
 
 // 获取默认封面样式
 const pageInfoStore = usePageInfoStore();
@@ -474,6 +478,25 @@ watch(
   opacity: 0.6;
 }
 
+/* 动画效果 */
+.fadeInUp {
+  --delay: 0s;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease forwards;
+  animation-delay: var(--delay);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (min-width: 760px) {
   .banner {
     color: #eee !important;
@@ -568,7 +591,6 @@ watch(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -576,6 +598,7 @@ watch(
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .like-btn-inline {
@@ -643,16 +666,28 @@ watch(
   white-space: nowrap;
 }
 
+.tag-container {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
 .tag-container a {
   display: inline-block;
   margin: 0.5rem 0.5rem 0.5rem 0;
   padding: 0 0.75rem;
-  width: fit-content;
+  max-width: 150px;
+  min-width: 50px;
   border: 1px solid #49b1f5;
   border-radius: 1rem;
   color: #49b1f5 !important;
   font-size: 12px;
   line-height: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 0 1 auto;
 }
 
 .tag-container a:hover {
