@@ -242,7 +242,7 @@ function goToTag(tagId: number) {
 }
 
 .article-item-card a:hover {
-  color: #8e8cd8;
+  color: var(--color-primary);
 }
 
 .article-title {
@@ -269,7 +269,7 @@ function goToTag(tagId: number) {
 }
 
 .category-link:hover {
-  color: #8e8cd8;
+  color: var(--color-primary);
 }
 
 .category-name {
@@ -346,6 +346,10 @@ function goToTag(tagId: number) {
 
 .v-theme--dark .category-link {
   color: var(--color-text-secondary);
+}
+
+.v-theme--dark .category-link:hover {
+  color: var(--color-primary);
 }
 
 .v-theme--dark .divider-line {

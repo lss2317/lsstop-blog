@@ -412,7 +412,7 @@ onUnmounted(() => {
   .home-container {
     animation: main 1s;
     width: 100%;
-    margin: calc(100vh - 8px) auto 0 auto;
+    margin: calc(100vh + 10px) auto 0 auto;
   }
 
   .article-card {
@@ -546,7 +546,7 @@ onUnmounted(() => {
 }
 
 .article-wrapper a:hover {
-  color: #8e8cd8;
+  color: var(--color-primary);
 }
 
 .article-title {
@@ -575,7 +575,7 @@ onUnmounted(() => {
 }
 
 .article-info a:hover {
-  color: #8e8cd8 !important;
+  color: var(--color-primary) !important;
 }
 
 .category-link,
@@ -709,7 +709,7 @@ onUnmounted(() => {
 
 .v-theme--dark .article-title a:hover,
 .v-theme--dark .article-info a:hover {
-  color: #8e8cd8 !important;
+  color: var(--color-primary) !important;
 }
 
 .v-theme--dark .article-content {

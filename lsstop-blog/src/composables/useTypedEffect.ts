@@ -26,7 +26,7 @@ export function useTypedEffect(fallbackText = '欢迎来到我的博客') {
       if (index < 0) {
         isDeleting = false;
         index = 0;
-        fetchText();
+        void fetchText();
         return;
       }
     }
@@ -45,7 +45,7 @@ export function useTypedEffect(fallbackText = '欢迎来到我的博客') {
   }
 
   function start() {
-    fetchText();
+    void fetchText();
   }
 
   function stop() {
@@ -57,5 +57,5 @@ export function useTypedEffect(fallbackText = '欢迎来到我的博客') {
 
   onUnmounted(stop);
 
-  return { output, start, stop };
+  return { output, start };
 }

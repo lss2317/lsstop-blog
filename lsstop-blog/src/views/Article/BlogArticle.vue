@@ -670,6 +670,11 @@ watch(
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.article-category a:hover {
+  color: var(--color-primary) !important;
 }
 
 .tag-container {
