@@ -31,6 +31,7 @@ import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
 import usePageInfoStore from '@/stores/modules/pageInfo';
 import useLikeStore from '@/stores/modules/like';
 import useUserInfoStore from '@/stores/modules/userInfo';
+import useAnnouncementStore from '@/stores/modules/announcement';
 import { tokenManager } from '@/utils/token';
 import { useScrollRestore } from '@/composables/useScrollRestore';
 
@@ -38,6 +39,7 @@ const websiteConfigStore = useWebsiteConfigStore();
 const pageInfoStore = usePageInfoStore();
 const likeStore = useLikeStore();
 const userInfoStore = useUserInfoStore();
+const announcementStore = useAnnouncementStore();
 
 // 页面刷新时保持滚动位置
 useScrollRestore();
@@ -46,6 +48,7 @@ onMounted(async () => {
   void websiteConfigStore.fetchWebsiteConfig();
   void websiteConfigStore.fetchViewCount();
   void pageInfoStore.fetchPageList();
+  void announcementStore.fetchAnnouncementList();
   // 有token时先获取用户信息，再获取点赞数据
   if (tokenManager.hasToken()) {
     await userInfoStore.fetchUserInfo();

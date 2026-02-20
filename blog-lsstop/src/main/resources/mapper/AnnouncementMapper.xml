@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.AnnouncementMapper">
+
+    <resultMap id="announcementVoResult" type="com.lsstop.domain.vo.AnnouncementVO">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="title" column="title" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="content" column="content" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="type" column="type" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <select id="listAnnouncement" resultMap="announcementVoResult">
+        select id, title, content, type, create_time
+        from blog_announcement
+        where is_enabled = 1
+          and deleted_at = 0
+          and (start_time is null or start_time &lt;= now())
+          and (end_time is null or end_time &gt;= now())
+        order by priority desc, create_time desc
+    </select>
+
+</mapper>
