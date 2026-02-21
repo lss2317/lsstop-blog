@@ -2,7 +2,9 @@
   <v-dialog v-model="dialogVisible" max-width="700" scroll-strategy="none" persistent>
     <v-card class="announcement-popup">
       <v-card-title class="popup-title">
-        <v-icon size="20" class="mr-2">mdi-bullhorn-outline</v-icon>
+        <span class="popup-title-icon">
+          <v-icon size="16">mdi-bullhorn-outline</v-icon>
+        </span>
         <span class="popup-title-text">{{ currentAnnouncement?.title }}</span>
       </v-card-title>
       <v-card-text class="popup-content">
@@ -92,6 +94,7 @@ watch(
   (list) => {
     if (list.length > 0 && shouldShow()) {
       currentIndex.value = 0;
+      todayNoShow.value = false;
       dialogVisible.value = true;
     }
   },
@@ -101,8 +104,12 @@ watch(
 
 <style scoped>
 .announcement-popup {
-  border-radius: 12px !important;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    0 20px 60px rgba(0, 0, 0, 0.12) !important;
 }
 
 .popup-title {
@@ -111,8 +118,36 @@ watch(
   padding: 20px 24px 16px;
   display: flex;
   align-items: center;
-  color: var(--color-primary, #8e8cd8);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+
+.popup-title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(73, 177, 245, 0.12), rgba(73, 177, 245, 0.06));
+  color: var(--color-primary, #49b1f5);
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.popup-title::after {
+  content: '';
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 0, 0, 0.08) 20%,
+    rgba(0, 0, 0, 0.08) 80%,
+    transparent
+  );
 }
 
 .popup-title-text {
@@ -127,10 +162,10 @@ watch(
 .popup-content {
   padding: 20px 24px 24px;
   font-size: 0.95rem;
-  line-height: 1.85;
+  line-height: 1.65;
   color: rgba(0, 0, 0, 0.7);
-  min-height: 100px;
-  max-height: 300px;
+  min-height: 150px;
+  max-height: 420px;
   overflow-y: auto;
 }
 
@@ -138,7 +173,23 @@ watch(
   padding: 16px 24px;
   display: flex;
   align-items: center;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+
+.popup-actions::before {
+  content: '';
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 0, 0, 0.08) 20%,
+    rgba(0, 0, 0, 0.08) 80%,
+    transparent
+  );
 }
 
 .today-checkbox {
@@ -156,7 +207,7 @@ watch(
 }
 
 .today-checkbox :deep(.v-selection-control--dirty .v-selection-control__input > .v-icon) {
-  color: var(--color-primary, #8e8cd8);
+  color: var(--color-primary, #49b1f5);
 }
 
 .popup-nav {
@@ -178,9 +229,19 @@ watch(
   background-color: #2d2d2d !important;
 }
 
-.v-theme--dark .popup-title {
-  color: #a5a3e8;
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+.v-theme--dark .popup-title-icon {
+  background: linear-gradient(135deg, rgba(73, 177, 245, 0.18), rgba(73, 177, 245, 0.08));
+  color: var(--color-primary);
+}
+
+.v-theme--dark .popup-title::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.1) 80%,
+    transparent
+  );
 }
 
 .v-theme--dark .popup-title-text {
@@ -191,8 +252,14 @@ watch(
   color: rgba(255, 255, 255, 0.7);
 }
 
-.v-theme--dark .popup-actions {
-  border-top-color: rgba(255, 255, 255, 0.08);
+.v-theme--dark .popup-actions::before {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.1) 80%,
+    transparent
+  );
 }
 
 .v-theme--dark .today-checkbox :deep(.v-label) {

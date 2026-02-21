@@ -161,7 +161,9 @@
           <!-- 网站资讯 -->
           <v-card class="blog-card animate__animated animate__zoomIn mt-5">
             <div class="web-info-title">
-              <v-icon size="18">mdi-chart-line</v-icon>
+              <span class="web-info-icon">
+                <v-icon size="14">mdi-chart-line</v-icon>
+              </span>
               网站资讯
             </div>
             <div class="web-info">
@@ -498,6 +500,20 @@ onUnmounted(() => {
   font-size: 0.9rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.web-info-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(73, 177, 245, 0.12), rgba(73, 177, 245, 0.06));
+  color: var(--color-primary, #49b1f5);
 }
 
 .float-right {
@@ -727,6 +743,11 @@ onUnmounted(() => {
 
 .v-theme--dark .web-info-title {
   color: rgba(255, 255, 255, 0.85);
+}
+
+.v-theme--dark .web-info-icon {
+  background: linear-gradient(135deg, rgba(73, 177, 245, 0.18), rgba(73, 177, 245, 0.08));
+  color: var(--color-primary);
 }
 
 .v-theme--dark .web-info {

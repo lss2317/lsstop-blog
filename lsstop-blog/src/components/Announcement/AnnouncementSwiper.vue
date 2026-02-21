@@ -1,7 +1,9 @@
 <template>
   <div class="announcement-swiper">
     <div class="announcement-header">
-      <v-icon size="18" class="announcement-icon">mdi-bullhorn-outline</v-icon>
+      <span class="announcement-header-icon">
+        <v-icon size="14">mdi-bullhorn-outline</v-icon>
+      </span>
       <span class="announcement-label">公告</span>
       <div class="announcement-indicator" v-if="list.length > 1">
         <!-- 公告少时显示小点 -->
@@ -37,7 +39,10 @@
           >
             <div class="announcement-title">{{ item.title }}</div>
             <div class="announcement-content">{{ stripMarkdown(item.content) }}</div>
-            <div class="announcement-action" @click="handleClick">查看详情</div>
+            <div class="announcement-action" @click="handleClick">
+              查看详情
+              <v-icon size="14" class="action-arrow">mdi-chevron-right</v-icon>
+            </div>
           </div>
           <div
             v-for="(item, index) in list"
@@ -47,7 +52,10 @@
           >
             <div class="announcement-title">{{ item.title }}</div>
             <div class="announcement-content">{{ stripMarkdown(item.content) }}</div>
-            <div class="announcement-action" @click="handleClick">查看详情</div>
+            <div class="announcement-action" @click="handleClick">
+              查看详情
+              <v-icon size="14" class="action-arrow">mdi-chevron-right</v-icon>
+            </div>
           </div>
         </template>
         <div v-else class="announcement-item announcement-empty">
@@ -61,7 +69,9 @@
   <v-dialog v-model="dialogVisible" max-width="700" scroll-strategy="none">
     <v-card class="announcement-dialog">
       <v-card-title class="dialog-title">
-        <v-icon size="20" class="mr-2">mdi-bullhorn-outline</v-icon>
+        <span class="dialog-title-icon">
+          <v-icon size="16">mdi-bullhorn-outline</v-icon>
+        </span>
         <span class="dialog-title-text">{{ currentAnnouncement?.title }}</span>
       </v-card-title>
       <v-card-text class="dialog-content">
@@ -217,14 +227,25 @@ onUnmounted(() => {
 
 <style scoped>
 .announcement-swiper {
-  padding: 12px 16px;
+  padding: 16px 20px;
 }
 
 .announcement-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.announcement-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(73, 177, 245, 0.12), rgba(73, 177, 245, 0.06));
+  color: var(--color-primary, #49b1f5);
 }
 
 .announcement-label {
@@ -266,7 +287,7 @@ onUnmounted(() => {
 }
 
 .indicator-arrow:hover {
-  color: var(--color-primary, #8e8cd8);
+  color: var(--color-primary, #49b1f5);
 }
 
 .indicator-text {
@@ -296,26 +317,37 @@ onUnmounted(() => {
 }
 
 .announcement-action {
-  text-align: right;
-  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  margin-top: 12px;
   font-size: 0.8rem;
-  color: var(--color-primary, #8e8cd8);
+  color: var(--color-primary, #49b1f5);
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
 }
 
 .announcement-action:hover {
   opacity: 0.8;
 }
 
+.announcement-action:hover .action-arrow {
+  transform: translateX(2px);
+}
+
+.action-arrow {
+  transition: transform 0.2s;
+}
+
 .announcement-title {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.85);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.88);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .announcement-content {
@@ -341,10 +373,19 @@ onUnmounted(() => {
   color: #4c4948;
 }
 
+.v-theme--dark .announcement-header-icon {
+  background: linear-gradient(135deg, rgba(73, 177, 245, 0.18), rgba(73, 177, 245, 0.08));
+  color: var(--color-primary);
+}
+
 /* 弹框样式 */
 .announcement-dialog {
-  border-radius: 12px !important;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    0 20px 60px rgba(0, 0, 0, 0.12) !important;
 }
 
 .dialog-title {
@@ -354,12 +395,36 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   overflow: hidden;
-  color: var(--color-primary, #8e8cd8);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
 }
 
-.dialog-title .mr-2 {
+.dialog-title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(73, 177, 245, 0.12), rgba(73, 177, 245, 0.06));
+  color: var(--color-primary, #49b1f5);
+  margin-right: 12px;
   flex-shrink: 0;
+}
+
+.dialog-title::after {
+  content: '';
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 0, 0, 0.08) 20%,
+    rgba(0, 0, 0, 0.08) 80%,
+    transparent
+  );
 }
 
 .dialog-title-text {
@@ -372,11 +437,11 @@ onUnmounted(() => {
 .dialog-content {
   padding: 20px 24px 24px;
   font-size: 0.95rem;
-  line-height: 1.85;
+  line-height: 1.65;
   white-space: pre-wrap;
   color: rgba(0, 0, 0, 0.7);
-  min-height: 100px;
-  max-height: 300px;
+  min-height: 150px;
+  max-height: 420px;
   overflow-y: auto;
 }
 
@@ -384,7 +449,23 @@ onUnmounted(() => {
   padding: 16px 24px;
   display: flex;
   align-items: center;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+
+.dialog-actions::before {
+  content: '';
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 0, 0, 0.08) 20%,
+    rgba(0, 0, 0, 0.08) 80%,
+    transparent
+  );
 }
 
 .dialog-nav {
@@ -433,7 +514,7 @@ onUnmounted(() => {
 }
 
 .v-theme--dark .indicator-arrow:hover {
-  color: #a5a3e8;
+  color: var(--color-primary);
 }
 
 .v-theme--dark .announcement-title {
@@ -452,9 +533,19 @@ onUnmounted(() => {
   background-color: #2d2d2d !important;
 }
 
-.v-theme--dark .dialog-title {
-  color: #a5a3e8;
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+.v-theme--dark .dialog-title-icon {
+  background: linear-gradient(135deg, rgba(73, 177, 245, 0.18), rgba(73, 177, 245, 0.08));
+  color: var(--color-primary);
+}
+
+.v-theme--dark .dialog-title::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.1) 80%,
+    transparent
+  );
 }
 
 .v-theme--dark .dialog-title-text {
@@ -465,8 +556,14 @@ onUnmounted(() => {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.v-theme--dark .dialog-actions {
-  border-top-color: rgba(255, 255, 255, 0.08);
+.v-theme--dark .dialog-actions::before {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.1) 80%,
+    transparent
+  );
 }
 
 .v-theme--dark .dialog-time {
