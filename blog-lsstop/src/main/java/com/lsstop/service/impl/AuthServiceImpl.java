@@ -238,24 +238,6 @@ public class AuthServiceImpl implements AuthService {
 
         String email = dto.getEmail();
 
-        // 根据用途进行业务校验
-        switch (purpose) {
-            case LOGIN, RESET_PASSWORD -> {
-                // 登录/找回密码：邮箱必须已注册
-                UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(email, LoginTypeEnum.EMAIL.getCode());
-                if (userAuth == null) {
-                    throw new BusinessException(AuthConst.EMAIL_NOT_REGISTERED);
-                }
-            }
-            case REGISTER -> {
-                // 注册：邮箱必须未注册
-                UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(email, LoginTypeEnum.EMAIL.getCode());
-                if (userAuth != null) {
-                    throw new BusinessException(AuthConst.EMAIL_ALREADY_REGISTERED);
-                }
-            }
-        }
-
         // 检查是否在短时间内重复发送
         String codeKey = RedisConst.EMAIL_CODE + purpose.getKey() + ":" + email;
         if (redisUtils.hasKey(codeKey)) {

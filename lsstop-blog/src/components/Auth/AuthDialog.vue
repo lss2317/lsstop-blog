@@ -272,6 +272,7 @@ import useLikeStore from '@/stores/modules/like';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
 import { tokenManager } from '@/utils/token';
 import { ResponseCode } from '@/constants/http';
+import { isValidEmail } from '@/utils/validate';
 
 const loginStore = useLoginStore();
 const userInfoStore = useUserInfoStore();
@@ -352,6 +353,10 @@ const sendCodeForLogin = async () => {
     snackbar.info('请输入邮箱');
     return;
   }
+  if (!isValidEmail(codeLoginForm.email)) {
+    snackbar.info('邮箱格式不正确');
+    return;
+  }
   if (codeLoginForm.countdown > 0) return;
   try {
     await sendEmailCode({ email: codeLoginForm.email, purpose: CodePurpose.LOGIN });
@@ -368,6 +373,10 @@ const sendCodeForLogin = async () => {
 const sendCodeForRegister = async () => {
   if (!registerForm.email) {
     snackbar.info('请输入邮箱');
+    return;
+  }
+  if (!isValidEmail(registerForm.email)) {
+    snackbar.info('邮箱格式不正确');
     return;
   }
   if (registerForm.countdown > 0) return;
@@ -388,6 +397,10 @@ const sendCodeForForget = async () => {
     snackbar.info('请输入邮箱');
     return;
   }
+  if (!isValidEmail(forgetForm.email)) {
+    snackbar.info('邮箱格式不正确');
+    return;
+  }
   if (forgetForm.countdown > 0) return;
   try {
     await sendEmailCode({ email: forgetForm.email, purpose: CodePurpose.FORGOT_PASSWORD });
@@ -405,6 +418,10 @@ const login = async () => {
   // 表单验证
   if (!loginForm.email) {
     snackbar.info('请输入邮箱');
+    return;
+  }
+  if (!isValidEmail(loginForm.email)) {
+    snackbar.info('邮箱格式不正确');
     return;
   }
   if (!loginForm.password) {
