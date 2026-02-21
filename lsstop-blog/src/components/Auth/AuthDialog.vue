@@ -266,7 +266,7 @@
 import { reactive, computed, ref } from 'vue';
 import { useLoginStore } from '@/stores/modules/login';
 import { storeToRefs } from 'pinia';
-import { emailLogin } from '@/apis/auth';
+import { emailLogin, sendEmailCode, CodePurpose } from '@/apis/auth';
 import useUserInfoStore from '@/stores/modules/userInfo';
 import useLikeStore from '@/stores/modules/like';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
@@ -347,23 +347,56 @@ const startCountdown = (form: { countdown: number }) => {
 };
 
 // 发送登录验证码
-const sendCodeForLogin = () => {
-  if (startCountdown(codeLoginForm)) {
-    // TODO: 实现发送验证码逻辑
+const sendCodeForLogin = async () => {
+  if (!codeLoginForm.email) {
+    snackbar.info('请输入邮箱');
+    return;
+  }
+  if (codeLoginForm.countdown > 0) return;
+  try {
+    await sendEmailCode({ email: codeLoginForm.email, purpose: CodePurpose.LOGIN });
+    snackbar.success('验证码已发送');
+    startCountdown(codeLoginForm);
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { msg?: string } } };
+    const msg = err.response?.data?.msg || '网络错误，请稍后重试';
+    snackbar.error(msg);
   }
 };
 
 // 发送注册验证码
-const sendCodeForRegister = () => {
-  if (startCountdown(registerForm)) {
-    // TODO: 实现发送验证码逻辑
+const sendCodeForRegister = async () => {
+  if (!registerForm.email) {
+    snackbar.info('请输入邮箱');
+    return;
+  }
+  if (registerForm.countdown > 0) return;
+  try {
+    await sendEmailCode({ email: registerForm.email, purpose: CodePurpose.REGISTER });
+    snackbar.success('验证码已发送');
+    startCountdown(registerForm);
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { msg?: string } } };
+    const msg = err.response?.data?.msg || '网络错误，请稍后重试';
+    snackbar.error(msg);
   }
 };
 
 // 发送忘记密码验证码
-const sendCodeForForget = () => {
-  if (startCountdown(forgetForm)) {
-    // TODO: 实现发送验证码逻辑
+const sendCodeForForget = async () => {
+  if (!forgetForm.email) {
+    snackbar.info('请输入邮箱');
+    return;
+  }
+  if (forgetForm.countdown > 0) return;
+  try {
+    await sendEmailCode({ email: forgetForm.email, purpose: CodePurpose.FORGOT_PASSWORD });
+    snackbar.success('验证码已发送');
+    startCountdown(forgetForm);
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { msg?: string } } };
+    const msg = err.response?.data?.msg || '网络错误，请稍后重试';
+    snackbar.error(msg);
   }
 };
 

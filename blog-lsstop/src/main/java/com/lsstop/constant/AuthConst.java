@@ -87,4 +87,34 @@ public class AuthConst {
      * 请使用前台账号访问
      */
     public static final String FRONT_ACCOUNT_REQUIRED = "请使用前台账号访问";
+
+    /**
+     * 无效的验证码用途
+     */
+    public static final String INVALID_CODE_PURPOSE = "无效的验证码用途";
+
+    /**
+     * 邮箱尚未注册
+     */
+    public static final String EMAIL_NOT_REGISTERED = "该邮箱尚未注册";
+
+    /**
+     * 邮箱已被注册
+     */
+    public static final String EMAIL_ALREADY_REGISTERED = "该邮箱已被注册";
+
+    /**
+     * 验证码发送太频繁
+     */
+    public static final String CODE_SEND_TOO_FREQUENT = "验证码发送太频繁，请稍后重试";
+
+    /**
+     * 验证码过期时间（分钟）
+     */
+    public static final int CODE_EXPIRE_MINUTES = 5;
+
+    /**
+     * 验证码重发间隔（秒）
+     */
+    public static final int CODE_RESEND_INTERVAL_SECONDS = 60;
 }

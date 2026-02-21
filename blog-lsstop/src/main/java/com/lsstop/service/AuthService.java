@@ -2,6 +2,7 @@ package com.lsstop.service;
 
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
+import com.lsstop.domain.dto.SendCodeDTO;
 import com.lsstop.domain.dto.WeiboLoginDTO;
 import com.lsstop.domain.vo.LoginVO;
 import com.lsstop.domain.vo.TokenVO;
@@ -53,5 +54,12 @@ public interface AuthService {
      * @return 新的token信息
      */
     TokenVO refreshToken(String refreshToken);
+
+    /**
+     * 发送邮箱验证码
+     *
+     * @param dto 发送验证码请求参数
+     */
+    void sendCode(SendCodeDTO dto);
 
 }

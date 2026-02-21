@@ -1,15 +1,21 @@
 package com.lsstop.service.impl;
 
+import com.lsstop.config.BlogConfig;
 import com.lsstop.constant.AuthConst;
+import com.lsstop.constant.RabbitMQConst;
 import com.lsstop.constant.RedisConst;
+import com.lsstop.domain.dto.EmailDTO;
 import com.lsstop.domain.entity.UserAuthEntity;
 import com.lsstop.domain.entity.UserEntity;
 import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
+import com.lsstop.domain.dto.SendCodeDTO;
 import com.lsstop.domain.dto.WeiboLoginDTO;
 import com.lsstop.domain.vo.LoginVO;
 import com.lsstop.domain.vo.TokenVO;
+import com.lsstop.enums.CodePurposeEnum;
+import com.lsstop.enums.EmailTypeEnum;
 import com.lsstop.enums.LoginResultEnum;
 import com.lsstop.enums.LoginSourceEnum;
 import com.lsstop.enums.LoginTypeEnum;
@@ -17,13 +23,17 @@ import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.service.AuthService;
 import com.lsstop.service.LoginLogService;
+import com.lsstop.utils.CodeGenerator;
 import com.lsstop.utils.JwtUtils;
 import com.lsstop.utils.PasswordUtils;
 import com.lsstop.utils.RedisUtils;
 import com.lsstop.config.JwtConfig;
 import jakarta.annotation.Resource;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -49,6 +59,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Resource
     private JwtConfig jwtConfig;
+
+    @Resource
+    private RabbitTemplate rabbitTemplate;
+
+    @Resource
+    private BlogConfig blogConfig;
 
     /**
      * 邮箱密码登录
@@ -205,6 +221,68 @@ public class AuthServiceImpl implements AuthService {
                 .accessToken(tokenPair.getAccessToken())
                 .refreshToken(tokenPair.getRefreshToken())
                 .build();
+    }
+
+    /**
+     * 发送邮箱验证码
+     *
+     * @param dto 发送验证码请求参数
+     */
+    @Override
+    public void sendCode(SendCodeDTO dto) {
+        // 校验验证码用途
+        CodePurposeEnum purpose = CodePurposeEnum.of(dto.getPurpose());
+        if (purpose == null) {
+            throw new BusinessException(AuthConst.INVALID_CODE_PURPOSE);
+        }
+
+        String email = dto.getEmail();
+
+        // 根据用途进行业务校验
+        switch (purpose) {
+            case LOGIN, RESET_PASSWORD -> {
+                // 登录/找回密码：邮箱必须已注册
+                UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(email, LoginTypeEnum.EMAIL.getCode());
+                if (userAuth == null) {
+                    throw new BusinessException(AuthConst.EMAIL_NOT_REGISTERED);
+                }
+            }
+            case REGISTER -> {
+                // 注册：邮箱必须未注册
+                UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(email, LoginTypeEnum.EMAIL.getCode());
+                if (userAuth != null) {
+                    throw new BusinessException(AuthConst.EMAIL_ALREADY_REGISTERED);
+                }
+            }
+        }
+
+        // 检查是否在短时间内重复发送
+        String codeKey = RedisConst.EMAIL_CODE + purpose.getKey() + ":" + email;
+        if (redisUtils.hasKey(codeKey)) {
+            Long ttl = redisUtils.getExpire(codeKey);
+            long resendThreshold = (AuthConst.CODE_EXPIRE_MINUTES * 60L) - AuthConst.CODE_RESEND_INTERVAL_SECONDS;
+            if (ttl != null && ttl > resendThreshold) {
+                throw new BusinessException(AuthConst.CODE_SEND_TOO_FREQUENT);
+            }
+        }
+
+        // 生成验证码
+        String code = CodeGenerator.generateVerifyCode();
+
+        // 存储到Redis
+        redisUtils.set(codeKey, code, AuthConst.CODE_EXPIRE_MINUTES * 60L, TimeUnit.SECONDS);
+
+        // 发送邮件到队列
+        Map<String, Object> params = new HashMap<>();
+        params.put("code", code);
+        params.put("expireMinutes", AuthConst.CODE_EXPIRE_MINUTES);
+
+        EmailDTO emailDTO = EmailDTO.builder()
+                .to(email)
+                .type(EmailTypeEnum.VERIFY_CODE)
+                .params(params)
+                .build();
+        rabbitTemplate.convertAndSend(RabbitMQConst.BLOG_EXCHANGE, RabbitMQConst.EMAIL_ROUTING_KEY, emailDTO);
     }
 
 }

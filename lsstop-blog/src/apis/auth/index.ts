@@ -33,9 +33,16 @@ export interface ForgotPasswordParams {
 export interface SendCodeParams {
   /** 邮箱 */
   email: string;
-  /** 验证码类型：1注册 2登录 3忘记密码 */
-  type: number;
+  /** 验证码用途：1-登录 2-注册 3-找回密码 */
+  purpose: number;
 }
+
+/** 验证码用途枚举 */
+export const CodePurpose = {
+  LOGIN: 1,
+  REGISTER: 2,
+  FORGOT_PASSWORD: 3,
+} as const;
 
 // 邮箱登录
 export const emailLogin = (data: LoginParams) => {
@@ -54,7 +61,7 @@ export const forgotPassword = (data: ForgotPasswordParams) => {
 
 // 发送邮箱验证码
 export const sendEmailCode = (data: SendCodeParams) => {
-  return http.post<null>('/auth/sendCode', data);
+  return http.post<null>('/auth/code', data, { showProgress: false });
 };
 
 // 退出登录请求参数

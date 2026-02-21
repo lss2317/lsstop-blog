@@ -5,6 +5,7 @@ import com.lsstop.common.Result;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
 import com.lsstop.domain.dto.RefreshTokenDTO;
+import com.lsstop.domain.dto.SendCodeDTO;
 import com.lsstop.domain.dto.WeiboLoginDTO;
 import com.lsstop.domain.vo.LoginVO;
 import com.lsstop.domain.vo.TokenVO;
@@ -85,6 +86,19 @@ public class AuthController {
     @AccessLimit(seconds = 60, maxCount = 10)
     public Result<Void> logout(@RequestBody @Validated RefreshTokenDTO dto) {
         authService.logout(dto.getRefreshToken());
+        return Result.success();
+    }
+
+    /**
+     * 发送邮箱验证码
+     *
+     * @param dto 发送验证码请求参数
+     * @return 操作结果
+     */
+    @PostMapping("/front/auth/code")
+    @AccessLimit(seconds = 60, maxCount = 5)
+    public Result<Void> sendCode(@RequestBody @Validated SendCodeDTO dto) {
+        authService.sendCode(dto);
         return Result.success();
     }
 
