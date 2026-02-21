@@ -153,6 +153,11 @@
             </div>
           </v-card>
 
+          <!-- 公告轮播 -->
+          <v-card class="animate__animated animate__zoomIn mt-5">
+            <AnnouncementSwiper :list="announcementList" />
+          </v-card>
+
           <!-- 网站资讯 -->
           <v-card class="blog-card animate__animated animate__zoomIn mt-5">
             <div class="web-info-title">
@@ -178,12 +183,14 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import TalkSwiper from '@/components/Swiper/TalkSwiper.vue';
 import { listTalk } from '@/apis/talk';
+import useAnnouncementStore from '@/stores/modules/announcement';
 import { parseEmoji } from '@/utils/emoji';
 import usePageInfoStore from '@/stores/modules/pageInfo';
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
 import { previewImages } from '@/utils/photoPreview';
 import { useTypedEffect } from '@/composables/useTypedEffect';
 import ScrollNumber from '@/components/ScrollNumber/ScrollNumber.vue';
+import AnnouncementSwiper from '@/components/Announcement/AnnouncementSwiper.vue';
 import { getArticleHomeList, type ArticleHome } from '@/apis/article';
 import { dateFormat } from '@/utils/date';
 import { useNavigate } from '@/composables/useNavigate';
@@ -194,7 +201,9 @@ const { navigateTo } = useNavigate();
 
 // stores
 const websiteConfigStore = useWebsiteConfigStore();
+const announcementStore = useAnnouncementStore();
 const config = computed(() => websiteConfigStore.config);
+const announcementList = computed(() => announcementStore.homeList);
 
 // 打字机效果
 const { output: typedOutput, start: startTyped } = useTypedEffect();

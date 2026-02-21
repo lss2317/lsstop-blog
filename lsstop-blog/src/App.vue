@@ -16,6 +16,8 @@
     <SnackbarMessage></SnackbarMessage>
     <!-- 登录相关弹窗 -->
     <AuthDialog></AuthDialog>
+    <!-- 弹窗公告 -->
+    <AnnouncementPopup />
   </v-app>
 </template>
 
@@ -27,6 +29,7 @@ import BlogFooter from './components/layout/BlogFooter.vue';
 import BackTop from './components/BackTop/BackTop.vue';
 import SnackbarMessage from './components/Snackbar/SnackbarMessage.vue';
 import AuthDialog from './components/Login/AuthDialog.vue';
+import AnnouncementPopup from './components/Announcement/AnnouncementPopup.vue';
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
 import usePageInfoStore from '@/stores/modules/pageInfo';
 import useLikeStore from '@/stores/modules/like';
