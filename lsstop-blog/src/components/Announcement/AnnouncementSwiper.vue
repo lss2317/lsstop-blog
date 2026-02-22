@@ -68,6 +68,9 @@
   <!-- 公告详情弹框 -->
   <v-dialog v-model="dialogVisible" max-width="700" scroll-strategy="none">
     <v-card class="announcement-dialog">
+      <v-btn icon variant="text" size="small" class="close-icon" @click="dialogVisible = false">
+        <v-icon size="20">mdi-close</v-icon>
+      </v-btn>
       <v-card-title class="dialog-title">
         <span class="dialog-title-icon">
           <v-icon size="16">mdi-bullhorn-outline</v-icon>
@@ -275,7 +278,7 @@ onUnmounted(() => {
 }
 
 .indicator-dot.active {
-  background-color: var(--color-primary, #8e8cd8);
+  background-color: var(--color-primary, #49b1f5);
   width: 18px;
   border-radius: 4px;
 }
@@ -369,10 +372,6 @@ onUnmounted(() => {
   padding: 8px 0;
 }
 
-.announcement-icon {
-  color: #4c4948;
-}
-
 .v-theme--dark .announcement-header-icon {
   background: linear-gradient(135deg, rgba(73, 177, 245, 0.18), rgba(73, 177, 245, 0.08));
   color: var(--color-primary);
@@ -382,6 +381,7 @@ onUnmounted(() => {
 .announcement-dialog {
   border-radius: 16px !important;
   overflow: hidden;
+  position: relative;
   box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.04),
     0 8px 24px rgba(0, 0, 0, 0.08),
@@ -392,6 +392,7 @@ onUnmounted(() => {
   font-size: 1.15rem;
   font-weight: 600;
   padding: 24px 24px 16px;
+  padding-right: 48px;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -488,10 +489,6 @@ onUnmounted(() => {
 }
 
 /* 暗色主题 */
-.v-theme--dark .announcement-icon {
-  color: rgba(255, 255, 255, 0.7);
-}
-
 .v-theme--dark .announcement-label {
   color: rgba(255, 255, 255, 0.85);
 }
@@ -502,6 +499,10 @@ onUnmounted(() => {
 
 .v-theme--dark .indicator-dot:hover {
   background-color: rgba(255, 255, 255, 0.4);
+}
+
+.v-theme--dark .indicator-dot.active {
+  background-color: var(--color-primary, #49b1f5);
 }
 
 .v-theme--dark .indicator-text {
@@ -572,5 +573,25 @@ onUnmounted(() => {
 
 .v-theme--dark .dialog-nav-index {
   color: rgba(255, 255, 255, 0.5);
+}
+
+.close-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: rgba(0, 0, 0, 0.55);
+  z-index: 1;
+}
+
+.close-icon:hover {
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.v-theme--dark .close-icon {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.v-theme--dark .close-icon:hover {
+  color: rgba(255, 255, 255, 0.75);
 }
 </style>

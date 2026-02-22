@@ -1,6 +1,9 @@
 <template>
   <v-dialog v-model="dialogVisible" max-width="700" scroll-strategy="none" persistent>
     <v-card class="announcement-popup">
+      <v-btn icon variant="text" size="small" class="close-icon" @click="close">
+        <v-icon size="20">mdi-close</v-icon>
+      </v-btn>
       <v-card-title class="popup-title">
         <span class="popup-title-icon">
           <v-icon size="16">mdi-bullhorn-outline</v-icon>
@@ -30,7 +33,7 @@
             <v-icon size="18">mdi-chevron-right</v-icon>
           </v-btn>
         </div>
-        <v-btn variant="tonal" color="primary" @click="close">我知道了</v-btn>
+        <v-btn variant="text" class="close-btn" @click="close">关闭</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -106,6 +109,7 @@ watch(
 .announcement-popup {
   border-radius: 16px !important;
   overflow: hidden;
+  position: relative;
   box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.04),
     0 8px 24px rgba(0, 0, 0, 0.08),
@@ -116,6 +120,7 @@ watch(
   font-size: 1.15rem;
   font-weight: 600;
   padding: 20px 24px 16px;
+  padding-right: 48px;
   display: flex;
   align-items: center;
   position: relative;
@@ -273,10 +278,47 @@ watch(
 .v-theme--dark
   .today-checkbox
   :deep(.v-selection-control--dirty .v-selection-control__input > .v-icon) {
-  color: #a5a3e8;
+  color: var(--color-primary, #49b1f5);
 }
 
 .v-theme--dark .popup-nav-index {
   color: rgba(255, 255, 255, 0.5);
+}
+
+.close-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: rgba(0, 0, 0, 0.55);
+  z-index: 1;
+}
+
+.close-icon:hover {
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.v-theme--dark .close-icon {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.v-theme--dark .close-icon:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.close-btn {
+  color: rgba(0, 0, 0, 0.6);
+  transition: color 150ms ease;
+}
+
+.close-btn:hover {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.v-theme--dark .close-btn {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.v-theme--dark .close-btn:hover {
+  color: rgba(255, 255, 255, 0.9);
 }
 </style>
