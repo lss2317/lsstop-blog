@@ -19,6 +19,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="email"
+              maxlength="100"
             />
             <label class="form-label">邮箱</label>
           </div>
@@ -29,6 +30,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="current-password"
+              maxlength="20"
             />
             <label class="form-label">密码</label>
             <span class="input-icon" @click="loginForm.showPwd = !loginForm.showPwd">
@@ -73,6 +75,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="email"
+              maxlength="100"
             />
             <label class="form-label">邮箱</label>
           </div>
@@ -83,6 +86,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="one-time-code"
+              maxlength="8"
             />
             <label class="form-label">验证码</label>
             <span
@@ -99,6 +103,8 @@
             color="#1976d2"
             rounded="lg"
             size="large"
+            :loading="codeLoginLoading"
+            :disabled="codeLoginLoading"
             @click="codeLogin"
           >
             登录
@@ -117,6 +123,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="email"
+              maxlength="100"
             />
             <label class="form-label">邮箱</label>
           </div>
@@ -127,6 +134,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="one-time-code"
+              maxlength="8"
             />
             <label class="form-label">验证码</label>
             <span
@@ -144,6 +152,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="new-password"
+              maxlength="20"
             />
             <label class="form-label">密码</label>
             <span class="input-icon" @click="registerForm.showPwd = !registerForm.showPwd">
@@ -157,6 +166,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="new-password"
+              maxlength="20"
             />
             <label class="form-label">确认密码</label>
             <span
@@ -194,6 +204,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="email"
+              maxlength="100"
             />
             <label class="form-label">邮箱</label>
           </div>
@@ -204,6 +215,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="one-time-code"
+              maxlength="8"
             />
             <label class="form-label">验证码</label>
             <span
@@ -221,6 +233,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="new-password"
+              maxlength="20"
             />
             <label class="form-label">新密码</label>
             <span class="input-icon" @click="forgetForm.showPwd = !forgetForm.showPwd">
@@ -234,6 +247,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="new-password"
+              maxlength="20"
             />
             <label class="form-label">确认密码</label>
             <span
@@ -266,13 +280,13 @@
 import { reactive, computed, ref } from 'vue';
 import { useLoginStore } from '@/stores/modules/login';
 import { storeToRefs } from 'pinia';
-import { emailLogin, sendEmailCode, CodePurpose } from '@/apis/auth';
-import useUserInfoStore from '@/stores/modules/userInfo';
+import { emailLogin, emailCodeLogin, sendEmailCode, CodePurpose } from '@/apis/auth';
+import useUserInfoStore, { type UserInfo } from '@/stores/modules/userInfo';
 import useLikeStore from '@/stores/modules/like';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
 import { tokenManager } from '@/utils/token';
-import { ResponseCode } from '@/constants/http';
 import { isValidEmail } from '@/utils/validate';
+import { getErrorMessage } from '@/utils/error';
 
 const loginStore = useLoginStore();
 const userInfoStore = useUserInfoStore();
@@ -362,10 +376,8 @@ const sendCodeForLogin = async () => {
     await sendEmailCode({ email: codeLoginForm.email, purpose: CodePurpose.LOGIN });
     snackbar.success('验证码已发送');
     startCountdown(codeLoginForm);
-  } catch (error: unknown) {
-    const err = error as { response?: { data?: { msg?: string } } };
-    const msg = err.response?.data?.msg || '网络错误，请稍后重试';
-    snackbar.error(msg);
+  } catch (error) {
+    snackbar.error(getErrorMessage(error));
   }
 };
 
@@ -384,10 +396,8 @@ const sendCodeForRegister = async () => {
     await sendEmailCode({ email: registerForm.email, purpose: CodePurpose.REGISTER });
     snackbar.success('验证码已发送');
     startCountdown(registerForm);
-  } catch (error: unknown) {
-    const err = error as { response?: { data?: { msg?: string } } };
-    const msg = err.response?.data?.msg || '网络错误，请稍后重试';
-    snackbar.error(msg);
+  } catch (error) {
+    snackbar.error(getErrorMessage(error));
   }
 };
 
@@ -406,11 +416,20 @@ const sendCodeForForget = async () => {
     await sendEmailCode({ email: forgetForm.email, purpose: CodePurpose.FORGOT_PASSWORD });
     snackbar.success('验证码已发送');
     startCountdown(forgetForm);
-  } catch (error: unknown) {
-    const err = error as { response?: { data?: { msg?: string } } };
-    const msg = err.response?.data?.msg || '网络错误，请稍后重试';
-    snackbar.error(msg);
+  } catch (error) {
+    snackbar.error(getErrorMessage(error));
   }
+};
+
+// 登录成功统一处理
+const handleLoginSuccess = (data: UserInfo) => {
+  userInfoStore.setUserInfo(data);
+  if (data.accessToken && data.refreshToken) {
+    tokenManager.setTokens(data.accessToken, data.refreshToken);
+  }
+  void likeStore.fetchUserLike();
+  snackbar.success('登录成功');
+  closeAllDialogs();
 };
 
 // 密码登录
@@ -435,36 +454,48 @@ const login = async () => {
       email: loginForm.email,
       password: loginForm.password,
     });
-    // 判断业务状态码
-    if (res.code !== ResponseCode.SUCCESS) {
-      snackbar.error(res.msg || '登录失败');
-      return;
-    }
-    // 保存用户信息到store
-    userInfoStore.setUserInfo(res.data);
-    // 保存token
-    if (res.data.accessToken && res.data.refreshToken) {
-      tokenManager.setTokens(res.data.accessToken, res.data.refreshToken);
-    }
-    // 获取用户点赞数据
-    void likeStore.fetchUserLike();
-    snackbar.success('登录成功');
-    // 关闭弹框并重置表单
-    closeAllDialogs();
+    handleLoginSuccess(res.data);
     loginForm.email = '';
     loginForm.password = '';
-  } catch (error: unknown) {
-    const err = error as { response?: { data?: { msg?: string } } };
-    const msg = err.response?.data?.msg || '网络错误，请稍后重试';
-    snackbar.error(msg);
+  } catch (error) {
+    snackbar.error(getErrorMessage(error));
   } finally {
     loginLoading.value = false;
   }
 };
 
+// 验证码登录loading状态
+const codeLoginLoading = ref(false);
+
 // 验证码登录
-const codeLogin = () => {
-  // TODO: 实现验证码登录逻辑
+const codeLogin = async () => {
+  if (!codeLoginForm.email) {
+    snackbar.info('请输入邮箱');
+    return;
+  }
+  if (!isValidEmail(codeLoginForm.email)) {
+    snackbar.info('邮箱格式不正确');
+    return;
+  }
+  if (!codeLoginForm.code) {
+    snackbar.info('请输入验证码');
+    return;
+  }
+
+  codeLoginLoading.value = true;
+  try {
+    const res = await emailCodeLogin({
+      email: codeLoginForm.email,
+      code: codeLoginForm.code,
+    });
+    handleLoginSuccess(res.data);
+    codeLoginForm.email = '';
+    codeLoginForm.code = '';
+  } catch (error) {
+    snackbar.error(getErrorMessage(error));
+  } finally {
+    codeLoginLoading.value = false;
+  }
 };
 
 // 注册

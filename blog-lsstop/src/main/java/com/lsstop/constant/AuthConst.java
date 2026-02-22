@@ -117,4 +117,9 @@ public class AuthConst {
      * 验证码重发间隔（秒）
      */
     public static final int CODE_RESEND_INTERVAL_SECONDS = 60;
+
+    /**
+     * 验证码错误或已过期
+     */
+    public static final String CODE_INVALID_OR_EXPIRED = "验证码错误或已过期";
 }

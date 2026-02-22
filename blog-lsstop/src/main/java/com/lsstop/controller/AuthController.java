@@ -2,6 +2,7 @@ package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
+import com.lsstop.domain.dto.EmailCodeLoginDTO;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
 import com.lsstop.domain.dto.RefreshTokenDTO;
@@ -38,6 +39,18 @@ public class AuthController {
     @AccessLimit(seconds = 60, maxCount = 10)
     public Result<LoginVO> emailLogin(@RequestBody @Validated EmailLoginDTO dto) {
         return Result.success(authService.emailLogin(dto));
+    }
+
+    /**
+     * 邮箱验证码登录
+     *
+     * @param dto 验证码登录参数
+     * @return 登录结果
+     */
+    @PostMapping("/front/auth/login/email-code")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    public Result<LoginVO> emailCodeLogin(@RequestBody @Validated EmailCodeLoginDTO dto) {
+        return Result.success(authService.emailCodeLogin(dto));
     }
 
     /**

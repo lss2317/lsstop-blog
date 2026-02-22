@@ -9,6 +9,14 @@ export interface LoginParams {
   password: string;
 }
 
+// 验证码登录请求参数
+export interface CodeLoginParams {
+  /** 邮箱 */
+  email: string;
+  /** 验证码 */
+  code: string;
+}
+
 // 注册请求参数
 export interface RegisterParams {
   /** 邮箱 */
@@ -46,7 +54,12 @@ export const CodePurpose = {
 
 // 邮箱登录
 export const emailLogin = (data: LoginParams) => {
-  return http.post<UserInfo>('/auth/login/email', data);
+  return http.post<UserInfo>('/auth/login/email', data, { showProgress: false });
+};
+
+// 验证码登录
+export const emailCodeLogin = (data: CodeLoginParams) => {
+  return http.post<UserInfo>('/auth/login/email-code', data, { showProgress: false });
 };
 
 // 用户注册

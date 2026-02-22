@@ -1,5 +1,6 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.dto.EmailCodeLoginDTO;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
 import com.lsstop.domain.dto.SendCodeDTO;
@@ -22,6 +23,14 @@ public interface AuthService {
      * @return 用户信息
      */
     LoginVO emailLogin(EmailLoginDTO dto);
+
+    /**
+     * 邮箱验证码登录
+     *
+     * @param dto 验证码登录参数
+     * @return 用户信息
+     */
+    LoginVO emailCodeLogin(EmailCodeLoginDTO dto);
 
     /**
      * QQ登录

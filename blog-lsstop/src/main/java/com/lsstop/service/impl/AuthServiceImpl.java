@@ -8,6 +8,7 @@ import com.lsstop.domain.dto.EmailDTO;
 import com.lsstop.domain.entity.UserAuthEntity;
 import com.lsstop.domain.entity.UserEntity;
 import com.lsstop.domain.entity.UserProfileEntity;
+import com.lsstop.domain.dto.EmailCodeLoginDTO;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
 import com.lsstop.domain.dto.SendCodeDTO;
@@ -74,11 +75,12 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public LoginVO emailLogin(EmailLoginDTO dto) {
+        String email = dto.getEmail();
         String userId = null;
 
         try {
             // 查询用户认证信息
-            UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(dto.getEmail(), LoginTypeEnum.EMAIL.getCode());
+            UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(email, LoginTypeEnum.EMAIL.getCode());
             if (userAuth == null) {
                 throw new BusinessException(AuthConst.ACCOUNT_OR_PASSWORD_ERROR);
             }
@@ -90,13 +92,62 @@ public class AuthServiceImpl implements AuthService {
             }
 
             // 检查用户是否被禁用
-            UserEntity user = authMapper.selectUserById(userAuth.getUserId());
+            UserEntity user = authMapper.selectUserById(userId);
             if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
                 throw new BusinessException(AuthConst.ACCOUNT_DISABLED);
             }
 
             // 更新最后登录时间
-            authMapper.updateLastLoginTime(userAuth.getUserId());
+            authMapper.updateLastLoginTime(userId);
+
+            // 发送登录成功日志到MQ
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthConst.LOGIN_SUCCESS);
+
+            return buildLoginVO(userAuth);
+        } catch (BusinessException e) {
+            // 发送登录失败日志到MQ
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * 邮箱验证码登录
+     *
+     * @param dto 验证码登录参数
+     * @return 用户信息
+     */
+    @Override
+    public LoginVO emailCodeLogin(EmailCodeLoginDTO dto) {
+        String email = dto.getEmail();
+        String codeKey = RedisConst.EMAIL_CODE + CodePurposeEnum.LOGIN.getKey() + ":" + email;
+        String userId = null;
+
+        try {
+            // 验证验证码
+            String storedCode = redisUtils.get(codeKey, String.class);
+            if (storedCode == null || !storedCode.equals(dto.getCode())) {
+                throw new BusinessException(AuthConst.CODE_INVALID_OR_EXPIRED);
+            }
+
+            // 查询用户认证信息
+            UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(email, LoginTypeEnum.EMAIL.getCode());
+            if (userAuth == null) {
+                throw new BusinessException(AuthConst.CODE_INVALID_OR_EXPIRED);
+            }
+            userId = userAuth.getUserId();
+
+            // 检查用户是否被禁用
+            UserEntity user = authMapper.selectUserById(userId);
+            if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
+                throw new BusinessException(AuthConst.ACCOUNT_DISABLED);
+            }
+
+            // 更新最后登录时间
+            authMapper.updateLastLoginTime(userId);
+
+            // 登录成功后删除验证码
+            redisUtils.delete(codeKey);
 
             // 发送登录成功日志到MQ
             loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthConst.LOGIN_SUCCESS);

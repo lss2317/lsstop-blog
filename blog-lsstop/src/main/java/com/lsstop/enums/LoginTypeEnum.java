@@ -14,7 +14,7 @@ import lombok.Getter;
 public enum LoginTypeEnum {
 
     /**
-     * 邮箱密码登录
+     * 邮箱登录
      */
     EMAIL(1, "邮箱"),
 

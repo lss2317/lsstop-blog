@@ -34,6 +34,11 @@ public class CommonConst {
     public static final String UNKNOWN = "IP未知";
 
     /**
+     * 未知用户
+     */
+    public static final String UNKNOWN_USER = "未知用户";
+
+    /**
      * 审核状态：正常
      */
     public static final Integer REVIEW_NORMAL = 0;

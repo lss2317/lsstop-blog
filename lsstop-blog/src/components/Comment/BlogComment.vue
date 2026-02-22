@@ -356,6 +356,7 @@ import { useEmoji } from '@/composables/useEmoji';
 import { useContentOverflow } from '@/composables/useContentOverflow';
 import { requiresTypeId } from '@/constants/commentType';
 import { ReviewStatusEnum } from '@/constants/reviewStatus';
+import { getErrorMessage } from '@/utils/error';
 
 // props
 const props = defineProps<{
@@ -549,9 +550,8 @@ const confirmDelete = async () => {
     snackbarStore.success('删除成功');
     deleteDialog.value = false;
     deleteTarget.value = null;
-  } catch (error: unknown) {
-    const err = error as { response?: { data?: { msg?: string } } };
-    snackbarStore.error(err.response?.data?.msg || '删除失败');
+  } catch (error) {
+    snackbarStore.error(getErrorMessage(error, '删除失败'));
   } finally {
     deleting.value = false;
   }
@@ -604,9 +604,8 @@ const insertComment = async () => {
       commentTextareaRef.value.style.overflowY = 'hidden';
     }
     closeEmoji();
-  } catch (error: unknown) {
-    const err = error as { response?: { data?: { msg?: string } } };
-    snackbarStore.error(err.response?.data?.msg || '评论提交失败');
+  } catch (error) {
+    snackbarStore.error(getErrorMessage(error, '评论提交失败'));
   } finally {
     submitting.value = false;
   }
@@ -756,10 +755,9 @@ const submitReply = async (item: Comment) => {
 
     // 清空回复内容
     cancelReply();
-  } catch (error: unknown) {
+  } catch (error) {
     console.error('提交回复失败:', error);
-    const err = error as { response?: { data?: { msg?: string } } };
-    snackbarStore.error(err.response?.data?.msg || '回复提交失败');
+    snackbarStore.error(getErrorMessage(error, '回复提交失败'));
   } finally {
     submitting.value = false;
   }
