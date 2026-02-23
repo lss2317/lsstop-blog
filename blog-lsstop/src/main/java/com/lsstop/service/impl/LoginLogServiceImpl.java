@@ -58,7 +58,7 @@ public class LoginLogServiceImpl implements LoginLogService {
         String os = request != null ? UserAgentUtils.getOS(request) : CommonConst.UNKNOWN;
 
         LoginLogEntity loginLog = LoginLogEntity.builder()
-                .userId(userId != null ? userId : CommonConst.UNKNOWN_USER)
+                .userId(userId)
                 .loginType(loginType)
                 .loginTime(LocalDateTime.now())
                 .ipAddress(ipAddress)

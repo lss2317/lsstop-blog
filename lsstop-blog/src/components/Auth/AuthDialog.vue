@@ -86,7 +86,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="one-time-code"
-              maxlength="8"
+              maxlength="6"
             />
             <label class="form-label">验证码</label>
             <span
@@ -134,7 +134,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="one-time-code"
-              maxlength="8"
+              maxlength="6"
             />
             <label class="form-label">验证码</label>
             <span
@@ -215,7 +215,7 @@
               class="form-input"
               placeholder=" "
               autocomplete="one-time-code"
-              maxlength="8"
+              maxlength="6"
             />
             <label class="form-label">验证码</label>
             <span

@@ -12,7 +12,11 @@ public class CodeGenerator {
 
     private static final char[] ALPHANUMERIC = "0123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz".toCharArray();
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final int CODE_LENGTH = 8;
+
+    /**
+     * 验证码长度
+     */
+    private static final int CODE_LENGTH = 6;
 
     private CodeGenerator() {
     }

@@ -59,6 +59,7 @@
           </div>
         </template>
         <div v-else class="announcement-item announcement-empty">
+          <v-icon size="32" class="empty-icon">mdi-bullhorn-variant-outline</v-icon>
           <span>暂无公告</span>
         </div>
       </div>
@@ -366,10 +367,19 @@ onUnmounted(() => {
 }
 
 .announcement-empty {
-  color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  color: rgba(0, 0, 0, 0.35);
   font-size: 0.85rem;
-  text-align: center;
-  padding: 8px 0;
+  padding: 16px 0;
+  gap: 8px;
+}
+
+.empty-icon {
+  opacity: 0.6;
 }
 
 .v-theme--dark .announcement-header-icon {
@@ -527,7 +537,7 @@ onUnmounted(() => {
 }
 
 .v-theme--dark .announcement-empty {
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .v-theme--dark .announcement-dialog {
