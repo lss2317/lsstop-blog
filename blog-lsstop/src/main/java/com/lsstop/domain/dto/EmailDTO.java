@@ -31,6 +31,11 @@ public class EmailDTO {
     private String to;
 
     /**
+     * 自定义邮件主题（优先级高于type默认主题）
+     */
+    private String subject;
+
+    /**
      * 模板参数
      */
     private Map<String, Object> params;

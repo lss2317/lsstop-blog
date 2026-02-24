@@ -309,10 +309,15 @@ public class AuthServiceImpl implements AuthService {
         Map<String, Object> params = new HashMap<>();
         params.put("code", code);
         params.put("expireMinutes", AuthConst.CODE_EXPIRE_MINUTES);
+        params.put("sceneTitle", purpose.getSceneTitle());
+
+        // 构建场景化邮件主题
+        String subject = String.format("【%s】%s", blogConfig.getName(), purpose.getSceneTitle());
 
         EmailDTO emailDTO = EmailDTO.builder()
                 .to(email)
                 .type(EmailTypeEnum.VERIFY_CODE)
+                .subject(subject)
                 .params(params)
                 .build();
         rabbitTemplate.convertAndSend(RabbitMQConst.BLOG_EXCHANGE, RabbitMQConst.EMAIL_ROUTING_KEY, emailDTO);

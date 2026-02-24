@@ -57,8 +57,8 @@ const useUserInfoStore = defineStore('userInfo', () => {
       if (res.code === ResponseCode.SUCCESS && res.data) {
         setUserInfo(res.data);
       }
-    } catch (error) {
-      console.error('获取用户信息失败:', error);
+    } catch {
+      // 未登录返回401是正常情况，静默处理
     }
   }
 

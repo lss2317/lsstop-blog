@@ -16,17 +16,17 @@ public enum CodePurposeEnum {
     /**
      * 邮箱验证码登录
      */
-    LOGIN(1, "login", "登录"),
+    LOGIN(1, "login", "登录", "登录"),
 
     /**
      * 用户注册
      */
-    REGISTER(2, "register", "注册"),
+    REGISTER(2, "register", "注册", "注册"),
 
     /**
      * 找回密码
      */
-    RESET_PASSWORD(3, "reset_password", "找回密码");
+    RESET_PASSWORD(3, "reset_password", "找回密码", "找回密码");
 
     /**
      * 用途编码
@@ -42,6 +42,11 @@ public enum CodePurposeEnum {
      * 用途描述
      */
     private final String desc;
+
+    /**
+     * 邮件场景标题
+     */
+    private final String sceneTitle;
 
     /**
      * 根据编码获取枚举

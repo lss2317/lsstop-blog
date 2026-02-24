@@ -55,6 +55,10 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public String generateSubject(EmailDTO emailDTO) {
+        // 优先使用自定义主题
+        if (emailDTO.getSubject() != null && !emailDTO.getSubject().isBlank()) {
+            return emailDTO.getSubject();
+        }
         return String.format(emailDTO.getType().getSubjectTemplate(), blogConfig.getName());
     }
 

@@ -12,9 +12,9 @@
         </div>
         <!-- Content -->
         <div style="padding: 0 32px 32px;">
-            <h1 style="font-size: 24px; font-weight: 700; color: #22c55e; margin: 0 0 24px; text-align: center;">验证码</h1>
+            <h1 style="font-size: 24px; font-weight: 700; color: #22c55e; margin: 0 0 24px; text-align: center;" th:text="${sceneTitle} ?: '验证码'">验证码</h1>
             <p style="font-size: 15px; color: #4a4a4a; margin: 0 0 24px; line-height: 1.7;">您好，</p>
-            <p style="font-size: 15px; color: #4a4a4a; margin: 0 0 24px; line-height: 1.7;">您正在进行身份验证，验证码如下：</p>
+            <p style="font-size: 15px; color: #4a4a4a; margin: 0 0 24px; line-height: 1.7;">您正在进行<span style="font-weight: 600; color: #1a1a1a;" th:text="${sceneTitle} ?: '身份验证'">身份验证</span>操作，请使用以下验证码完成验证：</p>
             <div style="background: #f9fafb; border-left: 4px solid #22c55e; padding: 20px 24px; margin-bottom: 24px;">
                 <span style="font-size: 32px; font-weight: 700; color: #1a1a1a; letter-spacing: 8px; font-family: 'SF Mono', Monaco, Consolas, monospace; white-space: nowrap;" th:text="${code}">123456</span>
             </div>
