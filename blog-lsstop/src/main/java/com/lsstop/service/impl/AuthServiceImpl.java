@@ -233,7 +233,11 @@ public class AuthServiceImpl implements AuthService {
         try {
             String userId = jwtUtils.getSubjectIgnoreExpiration(refreshToken);
             if (userId != null) {
-                redisUtils.delete(RedisConst.FRONT_REFRESH_TOKEN + userId);
+                // 校验传入的token与Redis中存储的是否一致，防止旧token踢下线
+                String storedToken = redisUtils.get(RedisConst.FRONT_REFRESH_TOKEN + userId, String.class);
+                if (storedToken != null && storedToken.equals(refreshToken)) {
+                    redisUtils.delete(RedisConst.FRONT_REFRESH_TOKEN + userId);
+                }
             }
         } catch (Exception e) {
             // 静默处理，退出登录不应因为token解析失败而报错
