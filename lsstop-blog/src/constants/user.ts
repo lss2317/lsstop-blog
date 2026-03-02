@@ -14,6 +14,6 @@ export enum CodeType {
   REGISTER = 1,
   /** 登录 */
   LOGIN = 2,
-  /** 忘记密码 */
-  FORGOT_PASSWORD = 3,
+  /** 重置密码 */
+  RESET_PASSWORD = 3,
 }

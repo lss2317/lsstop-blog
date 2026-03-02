@@ -122,4 +122,14 @@ public class AuthConst {
      * 验证码错误或已过期
      */
     public static final String CODE_INVALID_OR_EXPIRED = "验证码错误或已过期";
+
+    /**
+     * 新密码不能与原密码相同
+     */
+    public static final String NEW_PASSWORD_SAME_AS_OLD = "新密码不能与原密码相同";
+
+    /**
+     * 密码不能包含空格
+     */
+    public static final String PASSWORD_CONTAINS_WHITESPACE = "密码不能包含空格";
 }

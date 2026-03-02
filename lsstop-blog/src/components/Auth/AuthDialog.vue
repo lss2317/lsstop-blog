@@ -57,7 +57,7 @@
               style="margin-left: auto; margin-right: 12px"
               >验证码登录</span
             >
-            <span @click="openForgetDialog" class="tip-link">忘记密码?</span>
+            <span @click="openResetPasswordDialog" class="tip-link">忘记密码?</span>
           </div>
           <div class="social-login-title">其他登录方式</div>
           <div class="social-login-wrapper">
@@ -194,12 +194,12 @@
           </div>
         </div>
 
-        <!-- 忘记密码 -->
-        <div v-else-if="forgetDialog" key="forget" class="login-wrapper">
-          <div class="title">找回密码</div>
+        <!-- 重置密码 -->
+        <div v-else-if="resetPasswordDialog" key="resetPassword" class="login-wrapper">
+          <div class="title">重置密码</div>
           <div class="input-group mt-6">
             <input
-              v-model="forgetForm.email"
+              v-model="resetPasswordForm.email"
               type="email"
               class="form-input"
               placeholder=" "
@@ -210,7 +210,7 @@
           </div>
           <div class="input-group">
             <input
-              v-model="forgetForm.code"
+              v-model="resetPasswordForm.code"
               type="text"
               class="form-input"
               placeholder=" "
@@ -220,30 +220,33 @@
             <label class="form-label">验证码</label>
             <span
               class="send-code-btn"
-              :class="{ disabled: forgetForm.countdown > 0 }"
-              @click="sendCodeForForget"
+              :class="{ disabled: resetPasswordForm.countdown > 0 }"
+              @click="sendCodeForResetPassword"
             >
-              {{ forgetForm.countdown > 0 ? `${forgetForm.countdown}s` : '发送' }}
+              {{ resetPasswordForm.countdown > 0 ? `${resetPasswordForm.countdown}s` : '发送' }}
             </span>
           </div>
           <div class="input-group">
             <input
-              v-model="forgetForm.password"
-              :type="forgetForm.showPwd ? 'text' : 'password'"
+              v-model="resetPasswordForm.password"
+              :type="resetPasswordForm.showPwd ? 'text' : 'password'"
               class="form-input"
               placeholder=" "
               autocomplete="new-password"
               maxlength="20"
             />
             <label class="form-label">新密码</label>
-            <span class="input-icon" @click="forgetForm.showPwd = !forgetForm.showPwd">
-              <v-icon size="20">{{ forgetForm.showPwd ? 'mdi-eye' : 'mdi-eye-off' }}</v-icon>
+            <span
+              class="input-icon"
+              @click="resetPasswordForm.showPwd = !resetPasswordForm.showPwd"
+            >
+              <v-icon size="20">{{ resetPasswordForm.showPwd ? 'mdi-eye' : 'mdi-eye-off' }}</v-icon>
             </span>
           </div>
           <div class="input-group">
             <input
-              v-model="forgetForm.confirmPassword"
-              :type="forgetForm.showConfirmPwd ? 'text' : 'password'"
+              v-model="resetPasswordForm.confirmPassword"
+              :type="resetPasswordForm.showConfirmPwd ? 'text' : 'password'"
               class="form-input"
               placeholder=" "
               autocomplete="new-password"
@@ -252,9 +255,11 @@
             <label class="form-label">确认密码</label>
             <span
               class="input-icon"
-              @click="forgetForm.showConfirmPwd = !forgetForm.showConfirmPwd"
+              @click="resetPasswordForm.showConfirmPwd = !resetPasswordForm.showConfirmPwd"
             >
-              <v-icon size="20">{{ forgetForm.showConfirmPwd ? 'mdi-eye' : 'mdi-eye-off' }}</v-icon>
+              <v-icon size="20">{{
+                resetPasswordForm.showConfirmPwd ? 'mdi-eye' : 'mdi-eye-off'
+              }}</v-icon>
             </span>
           </div>
           <v-btn
@@ -263,7 +268,9 @@
             color="#1976d2"
             rounded="lg"
             size="large"
-            @click="resetPassword"
+            :loading="resetPasswordLoading"
+            :disabled="resetPasswordLoading"
+            @click="handleResetPassword"
           >
             重置密码
           </v-btn>
@@ -280,7 +287,7 @@
 import { reactive, computed, ref } from 'vue';
 import { useLoginStore } from '@/stores/modules/login';
 import { storeToRefs } from 'pinia';
-import { emailLogin, emailCodeLogin, sendEmailCode, CodePurpose } from '@/apis/auth';
+import { emailLogin, emailCodeLogin, sendEmailCode, CodePurpose, resetPassword } from '@/apis/auth';
 import useUserInfoStore, { type UserInfo } from '@/stores/modules/userInfo';
 import useLikeStore from '@/stores/modules/like';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
@@ -292,19 +299,22 @@ const loginStore = useLoginStore();
 const userInfoStore = useUserInfoStore();
 const likeStore = useLikeStore();
 const snackbar = useSnackbarStore();
-const { dialogVisible, loginDialog, codeLoginDialog, registerDialog, forgetDialog } =
+const { dialogVisible, loginDialog, codeLoginDialog, registerDialog, resetPasswordDialog } =
   storeToRefs(loginStore);
 const {
   closeAllDialogs,
   openLoginDialog,
   openCodeLoginDialog,
   openRegisterDialog,
-  openForgetDialog,
+  openResetPasswordDialog,
   onDialogClosed,
 } = loginStore;
 
 // 登录loading状态
 const loginLoading = ref(false);
+
+// 重置密码loading状态
+const resetPasswordLoading = ref(false);
 
 // 响应式判断
 const isMobile = computed(() => {
@@ -337,8 +347,8 @@ const registerForm = reactive({
   countdown: 0,
 });
 
-// 忘记密码表单
-const forgetForm = reactive({
+// 重置密码表单
+const resetPasswordForm = reactive({
   email: '',
   code: '',
   password: '',
@@ -363,6 +373,7 @@ const startCountdown = (form: { countdown: number }) => {
 
 // 发送登录验证码
 const sendCodeForLogin = async () => {
+  codeLoginForm.email = codeLoginForm.email.trim();
   if (!codeLoginForm.email) {
     snackbar.info('请输入邮箱');
     return;
@@ -383,6 +394,7 @@ const sendCodeForLogin = async () => {
 
 // 发送注册验证码
 const sendCodeForRegister = async () => {
+  registerForm.email = registerForm.email.trim();
   if (!registerForm.email) {
     snackbar.info('请输入邮箱');
     return;
@@ -401,21 +413,22 @@ const sendCodeForRegister = async () => {
   }
 };
 
-// 发送忘记密码验证码
-const sendCodeForForget = async () => {
-  if (!forgetForm.email) {
+// 发送重置密码验证码
+const sendCodeForResetPassword = async () => {
+  resetPasswordForm.email = resetPasswordForm.email.trim();
+  if (!resetPasswordForm.email) {
     snackbar.info('请输入邮箱');
     return;
   }
-  if (!isValidEmail(forgetForm.email)) {
+  if (!isValidEmail(resetPasswordForm.email)) {
     snackbar.info('邮箱格式不正确');
     return;
   }
-  if (forgetForm.countdown > 0) return;
+  if (resetPasswordForm.countdown > 0) return;
   try {
-    await sendEmailCode({ email: forgetForm.email, purpose: CodePurpose.FORGOT_PASSWORD });
+    await sendEmailCode({ email: resetPasswordForm.email, purpose: CodePurpose.RESET_PASSWORD });
     snackbar.success('验证码已发送');
-    startCountdown(forgetForm);
+    startCountdown(resetPasswordForm);
   } catch (error) {
     snackbar.error(getErrorMessage(error));
   }
@@ -434,6 +447,8 @@ const handleLoginSuccess = (data: UserInfo) => {
 
 // 密码登录
 const login = async () => {
+  // 表单预处理
+  loginForm.email = loginForm.email.trim();
   // 表单验证
   if (!loginForm.email) {
     snackbar.info('请输入邮箱');
@@ -469,6 +484,8 @@ const codeLoginLoading = ref(false);
 
 // 验证码登录
 const codeLogin = async () => {
+  codeLoginForm.email = codeLoginForm.email.trim();
+  codeLoginForm.code = codeLoginForm.code.trim();
   if (!codeLoginForm.email) {
     snackbar.info('请输入邮箱');
     return;
@@ -504,8 +521,56 @@ const register = () => {
 };
 
 // 重置密码
-const resetPassword = () => {
-  // TODO: 实现重置密码逻辑
+const handleResetPassword = async () => {
+  if (resetPasswordLoading.value) return;
+  // 表单预处理
+  resetPasswordForm.email = resetPasswordForm.email.trim();
+  resetPasswordForm.code = resetPasswordForm.code.trim();
+  if (!resetPasswordForm.email) {
+    snackbar.info('请输入邮箱');
+    return;
+  }
+  if (!isValidEmail(resetPasswordForm.email)) {
+    snackbar.info('邮箱格式不正确');
+    return;
+  }
+  if (!resetPasswordForm.code) {
+    snackbar.info('请输入验证码');
+    return;
+  }
+  if (!resetPasswordForm.password) {
+    snackbar.info('请输入新密码');
+    return;
+  }
+  if (resetPasswordForm.password.length < 6 || resetPasswordForm.password.length > 20) {
+    snackbar.info('密码长度为6-20位');
+    return;
+  }
+  if (resetPasswordForm.password !== resetPasswordForm.confirmPassword) {
+    snackbar.info('两次密码输入不一致');
+    return;
+  }
+
+  resetPasswordLoading.value = true;
+  try {
+    await resetPassword({
+      email: resetPasswordForm.email,
+      code: resetPasswordForm.code,
+      newPassword: resetPasswordForm.password,
+    });
+    snackbar.success('密码重置成功');
+    // 重置表单
+    resetPasswordForm.email = '';
+    resetPasswordForm.code = '';
+    resetPasswordForm.password = '';
+    resetPasswordForm.confirmPassword = '';
+    // 跳转到登录
+    openLoginDialog();
+  } catch (error) {
+    snackbar.error(getErrorMessage(error));
+  } finally {
+    resetPasswordLoading.value = false;
+  }
 };
 
 // 微博登录

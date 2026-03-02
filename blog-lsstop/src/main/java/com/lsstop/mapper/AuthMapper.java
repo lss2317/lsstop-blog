@@ -54,4 +54,14 @@ public interface AuthMapper {
      */
     String selectEmailByUserId(@Param("userId") String userId);
 
+    /**
+     * 更新用户密码
+     *
+     * @param identifier 登录标识（邮箱）
+     * @param loginType  登录类型
+     * @param credential 新密码（已加密）
+     * @return 更新行数
+     */
+    int updateCredential(@Param("identifier") String identifier, @Param("loginType") Integer loginType, @Param("credential") String credential);
+
 }

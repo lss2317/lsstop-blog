@@ -62,10 +62,6 @@ public class PasswordUtils {
      * @return 加密后的密码字符串（包含盐值）
      */
     public static String encrypt(String password) {
-        if (password == null || password.isEmpty()) {
-            throw new IllegalArgumentException("密码不能为空");
-        }
-
         byte[] salt = generateSalt();
         byte[] hash = hash(password.toCharArray(), salt);
 

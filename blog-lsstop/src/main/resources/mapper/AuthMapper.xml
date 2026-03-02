@@ -76,4 +76,14 @@
           AND deleted_at = 0
     </select>
 
+    <!-- 更新用户密码 -->
+    <update id="updateCredential">
+        UPDATE blog_user_auth
+        SET credential  = #{credential},
+            update_time = NOW()
+        WHERE identifier = #{identifier}
+          AND login_type = #{loginType}
+          AND deleted_at = 0
+    </update>
+
 </mapper>

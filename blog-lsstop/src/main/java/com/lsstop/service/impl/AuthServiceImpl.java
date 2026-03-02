@@ -11,6 +11,7 @@ import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.dto.EmailCodeLoginDTO;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
+import com.lsstop.domain.dto.ResetPasswordDTO;
 import com.lsstop.domain.dto.SendCodeDTO;
 import com.lsstop.domain.dto.WeiboLoginDTO;
 import com.lsstop.domain.vo.LoginVO;
@@ -75,7 +76,8 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public LoginVO emailLogin(EmailLoginDTO dto) {
-        String email = dto.getEmail();
+        String email = dto.getEmail().trim();
+        String password = dto.getPassword();
         String userId = null;
 
         try {
@@ -87,7 +89,7 @@ public class AuthServiceImpl implements AuthService {
             userId = userAuth.getUserId();
 
             // 验证密码
-            if (!PasswordUtils.verify(dto.getPassword(), userAuth.getCredential())) {
+            if (!PasswordUtils.verify(password, userAuth.getCredential())) {
                 throw new BusinessException(AuthConst.ACCOUNT_OR_PASSWORD_ERROR);
             }
 
@@ -119,14 +121,15 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public LoginVO emailCodeLogin(EmailCodeLoginDTO dto) {
-        String email = dto.getEmail();
+        String email = dto.getEmail().trim();
+        String code = dto.getCode().trim();
         String codeKey = RedisConst.EMAIL_CODE + CodePurposeEnum.LOGIN.getKey() + ":" + email;
         String userId = null;
 
         try {
             // 验证验证码
             String storedCode = redisUtils.get(codeKey, String.class);
-            if (storedCode == null || !storedCode.equals(dto.getCode())) {
+            if (storedCode == null || !storedCode.equals(code)) {
                 throw new BusinessException(AuthConst.CODE_INVALID_OR_EXPIRED);
             }
 
@@ -199,7 +202,7 @@ public class AuthServiceImpl implements AuthService {
     /**
      * 构建登录返回结果
      *
-     * @param userAuth  用户认证信息
+     * @param userAuth 用户认证信息
      * @return 登录结果
      */
     private LoginVO buildLoginVO(UserAuthEntity userAuth) {
@@ -213,9 +216,9 @@ public class AuthServiceImpl implements AuthService {
         loginVO.setRefreshToken(tokenPair.getRefreshToken());
 
         // 存储refreshToken到Redis（设置与JWT相同的过期时间）
-        redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userAuth.getUserId(), 
-                tokenPair.getRefreshToken(), 
-                jwtConfig.getFront().getRefreshTokenExpiration(), 
+        redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userAuth.getUserId(),
+                tokenPair.getRefreshToken(),
+                jwtConfig.getFront().getRefreshTokenExpiration(),
                 TimeUnit.MILLISECONDS);
 
         return loginVO;
@@ -267,9 +270,9 @@ public class AuthServiceImpl implements AuthService {
         // 生成新token
         JwtUtils.TokenPair tokenPair = jwtUtils.generateFrontTokenPair(userId);
         // 更新Redis中的refreshToken（设置与JWT相同的过期时间）
-        redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userId, 
-                tokenPair.getRefreshToken(), 
-                jwtConfig.getFront().getRefreshTokenExpiration(), 
+        redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userId,
+                tokenPair.getRefreshToken(),
+                jwtConfig.getFront().getRefreshTokenExpiration(),
                 TimeUnit.MILLISECONDS);
         // 返回新token
         return TokenVO.builder()
@@ -291,7 +294,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(AuthConst.INVALID_CODE_PURPOSE);
         }
 
-        String email = dto.getEmail();
+        String email = dto.getEmail().trim();
 
         // 检查是否在短时间内重复发送
         String codeKey = RedisConst.EMAIL_CODE + purpose.getKey() + ":" + email;
@@ -325,6 +328,49 @@ public class AuthServiceImpl implements AuthService {
                 .params(params)
                 .build();
         rabbitTemplate.convertAndSend(RabbitMQConst.BLOG_EXCHANGE, RabbitMQConst.EMAIL_ROUTING_KEY, emailDTO);
+    }
+
+    /**
+     * 重置密码
+     *
+     * @param dto 重置密码请求参数
+     */
+    @Override
+    public void resetPassword(ResetPasswordDTO dto) {
+        String email = dto.getEmail().trim();
+        String code = dto.getCode().trim();
+        String newPassword = dto.getNewPassword().trim();
+
+        // 校验密码不能包含空格
+        if (newPassword.contains(" ")) {
+            throw new BusinessException(AuthConst.PASSWORD_CONTAINS_WHITESPACE);
+        }
+
+        String codeKey = RedisConst.EMAIL_CODE + CodePurposeEnum.RESET_PASSWORD.getKey() + ":" + email;
+
+        // 验证验证码
+        String storedCode = redisUtils.get(codeKey, String.class);
+        if (storedCode == null || !storedCode.equals(code)) {
+            throw new BusinessException(AuthConst.CODE_INVALID_OR_EXPIRED);
+        }
+
+        // 查询用户认证信息
+        UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(email, LoginTypeEnum.EMAIL.getCode());
+        if (userAuth == null) {
+            throw new BusinessException(AuthConst.CODE_INVALID_OR_EXPIRED);
+        }
+
+        // 校验新密码不能与原密码相同
+        if (PasswordUtils.verify(newPassword, userAuth.getCredential())) {
+            throw new BusinessException(AuthConst.NEW_PASSWORD_SAME_AS_OLD);
+        }
+
+        // 加密新密码并更新
+        String encryptedPassword = PasswordUtils.encrypt(newPassword);
+        authMapper.updateCredential(email, LoginTypeEnum.EMAIL.getCode(), encryptedPassword);
+
+        // 删除验证码
+        redisUtils.delete(codeKey);
     }
 
 }

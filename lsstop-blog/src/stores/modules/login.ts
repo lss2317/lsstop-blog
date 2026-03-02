@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
 /** 弹窗类型 */
-export type DialogType = 'login' | 'codeLogin' | 'register' | 'forget' | null;
+export type DialogType = 'login' | 'codeLogin' | 'register' | 'resetPassword' | null;
 
 /**
  * 登录相关弹窗状态管理
@@ -20,8 +20,8 @@ export const useLoginStore = defineStore('login', () => {
   const codeLoginDialog = computed(() => currentDialog.value === 'codeLogin');
   /** 注册弹窗 */
   const registerDialog = computed(() => currentDialog.value === 'register');
-  /** 忘记密码弹窗 */
-  const forgetDialog = computed(() => currentDialog.value === 'forget');
+  /** 重置密码弹窗 */
+  const resetPasswordDialog = computed(() => currentDialog.value === 'resetPassword');
 
   /** 关闭所有弹窗 */
   const closeAllDialogs = () => {
@@ -66,14 +66,14 @@ export const useLoginStore = defineStore('login', () => {
     currentDialog.value = null;
   };
 
-  /** 打开忘记密码弹窗 */
-  const openForgetDialog = () => {
-    currentDialog.value = 'forget';
+  /** 打开重置密码弹窗 */
+  const openResetPasswordDialog = () => {
+    currentDialog.value = 'resetPassword';
     dialogVisible.value = true;
   };
 
-  /** 关闭忘记密码弹窗 */
-  const closeForgetDialog = () => {
+  /** 关闭重置密码弹窗 */
+  const closeResetPasswordDialog = () => {
     currentDialog.value = null;
   };
 
@@ -83,15 +83,15 @@ export const useLoginStore = defineStore('login', () => {
     loginDialog,
     codeLoginDialog,
     registerDialog,
-    forgetDialog,
+    resetPasswordDialog,
     openLoginDialog,
     closeLoginDialog,
     openCodeLoginDialog,
     closeCodeLoginDialog,
     openRegisterDialog,
     closeRegisterDialog,
-    openForgetDialog,
-    closeForgetDialog,
+    openResetPasswordDialog,
+    closeResetPasswordDialog,
     closeAllDialogs,
     onDialogClosed,
   };

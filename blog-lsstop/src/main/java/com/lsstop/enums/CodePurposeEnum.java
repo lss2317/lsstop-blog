@@ -24,9 +24,9 @@ public enum CodePurposeEnum {
     REGISTER(2, "register", "注册", "注册"),
 
     /**
-     * 找回密码
+     * 重置密码
      */
-    RESET_PASSWORD(3, "reset_password", "找回密码", "找回密码");
+    RESET_PASSWORD(3, "reset_password", "重置密码", "重置密码");
 
     /**
      * 用途编码

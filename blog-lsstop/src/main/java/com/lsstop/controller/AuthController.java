@@ -6,6 +6,7 @@ import com.lsstop.domain.dto.EmailCodeLoginDTO;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
 import com.lsstop.domain.dto.RefreshTokenDTO;
+import com.lsstop.domain.dto.ResetPasswordDTO;
 import com.lsstop.domain.dto.SendCodeDTO;
 import com.lsstop.domain.dto.WeiboLoginDTO;
 import com.lsstop.domain.vo.LoginVO;
@@ -112,6 +113,19 @@ public class AuthController {
     @AccessLimit(seconds = 60, maxCount = 5)
     public Result<Void> sendCode(@RequestBody @Validated SendCodeDTO dto) {
         authService.sendCode(dto);
+        return Result.success();
+    }
+
+    /**
+     * 重置密码
+     *
+     * @param dto 重置密码请求参数
+     * @return 操作结果
+     */
+    @PostMapping("/front/auth/reset-password")
+    @AccessLimit(seconds = 60, maxCount = 5)
+    public Result<Void> resetPassword(@RequestBody @Validated ResetPasswordDTO dto) {
+        authService.resetPassword(dto);
         return Result.success();
     }
 

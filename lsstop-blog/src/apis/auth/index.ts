@@ -41,7 +41,7 @@ export interface ForgotPasswordParams {
 export interface SendCodeParams {
   /** 邮箱 */
   email: string;
-  /** 验证码用途：1-登录 2-注册 3-找回密码 */
+  /** 验证码用途：1-登录 2-注册 3-重置密码 */
   purpose: number;
 }
 
@@ -49,7 +49,7 @@ export interface SendCodeParams {
 export const CodePurpose = {
   LOGIN: 1,
   REGISTER: 2,
-  FORGOT_PASSWORD: 3,
+  RESET_PASSWORD: 3,
 } as const;
 
 // 邮箱登录
@@ -70,6 +70,21 @@ export const register = (data: RegisterParams) => {
 // 忘记密码
 export const forgotPassword = (data: ForgotPasswordParams) => {
   return http.post<null>('/auth/forgotPassword', data);
+};
+
+// 重置密码请求参数
+export interface ResetPasswordParams {
+  /** 邮箱 */
+  email: string;
+  /** 验证码 */
+  code: string;
+  /** 新密码 */
+  newPassword: string;
+}
+
+// 重置密码
+export const resetPassword = (data: ResetPasswordParams) => {
+  return http.post<null>('/auth/reset-password', data, { showProgress: false });
 };
 
 // 发送邮箱验证码
