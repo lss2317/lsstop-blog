@@ -339,17 +339,7 @@ public class AuthServiceImpl implements AuthService {
     public void resetPassword(ResetPasswordDTO dto) {
         String email = dto.getEmail().trim();
         String code = dto.getCode().trim();
-        String newPassword = dto.getNewPassword().trim();
-
-        // 校验密码不能为空
-        if (newPassword.isEmpty()) {
-            throw new BusinessException(AuthConst.PASSWORD_NOT_EMPTY);
-        }
-
-        // 校验密码不能包含空格
-        if (newPassword.contains(" ")) {
-            throw new BusinessException(AuthConst.PASSWORD_CONTAINS_WHITESPACE);
-        }
+        String newPassword = PasswordUtils.validateAndTrim(dto.getNewPassword());
 
         String codeKey = RedisConst.EMAIL_CODE + CodePurposeEnum.RESET_PASSWORD.getKey() + ":" + email;
 

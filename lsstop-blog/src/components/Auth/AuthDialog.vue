@@ -538,15 +538,16 @@ const handleResetPassword = async () => {
     snackbar.info('请输入验证码');
     return;
   }
-  if (!resetPasswordForm.password) {
+  const trimmedPassword = resetPasswordForm.password.trim();
+  if (!trimmedPassword) {
     snackbar.info('请输入新密码');
     return;
   }
-  if (resetPasswordForm.password.length < 6 || resetPasswordForm.password.length > 20) {
+  if (trimmedPassword.length < 6 || trimmedPassword.length > 20) {
     snackbar.info('密码长度为6-20位');
     return;
   }
-  if (resetPasswordForm.password !== resetPasswordForm.confirmPassword) {
+  if (trimmedPassword !== resetPasswordForm.confirmPassword.trim()) {
     snackbar.info('两次密码输入不一致');
     return;
   }
@@ -556,7 +557,7 @@ const handleResetPassword = async () => {
     await resetPassword({
       email: resetPasswordForm.email,
       code: resetPasswordForm.code,
-      newPassword: resetPasswordForm.password,
+      newPassword: trimmedPassword,
     });
     snackbar.success('密码重置成功');
     // 重置表单

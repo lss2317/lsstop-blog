@@ -137,4 +137,19 @@ public class AuthConst {
      * 密码不能为空
      */
     public static final String PASSWORD_NOT_EMPTY = "密码不能为空";
+
+    /**
+     * 密码长度不符合要求
+     */
+    public static final String PASSWORD_LENGTH_INVALID = "密码长度为6-20位";
+
+    /**
+     * 密码最小长度
+     */
+    public static final int PASSWORD_MIN_LENGTH = 6;
+
+    /**
+     * 密码最大长度
+     */
+    public static final int PASSWORD_MAX_LENGTH = 20;
 }

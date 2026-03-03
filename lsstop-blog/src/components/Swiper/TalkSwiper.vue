@@ -120,7 +120,7 @@ onUnmounted(() => {
   vertical-align: middle;
 }
 .rollScreen_list:hover .item {
-  color: #8e8cd8;
+  color: #49b1f5;
 }
 .rollScreen_list {
   transition: 1s linear;

@@ -1,5 +1,7 @@
 package com.lsstop.utils;
 
+import com.lsstop.constant.AuthConst;
+import com.lsstop.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.SecretKeyFactory;
@@ -55,6 +57,37 @@ public class PasswordUtils {
 
     private PasswordUtils() {
         // 私有构造函数，防止实例化
+    }
+
+    /**
+     * 校验并清理密码
+     * <p>
+     * 校验顺序：trim -> 空判断 -> 空格检查 -> 长度校验
+     * </p>
+     *
+     * @param password 原始密码
+     * @return trim后的密码
+     * @throws BusinessException 校验失败时抛出
+     */
+    public static String validateAndTrim(String password) {
+        String trimmed = password == null ? "" : password.trim();
+
+        // 校验密码不能为空
+        if (trimmed.isEmpty()) {
+            throw new BusinessException(AuthConst.PASSWORD_NOT_EMPTY);
+        }
+
+        // 校验密码不能包含空格
+        if (trimmed.contains(" ")) {
+            throw new BusinessException(AuthConst.PASSWORD_CONTAINS_WHITESPACE);
+        }
+
+        // 校验密码长度
+        if (trimmed.length() < AuthConst.PASSWORD_MIN_LENGTH || trimmed.length() > AuthConst.PASSWORD_MAX_LENGTH) {
+            throw new BusinessException(AuthConst.PASSWORD_LENGTH_INVALID);
+        }
+
+        return trimmed;
     }
 
     /**
