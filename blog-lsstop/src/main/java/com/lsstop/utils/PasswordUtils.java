@@ -46,6 +46,11 @@ public class PasswordUtils {
      */
     private static final String SEPARATOR = "$";
 
+    /**
+     * 分隔符正则（用于 split）
+     */
+    private static final String SEPARATOR_REGEX = "\\$";
+
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private PasswordUtils() {
@@ -83,9 +88,9 @@ public class PasswordUtils {
             return false;
         }
 
-        String[] parts = encryptedPassword.split("\\" + SEPARATOR);
+        String[] parts = encryptedPassword.split(SEPARATOR_REGEX, 2);
         if (parts.length != 2) {
-            log.warn("加密密码格式无效");
+            log.debug("加密密码格式无效");
             return false;
         }
 
@@ -96,7 +101,7 @@ public class PasswordUtils {
 
             return slowEquals(expectedHash, actualHash);
         } catch (IllegalArgumentException e) {
-            log.warn("解码加密密码失败: {}", e.getMessage());
+            log.debug("解码加密密码失败: {}", e.getMessage());
             return false;
         }
     }
@@ -120,13 +125,18 @@ public class PasswordUtils {
      * @return 哈希值
      */
     private static byte[] hash(char[] password, byte[] salt) {
+        PBEKeySpec spec = null;
         try {
-            PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_LENGTH);
+            spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_LENGTH);
             SecretKeyFactory factory = SecretKeyFactory.getInstance(ALGORITHM);
             return factory.generateSecret(spec).getEncoded();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             log.error("密码哈希失败: {}", e.getMessage());
             throw new RuntimeException("密码加密失败", e);
+        } finally {
+            if (spec != null) {
+                spec.clearPassword();
+            }
         }
     }
 

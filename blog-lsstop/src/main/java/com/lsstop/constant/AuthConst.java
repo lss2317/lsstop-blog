@@ -132,4 +132,9 @@ public class AuthConst {
      * 密码不能包含空格
      */
     public static final String PASSWORD_CONTAINS_WHITESPACE = "密码不能包含空格";
+
+    /**
+     * 密码不能为空
+     */
+    public static final String PASSWORD_NOT_EMPTY = "密码不能为空";
 }

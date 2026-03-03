@@ -341,6 +341,11 @@ public class AuthServiceImpl implements AuthService {
         String code = dto.getCode().trim();
         String newPassword = dto.getNewPassword().trim();
 
+        // 校验密码不能为空
+        if (newPassword.isEmpty()) {
+            throw new BusinessException(AuthConst.PASSWORD_NOT_EMPTY);
+        }
+
         // 校验密码不能包含空格
         if (newPassword.contains(" ")) {
             throw new BusinessException(AuthConst.PASSWORD_CONTAINS_WHITESPACE);
