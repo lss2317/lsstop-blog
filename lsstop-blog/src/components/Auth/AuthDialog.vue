@@ -184,6 +184,8 @@
             color="#1976d2"
             rounded="lg"
             size="large"
+            :loading="registerLoading"
+            :disabled="registerLoading"
             @click="register"
           >
             注册
@@ -287,7 +289,14 @@
 import { reactive, computed, ref } from 'vue';
 import { useLoginStore } from '@/stores/modules/login';
 import { storeToRefs } from 'pinia';
-import { emailLogin, emailCodeLogin, sendEmailCode, CodePurpose, resetPassword } from '@/apis/auth';
+import {
+  emailLogin,
+  emailCodeLogin,
+  sendEmailCode,
+  CodePurpose,
+  resetPassword,
+  register as registerApi,
+} from '@/apis/auth';
 import useUserInfoStore, { type UserInfo } from '@/stores/modules/userInfo';
 import useLikeStore from '@/stores/modules/like';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
@@ -515,9 +524,61 @@ const codeLogin = async () => {
   }
 };
 
+// 注册loading状态
+const registerLoading = ref(false);
+
 // 注册
-const register = () => {
-  // TODO: 实现注册逻辑
+const register = async () => {
+  if (registerLoading.value) return;
+  // 表单预处理
+  registerForm.email = registerForm.email.trim();
+  registerForm.code = registerForm.code.trim();
+  // 表单验证
+  if (!registerForm.email) {
+    snackbar.info('请输入邮箱');
+    return;
+  }
+  if (!isValidEmail(registerForm.email)) {
+    snackbar.info('邮箱格式不正确');
+    return;
+  }
+  if (!registerForm.code) {
+    snackbar.info('请输入验证码');
+    return;
+  }
+  const trimmedPassword = registerForm.password.trim();
+  if (!trimmedPassword) {
+    snackbar.info('请输入密码');
+    return;
+  }
+  if (trimmedPassword.length < 6 || trimmedPassword.length > 20) {
+    snackbar.info('密码长度为6-20位');
+    return;
+  }
+  if (trimmedPassword !== registerForm.confirmPassword.trim()) {
+    snackbar.info('两次密码输入不一致');
+    return;
+  }
+
+  registerLoading.value = true;
+  try {
+    const res = await registerApi({
+      email: registerForm.email,
+      password: trimmedPassword,
+      code: registerForm.code,
+    });
+    // 注册成功后自动登录
+    handleLoginSuccess(res.data);
+    // 重置表单
+    registerForm.email = '';
+    registerForm.code = '';
+    registerForm.password = '';
+    registerForm.confirmPassword = '';
+  } catch (error) {
+    snackbar.error(getErrorMessage(error));
+  } finally {
+    registerLoading.value = false;
+  }
 };
 
 // 重置密码

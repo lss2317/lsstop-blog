@@ -88,8 +88,8 @@
 
     <!-- 插入用户基础信息 -->
     <insert id="insertUser" parameterType="com.lsstop.domain.entity.UserEntity">
-        INSERT INTO blog_user (user_uid, status, deleted_at, create_time, update_time)
-        VALUES (#{userUid}, #{status}, 0, NOW(), NOW())
+        INSERT INTO blog_user (user_uid, status, last_login_time, deleted_at, create_time, update_time)
+        VALUES (#{userUid}, #{status}, #{lastLoginTime}, 0, NOW(), NOW())
     </insert>
 
     <!-- 插入用户认证信息 -->

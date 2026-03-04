@@ -54,7 +54,7 @@ export const emailCodeLogin = (data: CodeLoginParams) => {
 
 // 用户注册
 export const register = (data: RegisterParams) => {
-  return http.post<null>('/auth/register', data);
+  return http.post<UserInfo>('/auth/register', data, { showProgress: false });
 };
 
 // 重置密码请求参数

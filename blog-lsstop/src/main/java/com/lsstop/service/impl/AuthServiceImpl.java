@@ -38,6 +38,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -410,6 +411,7 @@ public class AuthServiceImpl implements AuthService {
         UserEntity user = UserEntity.builder()
                 .userUid(userId)
                 .status(AuthConst.USER_STATUS_NORMAL)
+                .lastLoginTime(LocalDateTime.now())
                 .build();
         authMapper.insertUser(user);
 
@@ -437,6 +439,9 @@ public class AuthServiceImpl implements AuthService {
 
         // 删除验证码
         redisUtils.delete(codeKey);
+
+        // 发送登录成功日志到MQ
+        loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthConst.LOGIN_SUCCESS);
 
         // 自动登录，返回登录结果
         return buildLoginVO(userAuth);
