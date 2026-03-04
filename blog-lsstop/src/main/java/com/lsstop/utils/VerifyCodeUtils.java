@@ -8,7 +8,7 @@ import java.security.SecureRandom;
  * @author lishusheng
  * @date 2025/12/23
  */
-public class CodeGenerator {
+public class VerifyCodeUtils {
 
     private static final char[] ALPHANUMERIC = "0123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz".toCharArray();
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -18,16 +18,16 @@ public class CodeGenerator {
      */
     private static final int CODE_LENGTH = 6;
 
-    private CodeGenerator() {
+    private VerifyCodeUtils() {
     }
 
     /**
-     * 生成8位字母数字混合验证码
+     * 生成字母数字混合验证码
      * 排除易混淆字符: 0/O, 1/I/l
      *
-     * @return 8位验证码
+     * @return 验证码
      */
-    public static String generateVerifyCode() {
+    public static String generate() {
         char[] code = new char[CODE_LENGTH];
         for (int i = 0; i < CODE_LENGTH; i++) {
             code[i] = ALPHANUMERIC[RANDOM.nextInt(ALPHANUMERIC.length)];

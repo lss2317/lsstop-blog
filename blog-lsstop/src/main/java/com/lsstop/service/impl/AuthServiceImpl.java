@@ -25,7 +25,7 @@ import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.service.AuthService;
 import com.lsstop.service.LoginLogService;
-import com.lsstop.utils.CodeGenerator;
+import com.lsstop.utils.VerifyCodeUtils;
 import com.lsstop.utils.JwtUtils;
 import com.lsstop.utils.PasswordUtils;
 import com.lsstop.utils.RedisUtils;
@@ -307,7 +307,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 生成验证码
-        String code = CodeGenerator.generateVerifyCode();
+        String code = VerifyCodeUtils.generate();
 
         // 存储到Redis
         redisUtils.set(codeKey, code, AuthConst.CODE_EXPIRE_MINUTES * 60L, TimeUnit.SECONDS);

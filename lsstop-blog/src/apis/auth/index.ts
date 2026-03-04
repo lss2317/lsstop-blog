@@ -27,16 +27,6 @@ export interface RegisterParams {
   code: string;
 }
 
-// 忘记密码请求参数
-export interface ForgotPasswordParams {
-  /** 邮箱 */
-  email: string;
-  /** 验证码 */
-  code: string;
-  /** 新密码 */
-  newPassword: string;
-}
-
 // 发送验证码请求参数
 export interface SendCodeParams {
   /** 邮箱 */
@@ -67,11 +57,6 @@ export const register = (data: RegisterParams) => {
   return http.post<null>('/auth/register', data);
 };
 
-// 忘记密码
-export const forgotPassword = (data: ForgotPasswordParams) => {
-  return http.post<null>('/auth/forgotPassword', data);
-};
-
 // 重置密码请求参数
 export interface ResetPasswordParams {
   /** 邮箱 */
@@ -100,5 +85,5 @@ export interface LogoutParams {
 
 // 退出登录
 export const logout = (data: LogoutParams) => {
-  return http.post<null>('/auth/logout', data);
+  return http.post<null>('/auth/logout', data, { showProgress: false });
 };

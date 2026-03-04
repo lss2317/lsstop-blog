@@ -8,7 +8,7 @@ import java.security.SecureRandom;
  * @author lishusheng
  * @date 2025/12/23
  */
-public class UserUidGenerator {
+public class UserUidUtils {
 
     private static final char[] ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toCharArray();
     private static final int BASE = ALPHABET.length;
@@ -26,7 +26,7 @@ public class UserUidGenerator {
      */
     private static final long OBFUSCATE_FACTOR = 0x5DEECE66DL;
 
-    private UserUidGenerator() {
+    private UserUidUtils() {
     }
 
     /**
@@ -35,7 +35,7 @@ public class UserUidGenerator {
      *
      * @return 唯一用户标识
      */
-    public static String generateUserUid() {
+    public static String generate() {
         char[] uid = new char[UID_LENGTH];
         // 使用相对时间戳，避免截断
         long timestamp = System.currentTimeMillis() - EPOCH;
