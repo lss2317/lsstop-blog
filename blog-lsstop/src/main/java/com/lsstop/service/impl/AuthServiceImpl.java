@@ -39,6 +39,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -83,7 +84,7 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public LoginVO emailLogin(EmailLoginDTO dto) {
-        String email = dto.getEmail().trim();
+        String email = dto.getEmail().trim().toLowerCase(Locale.ROOT);
         String password = dto.getPassword();
         String userId = null;
 
@@ -128,7 +129,7 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public LoginVO emailCodeLogin(EmailCodeLoginDTO dto) {
-        String email = dto.getEmail().trim();
+        String email = dto.getEmail().trim().toLowerCase(Locale.ROOT);
         String code = dto.getCode().trim();
         String codeKey = RedisConst.EMAIL_CODE + CodePurposeEnum.LOGIN.getKey() + ":" + email;
         String userId = null;
@@ -301,7 +302,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(AuthConst.INVALID_CODE_PURPOSE);
         }
 
-        String email = dto.getEmail().trim();
+        String email = dto.getEmail().trim().toLowerCase(Locale.ROOT);
 
         // 检查是否在短时间内重复发送
         String codeKey = RedisConst.EMAIL_CODE + purpose.getKey() + ":" + email;
@@ -344,7 +345,7 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public void resetPassword(ResetPasswordDTO dto) {
-        String email = dto.getEmail().trim();
+        String email = dto.getEmail().trim().toLowerCase(Locale.ROOT);
         String code = dto.getCode().trim();
         String newPassword = PasswordUtils.validateAndTrim(dto.getNewPassword());
 
@@ -384,7 +385,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public LoginVO register(RegisterDTO dto) {
-        String email = dto.getEmail().trim();
+        String email = dto.getEmail().trim().toLowerCase(Locale.ROOT);
         String code = dto.getCode().trim();
         String password = PasswordUtils.validateAndTrim(dto.getPassword());
 
