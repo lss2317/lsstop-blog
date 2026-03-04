@@ -64,4 +64,28 @@ public interface AuthMapper {
      */
     int updateCredential(@Param("identifier") String identifier, @Param("loginType") Integer loginType, @Param("credential") String credential);
 
+    /**
+     * 插入用户基础信息
+     *
+     * @param user 用户基础信息
+     * @return 插入行数
+     */
+    int insertUser(UserEntity user);
+
+    /**
+     * 插入用户认证信息
+     *
+     * @param userAuth 用户认证信息
+     * @return 插入行数
+     */
+    int insertUserAuth(UserAuthEntity userAuth);
+
+    /**
+     * 插入用户资料信息
+     *
+     * @param userProfile 用户资料信息
+     * @return 插入行数
+     */
+    int insertUserProfile(UserProfileEntity userProfile);
+
 }

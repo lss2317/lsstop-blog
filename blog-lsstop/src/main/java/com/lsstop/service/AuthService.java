@@ -3,6 +3,7 @@ package com.lsstop.service;
 import com.lsstop.domain.dto.EmailCodeLoginDTO;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
+import com.lsstop.domain.dto.RegisterDTO;
 import com.lsstop.domain.dto.ResetPasswordDTO;
 import com.lsstop.domain.dto.SendCodeDTO;
 import com.lsstop.domain.dto.WeiboLoginDTO;
@@ -78,5 +79,13 @@ public interface AuthService {
      * @param dto 重置密码请求参数
      */
     void resetPassword(ResetPasswordDTO dto);
+
+    /**
+     * 用户注册
+     *
+     * @param dto 注册请求参数
+     * @return 登录结果（注册成功后自动登录）
+     */
+    LoginVO register(RegisterDTO dto);
 
 }

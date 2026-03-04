@@ -20,6 +20,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 /**
  * 邮件消费者
@@ -42,6 +43,9 @@ public class EmailConsumer {
 
     @Value("${spring.mail.username}")
     private String from;
+
+    @Value("${blog.name}")
+    private String blogName;
 
     /**
      * 消费邮件消息
@@ -66,13 +70,13 @@ public class EmailConsumer {
     /**
      * 发送邮件
      */
-    private void sendEmail(EmailDTO emailDTO) throws MessagingException {
+    private void sendEmail(EmailDTO emailDTO) throws MessagingException, UnsupportedEncodingException {
         String subject = emailService.generateSubject(emailDTO);
         String content = emailService.generateContent(emailDTO);
 
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-        helper.setFrom(from);
+        helper.setFrom(from, blogName);
         helper.setTo(emailDTO.getTo());
         helper.setSubject(subject);
         helper.setText(content, true);

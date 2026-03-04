@@ -11,6 +11,7 @@ import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.dto.EmailCodeLoginDTO;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
+import com.lsstop.domain.dto.RegisterDTO;
 import com.lsstop.domain.dto.ResetPasswordDTO;
 import com.lsstop.domain.dto.SendCodeDTO;
 import com.lsstop.domain.dto.WeiboLoginDTO;
@@ -25,14 +26,17 @@ import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.service.AuthService;
 import com.lsstop.service.LoginLogService;
+import com.lsstop.service.WebsiteConfigService;
 import com.lsstop.utils.VerifyCodeUtils;
 import com.lsstop.utils.JwtUtils;
 import com.lsstop.utils.PasswordUtils;
 import com.lsstop.utils.RedisUtils;
+import com.lsstop.utils.UserUidUtils;
 import com.lsstop.config.JwtConfig;
 import jakarta.annotation.Resource;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,6 +71,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Resource
     private BlogConfig blogConfig;
+
+    @Resource
+    private WebsiteConfigService websiteConfigService;
 
     /**
      * 邮箱密码登录
@@ -366,6 +373,72 @@ public class AuthServiceImpl implements AuthService {
 
         // 删除验证码
         redisUtils.delete(codeKey);
+    }
+
+    /**
+     * 用户注册
+     *
+     * @param dto 注册请求参数
+     * @return 登录结果（注册成功后自动登录）
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public LoginVO register(RegisterDTO dto) {
+        String email = dto.getEmail().trim();
+        String code = dto.getCode().trim();
+        String password = PasswordUtils.validateAndTrim(dto.getPassword());
+
+        String codeKey = RedisConst.EMAIL_CODE + CodePurposeEnum.REGISTER.getKey() + ":" + email;
+
+        // 验证验证码
+        String storedCode = redisUtils.get(codeKey, String.class);
+        if (storedCode == null || !storedCode.equals(code)) {
+            throw new BusinessException(AuthConst.CODE_INVALID_OR_EXPIRED);
+        }
+
+        // 检查邮箱是否已注册
+        UserAuthEntity existingAuth = authMapper.selectByIdentifierAndType(email, LoginTypeEnum.EMAIL.getCode());
+        if (existingAuth != null) {
+            throw new BusinessException(AuthConst.EMAIL_ALREADY_REGISTERED);
+        }
+
+        // 生成用户ID
+        String userId = UserUidUtils.generate();
+
+        // 创建用户基础信息
+        UserEntity user = UserEntity.builder()
+                .userUid(userId)
+                .status(AuthConst.USER_STATUS_NORMAL)
+                .build();
+        authMapper.insertUser(user);
+
+        // 创建用户认证信息
+        String encryptedPassword = PasswordUtils.encrypt(password);
+        UserAuthEntity userAuth = UserAuthEntity.builder()
+                .userId(userId)
+                .loginType(LoginTypeEnum.EMAIL.getCode())
+                .identifier(email)
+                .credential(encryptedPassword)
+                .build();
+        authMapper.insertUserAuth(userAuth);
+
+        // 创建用户资料信息
+        String defaultNickname = blogConfig.getDefaultNicknamePrefix() + userId.substring(0, 6);
+        String defaultAvatar = websiteConfigService.getWebsiteConfig().getDefaultUserAvatar();
+        UserProfileEntity userProfile = UserProfileEntity.builder()
+                .userId(userId)
+                .nickname(defaultNickname)
+                .avatar(defaultAvatar)
+                .website("")
+                .intro("")
+                .build();
+        authMapper.insertUserProfile(userProfile);
+
+        // 删除验证码
+        redisUtils.delete(codeKey);
+
+        // 自动登录，返回登录结果
+        return buildLoginVO(userAuth);
     }
 
 }

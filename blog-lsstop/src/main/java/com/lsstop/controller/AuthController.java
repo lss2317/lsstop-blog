@@ -6,6 +6,7 @@ import com.lsstop.domain.dto.EmailCodeLoginDTO;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
 import com.lsstop.domain.dto.RefreshTokenDTO;
+import com.lsstop.domain.dto.RegisterDTO;
 import com.lsstop.domain.dto.ResetPasswordDTO;
 import com.lsstop.domain.dto.SendCodeDTO;
 import com.lsstop.domain.dto.WeiboLoginDTO;
@@ -127,6 +128,18 @@ public class AuthController {
     public Result<Void> resetPassword(@RequestBody @Validated ResetPasswordDTO dto) {
         authService.resetPassword(dto);
         return Result.success();
+    }
+
+    /**
+     * 用户注册
+     *
+     * @param dto 注册请求参数
+     * @return 登录结果（注册成功后自动登录）
+     */
+    @PostMapping("/front/auth/register")
+    @AccessLimit(seconds = 60, maxCount = 5)
+    public Result<LoginVO> register(@RequestBody @Validated RegisterDTO dto) {
+        return Result.success(authService.register(dto));
     }
 
 }

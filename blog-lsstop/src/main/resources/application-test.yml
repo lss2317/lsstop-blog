@@ -95,6 +95,8 @@ blog:
   owner-email: your-owner-email@qq.com
   # 博客前台地址 (用于邮件链接)
   url: https://your-blog-url.com
+  # 默认用户昵称前缀
+  default-nickname-prefix: 用户
 
 # MyBatis-Plus 配置
 mybatis-plus:

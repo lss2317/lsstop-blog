@@ -29,4 +29,9 @@ public class BlogConfig {
      * 博客前台地址
      */
     private String url;
+
+    /**
+     * 默认用户昵称前缀
+     */
+    private String defaultNicknamePrefix;
 }

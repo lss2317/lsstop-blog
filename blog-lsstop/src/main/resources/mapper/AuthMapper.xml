@@ -86,4 +86,22 @@
           AND deleted_at = 0
     </update>
 
+    <!-- 插入用户基础信息 -->
+    <insert id="insertUser" parameterType="com.lsstop.domain.entity.UserEntity">
+        INSERT INTO blog_user (user_uid, status, deleted_at, create_time, update_time)
+        VALUES (#{userUid}, #{status}, 0, NOW(), NOW())
+    </insert>
+
+    <!-- 插入用户认证信息 -->
+    <insert id="insertUserAuth" parameterType="com.lsstop.domain.entity.UserAuthEntity">
+        INSERT INTO blog_user_auth (user_id, login_type, identifier, credential, deleted_at, create_time, update_time)
+        VALUES (#{userId}, #{loginType}, #{identifier}, #{credential}, 0, NOW(), NOW())
+    </insert>
+
+    <!-- 插入用户资料信息 -->
+    <insert id="insertUserProfile" parameterType="com.lsstop.domain.entity.UserProfileEntity">
+        INSERT INTO blog_user_profile (user_id, nickname, avatar, website, intro, deleted_at, create_time, update_time)
+        VALUES (#{userId}, #{nickname}, #{avatar}, #{website}, #{intro}, 0, NOW(), NOW())
+    </insert>
+
 </mapper>
