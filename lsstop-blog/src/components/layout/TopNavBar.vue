@@ -6,7 +6,7 @@
         <a @click="navigateTo('/')">阿圣</a>
       </div>
       <div style="margin-left: auto">
-        <a><i class="iconfont iconsousuo" /></a>
+        <a @click="showSearch = true"><i class="iconfont iconsousuo" /></a>
         <a style="margin-left: 10px; font-size: 20px" @click="openDrawer">
           <i class="iconfont iconhanbao" />
         </a>
@@ -19,7 +19,9 @@
       </div>
       <div class="float-right nav-title">
         <div class="menus-item">
-          <a class="menu-btn"> <i class="iconfont iconsousuo" /> 搜索 </a>
+          <a class="menu-btn" @click="showSearch = true">
+            <i class="iconfont iconsousuo" /> 搜索
+          </a>
         </div>
         <div class="menus-item">
           <a class="menu-btn" @click="navigateTo('/')"><i class="iconfont iconzhuye" /> 首页</a>
@@ -92,11 +94,15 @@
       </div>
     </div>
   </v-app-bar>
+
+  <!-- 搜索弹窗 -->
+  <SearchDialog v-model="showSearch" />
 </template>
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useDrawerStore } from '@/stores/modules/drawer';
+import SearchDialog from '@/components/Search/SearchDialog.vue';
 import { useLoginStore } from '@/stores/modules/login';
 import useUserInfoStore from '@/stores/modules/userInfo';
 import { useAuthStore } from '@/stores/modules/auth';
@@ -114,6 +120,9 @@ const authStore = useAuthStore();
 const { handleLogout } = authStore;
 const avatar = computed(() => userInfoStore.userInfo.avatar);
 const isLoggedIn = computed(() => !!userInfoStore.userInfo.userId);
+
+// 搜索弹窗
+const showSearch = ref(false);
 
 // 导航
 function navigateTo(path: string) {

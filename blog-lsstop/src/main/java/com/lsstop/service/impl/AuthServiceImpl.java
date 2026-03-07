@@ -432,8 +432,6 @@ public class AuthServiceImpl implements AuthService {
                 .userId(userId)
                 .nickname(defaultNickname)
                 .avatar(defaultAvatar)
-                .website("")
-                .intro("")
                 .build();
         authMapper.insertUserProfile(userProfile);
 

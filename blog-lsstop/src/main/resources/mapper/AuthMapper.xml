@@ -100,8 +100,8 @@
 
     <!-- 插入用户资料信息 -->
     <insert id="insertUserProfile" parameterType="com.lsstop.domain.entity.UserProfileEntity">
-        INSERT INTO blog_user_profile (user_id, nickname, avatar, website, intro, deleted_at, create_time, update_time)
-        VALUES (#{userId}, #{nickname}, #{avatar}, #{website}, #{intro}, 0, NOW(), NOW())
+        INSERT INTO blog_user_profile (user_id, nickname, avatar, deleted_at, create_time, update_time)
+        VALUES (#{userId}, #{nickname}, #{avatar}, 0, NOW(), NOW())
     </insert>
 
 </mapper>

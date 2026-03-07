@@ -121,3 +121,27 @@ export interface ArticleHomePage {
 export function getArticleHomeList(current: number) {
   return http.get<ArticleHomePage>('/article/listArticleHome', { params: { current } });
 }
+
+/** 文章搜索结果项 */
+export interface ArticleSearchItem {
+  /** 文章ID */
+  id: number;
+  /** 文章标题 */
+  articleTitle: string;
+  /** 分类名称 */
+  categoryName: string;
+  /** 浏览量 */
+  viewCount: number;
+  /** 文章内容（内容搜索时返回摘要） */
+  articleContent?: string;
+}
+
+/** 搜索文章（标题搜索） */
+export function searchArticleByTitle(keyword: string) {
+  return http.get<ArticleSearchItem[]>('/article/search/title', { params: { keyword } });
+}
+
+/** 搜索文章（内容搜索） */
+export function searchArticleByContent(keyword: string) {
+  return http.get<ArticleSearchItem[]>('/article/search/content', { params: { keyword } });
+}
