@@ -253,4 +253,46 @@
           and deleted_at = 0
     </select>
 
+    <resultMap id="articleSearchTitleVoResult" type="com.lsstop.domain.vo.ArticleSearchTitleVO">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="articleTitle" column="article_title" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="categoryName" column="category_name" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="viewCount" column="view_count" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+    </resultMap>
+
+    <resultMap id="articleSearchContentVoResult" type="com.lsstop.domain.vo.ArticleSearchContentVO">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="articleTitle" column="article_title" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="categoryName" column="category_name" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="viewCount" column="view_count" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="articleContent" column="article_content" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    </resultMap>
+
+    <select id="searchByTitle" resultMap="articleSearchTitleVoResult">
+        select a.id,
+               a.article_title,
+               c.category_name,
+               a.view_count
+        from blog_article a
+                 left join blog_category c on a.category_id = c.id
+        where a.deleted_at = 0
+          and a.status = 1
+          and a.article_title like concat('%', #{keyword}, '%')
+        order by a.view_count desc, a.create_time desc
+    </select>
+
+    <select id="searchByContent" resultMap="articleSearchContentVoResult">
+        select a.id,
+               a.article_title,
+               c.category_name,
+               a.view_count,
+               a.article_content
+        from blog_article a
+                 left join blog_category c on a.category_id = c.id
+        where a.deleted_at = 0
+          and a.status = 1
+          and a.article_content like concat('%', #{keyword}, '%')
+        order by a.view_count desc, a.create_time desc
+    </select>
+
 </mapper>

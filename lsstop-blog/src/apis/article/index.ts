@@ -132,7 +132,7 @@ export interface ArticleSearchItem {
   categoryName: string;
   /** 浏览量 */
   viewCount: number;
-  /** 文章内容（内容搜索时返回摘要） */
+  /** 文章内容（内容搜索时返回） */
   articleContent?: string;
 }
 

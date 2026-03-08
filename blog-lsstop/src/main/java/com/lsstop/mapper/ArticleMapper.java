@@ -3,6 +3,8 @@ package com.lsstop.mapper;
 import com.lsstop.domain.vo.ArticleArchiveVO;
 import com.lsstop.domain.vo.ArticleHomeVO;
 import com.lsstop.domain.vo.ArticleListVO;
+import com.lsstop.domain.vo.ArticleSearchContentVO;
+import com.lsstop.domain.vo.ArticleSearchTitleVO;
 import com.lsstop.domain.vo.ArticleSimpleVO;
 import com.lsstop.domain.vo.ArticleVO;
 import com.lsstop.domain.vo.ArticleViewCountVO;
@@ -133,5 +135,21 @@ public interface ArticleMapper {
      * @return 文章标题
      */
     String selectTitleById(@Param("id") Integer id);
+
+    /**
+     * 根据标题搜索文章
+     *
+     * @param keyword 搜索关键词
+     * @return 文章搜索结果列表
+     */
+    List<ArticleSearchTitleVO> searchByTitle(@Param("keyword") String keyword);
+
+    /**
+     * 根据内容搜索文章
+     *
+     * @param keyword 搜索关键词
+     * @return 文章搜索结果列表
+     */
+    List<ArticleSearchContentVO> searchByContent(@Param("keyword") String keyword);
 
 }

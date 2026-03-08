@@ -6,6 +6,8 @@ import com.lsstop.constant.CommentConst;
 import com.lsstop.domain.vo.ArticleArchiveVO;
 import com.lsstop.domain.vo.ArticleHomePageVO;
 import com.lsstop.domain.vo.ArticleListVO;
+import com.lsstop.domain.vo.ArticleSearchContentVO;
+import com.lsstop.domain.vo.ArticleSearchTitleVO;
 import com.lsstop.domain.vo.ArticleVO;
 import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
@@ -93,6 +95,30 @@ public class ArticleController {
     public Result<ArticleVO> getArticleById(@PathVariable Integer id, HttpServletRequest request) {
         String ip = IpUtils.getIpAddress(request);
         return Result.success(articleService.getArticleById(id, ip));
+    }
+
+    /**
+     * 根据标题搜索文章
+     *
+     * @param keyword 搜索关键词
+     * @return 文章搜索结果列表
+     */
+    @GetMapping("/front/article/search/title")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<List<ArticleSearchTitleVO>> searchByTitle(@RequestParam String keyword) {
+        return Result.success(articleService.searchByTitle(keyword));
+    }
+
+    /**
+     * 根据内容搜索文章
+     *
+     * @param keyword 搜索关键词
+     * @return 文章搜索结果列表
+     */
+    @GetMapping("/front/article/search/content")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<List<ArticleSearchContentVO>> searchByContent(@RequestParam String keyword) {
+        return Result.success(articleService.searchByContent(keyword));
     }
 
 }

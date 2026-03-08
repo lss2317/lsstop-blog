@@ -29,6 +29,8 @@
             :placeholder="searchMode === 'title' ? '请输入搜索内容' : '回车进行内容搜索'"
             @keyup.enter="handleContentSearch"
             @focus="handleFocus"
+            @compositionstart="isComposing = true"
+            @compositionend="handleCompositionEnd"
           />
           <div class="search-mode-toggle">
             <div class="mode-slider" :class="{ 'slide-right': searchMode === 'content' }" />
@@ -83,12 +85,18 @@
 
         <!-- 搜索结果 -->
         <template v-else>
-          <div v-if="loading" class="loading-container">
-            <v-progress-circular indeterminate color="primary" />
-          </div>
+          <LoadingSpinner v-if="loading" />
           <div v-else-if="searchResults.length === 0" class="empty-container">
             <span class="empty-text">
-              {{ searchMode === 'title' ? '输入关键词搜索文章' : '内容搜索每分钟限5次' }}
+              {{
+                searchMode === 'title'
+                  ? searchValue.trim()
+                    ? '未找到相关文章'
+                    : '输入关键词搜索文章'
+                  : hasSearched
+                    ? '未找到相关文章'
+                    : '按回车搜索内容'
+              }}
             </span>
           </div>
           <div v-else class="result-list">
@@ -123,7 +131,6 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
 import {
   searchArticleByTitle,
   searchArticleByContent,
@@ -132,9 +139,12 @@ import {
 import { useSnackbarStore } from '@/stores/modules/snackbar';
 import { useLocalStorage } from '@/composables/useLocalStorage';
 import { getErrorMessage } from '@/utils/error';
-import { highlightKeyword } from '@/utils/format';
+import { highlightKeyword, extractKeywordContext } from '@/utils/format';
+import { stripMarkdown } from '@/utils/markdown';
+import { useNavigate } from '@/composables/useNavigate';
+import LoadingSpinner from '@/components/Loading/LoadingSpinner.vue';
 
-const router = useRouter();
+const { navigateToArticle } = useNavigate();
 const snackbar = useSnackbarStore();
 
 // 弹窗状态
@@ -146,6 +156,12 @@ const searchMode = ref<'title' | 'content'>('title');
 const loading = ref(false);
 const showHistory = ref(true);
 const inputRef = ref<HTMLInputElement | null>(null);
+const hasSearched = ref(false); // 内容搜索是否已执行
+
+// 防抖和竞态控制
+const isComposing = ref(false); // 中文输入法组合状态
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let searchVersion = 0; // 请求版本号，用于处理竞态
 
 // 搜索历史（响应式本地存储）
 const historyList = useLocalStorage<string[]>('searchHistory', []);
@@ -157,21 +173,46 @@ interface SearchResult extends ArticleSearchItem {
 }
 const searchResults = ref<SearchResult[]>([]);
 
-// 标题搜索（实时）
+// 标题搜索（实时，带防抖和竞态处理）
+function debouncedSearchByTitle() {
+  // 清除之前的防抖定时器
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+  }
+
+  debounceTimer = setTimeout(() => {
+    searchByTitle();
+  }, 300);
+}
+
 async function searchByTitle() {
-  if (!searchValue.value.trim()) {
+  const keyword = searchValue.value.trim();
+  if (!keyword) {
     searchResults.value = [];
     return;
   }
 
+  // 递增版本号，用于处理竞态
+  const currentVersion = ++searchVersion;
+
   try {
-    const res = await searchArticleByTitle(searchValue.value);
+    const res = await searchArticleByTitle(keyword);
+
+    // 检查版本号，忽略过期的响应
+    if (currentVersion !== searchVersion) {
+      return;
+    }
+
     searchResults.value = (res.data || []).map((item) => ({
       ...item,
-      highlightedTitle: highlightKeyword(item.articleTitle, searchValue.value),
+      highlightedTitle: highlightKeyword(item.articleTitle, keyword),
     }));
-  } catch {
-    searchResults.value = [];
+  } catch (error) {
+    // 同样检查版本号
+    if (currentVersion === searchVersion) {
+      searchResults.value = [];
+      snackbar.error(getErrorMessage(error));
+    }
   }
 }
 
@@ -183,12 +224,17 @@ async function handleContentSearch() {
   addToHistory(searchValue.value);
 
   loading.value = true;
+  hasSearched.value = true;
   try {
-    const res = await searchArticleByContent(searchValue.value);
+    const keyword = searchValue.value.trim();
+    const res = await searchArticleByContent(keyword);
     searchResults.value = (res.data || []).map((item) => ({
       ...item,
       highlightedContent: item.articleContent
-        ? highlightKeyword(item.articleContent, searchValue.value)
+        ? highlightKeyword(
+            extractKeywordContext(stripMarkdown(item.articleContent), keyword),
+            keyword,
+          )
         : undefined,
     }));
   } catch (error) {
@@ -201,6 +247,15 @@ async function handleContentSearch() {
 // 输入框获得焦点
 function handleFocus() {
   showHistory.value = !searchValue.value;
+}
+
+// 中文输入法组合结束
+function handleCompositionEnd() {
+  isComposing.value = false;
+  // 组合结束后，如果是标题搜索模式，触发搜索
+  if (searchMode.value === 'title' && searchValue.value) {
+    debouncedSearchByTitle();
+  }
 }
 
 // 添加搜索历史
@@ -226,7 +281,7 @@ function historySearch(value: string) {
   searchValue.value = value;
   showHistory.value = false;
   if (searchMode.value === 'title') {
-    searchByTitle();
+    searchByTitle(); // 历史记录点击直接搜索，不需要防抖
   } else {
     handleContentSearch();
   }
@@ -238,15 +293,30 @@ function goToArticle(id: number, saveHistory = false) {
     addToHistory(searchValue.value);
   }
   dialogVisible.value = false;
-  router.push(`/article/${id}`);
+  navigateToArticle(id);
 }
 
-// 监听搜索值变化（标题搜索实时响应）
+// 监听搜索值变化（标题搜索实时响应，带防抖和输入法兼容）
 watch(searchValue, (val) => {
   showHistory.value = !val;
+
+  // 内容搜索模式下，输入变化时重置搜索状态
+  if (searchMode.value === 'content') {
+    hasSearched.value = false;
+  }
+
+  // 中文输入法组合过程中不触发搜索
+  if (isComposing.value) {
+    return;
+  }
+
   if (searchMode.value === 'title' && val) {
-    searchByTitle();
+    debouncedSearchByTitle();
   } else if (!val) {
+    // 清空时取消防抖并清空结果
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
     searchResults.value = [];
   }
 });
@@ -256,14 +326,22 @@ watch(searchMode, () => {
   searchResults.value = [];
   searchValue.value = '';
   showHistory.value = true;
+  hasSearched.value = false;
 });
 
-// 监听弹窗打开
+// 监听弹窗状态
 watch(dialogVisible, (val) => {
   if (val) {
     searchValue.value = '';
     searchResults.value = [];
     showHistory.value = true;
+    hasSearched.value = false;
+  } else {
+    // 关闭弹窗时清除防抖定时器
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
   }
 });
 </script>
@@ -473,8 +551,7 @@ watch(dialogVisible, (val) => {
   color: #49b1f5;
 }
 
-/* 加载和空状态 */
-.loading-container,
+/* 空状态 */
 .empty-container {
   display: flex;
   justify-content: center;
@@ -519,6 +596,9 @@ watch(dialogVisible, (val) => {
 .result-title {
   font-size: 14px;
   margin-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .result-meta {
@@ -535,6 +615,11 @@ watch(dialogVisible, (val) => {
   color: #1976d2;
   border-radius: 4px;
   font-size: 11px;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .v-theme--dark .result-category {
@@ -543,10 +628,11 @@ watch(dialogVisible, (val) => {
 }
 
 .result-content {
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 300px;
+  min-width: 0;
 }
 
 .result-count {

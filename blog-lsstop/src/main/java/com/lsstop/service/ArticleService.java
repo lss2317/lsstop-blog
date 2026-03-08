@@ -3,6 +3,8 @@ package com.lsstop.service;
 import com.lsstop.domain.vo.ArticleArchiveVO;
 import com.lsstop.domain.vo.ArticleHomePageVO;
 import com.lsstop.domain.vo.ArticleListVO;
+import com.lsstop.domain.vo.ArticleSearchContentVO;
+import com.lsstop.domain.vo.ArticleSearchTitleVO;
 import com.lsstop.domain.vo.ArticleVO;
 
 import java.util.List;
@@ -54,5 +56,21 @@ public interface ArticleService {
      * @return 文章详情
      */
     ArticleVO getArticleById(Integer id, String ip);
+
+    /**
+     * 根据标题搜索文章
+     *
+     * @param keyword 搜索关键词
+     * @return 文章搜索结果列表
+     */
+    List<ArticleSearchTitleVO> searchByTitle(String keyword);
+
+    /**
+     * 根据内容搜索文章
+     *
+     * @param keyword 搜索关键词
+     * @return 文章搜索结果列表
+     */
+    List<ArticleSearchContentVO> searchByContent(String keyword);
 
 }

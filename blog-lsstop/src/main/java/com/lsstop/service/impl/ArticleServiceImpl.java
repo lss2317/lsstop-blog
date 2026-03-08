@@ -7,12 +7,15 @@ import com.lsstop.domain.vo.ArticleArchiveVO;
 import com.lsstop.domain.vo.ArticleHomePageVO;
 import com.lsstop.domain.vo.ArticleHomeVO;
 import com.lsstop.domain.vo.ArticleListVO;
+import com.lsstop.domain.vo.ArticleSearchContentVO;
+import com.lsstop.domain.vo.ArticleSearchTitleVO;
 import com.lsstop.domain.vo.ArticleSimpleVO;
 import com.lsstop.domain.vo.ArticleVO;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.ArticleMapper;
 import com.lsstop.service.ArticleService;
 import com.lsstop.utils.RedisUtils;
+import com.lsstop.utils.StringUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -172,6 +175,41 @@ public class ArticleServiceImpl implements ArticleService {
             }
         }
         return recommendArticles;
+    }
+
+    /**
+     * 根据标题搜索文章
+     *
+     * @param keyword 搜索关键词
+     * @return 文章搜索结果列表
+     */
+    @Override
+    public List<ArticleSearchTitleVO> searchByTitle(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return articleMapper.searchByTitle(keyword.trim());
+    }
+
+    /**
+     * 根据内容搜索文章
+     *
+     * @param keyword 搜索关键词
+     * @return 文章搜索结果列表
+     */
+    @Override
+    public List<ArticleSearchContentVO> searchByContent(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        String trimmedKeyword = keyword.trim();
+        List<ArticleSearchContentVO> result = articleMapper.searchByContent(trimmedKeyword);
+        // 处理文章内容：去除Markdown标识符，提取关键词上下文
+        result.forEach(article -> {
+            String context = StringUtils.extractContext(article.getArticleContent(), trimmedKeyword);
+            article.setArticleContent(context);
+        });
+        return result;
     }
 
 }

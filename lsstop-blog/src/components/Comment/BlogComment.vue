@@ -71,10 +71,7 @@
     </div>
 
     <!-- 加载状态 -->
-    <div class="lc-loading" v-if="loading">
-      <v-progress-circular indeterminate color="green" size="32" />
-      <span>加载中...</span>
-    </div>
+    <LoadingSpinner v-if="loading" />
 
     <!-- 评论列表 -->
     <div class="lc-comment-list" v-else-if="count > 0">
@@ -344,6 +341,7 @@ import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import CommentEmoji from '@/components/Emoji/CommentEmoji.vue';
 import ReplyInput from '@/components/Comment/ReplyInput.vue';
 import ConfirmDialog from '@/components/Dialog/ConfirmDialog.vue';
+import LoadingSpinner from '@/components/Loading/LoadingSpinner.vue';
 import { formatTime } from '@/utils/date';
 import { parseEmoji } from '@/utils/emoji';
 import useLikeStore from '@/stores/modules/like';
@@ -960,18 +958,6 @@ onUnmounted(() => {
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background: #fff;
-}
-
-/* 加载状态 */
-.lc-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 0;
-  gap: 12px;
-  color: #8c8c8c;
-  font-size: 14px;
 }
 
 /* 输入框 */
@@ -1671,11 +1657,6 @@ onUnmounted(() => {
 
 /* 空状态 */
 .v-theme--dark .lc-empty {
-  color: var(--color-text-tertiary);
-}
-
-/* 加载状态 */
-.v-theme--dark .lc-loading {
   color: var(--color-text-tertiary);
 }
 
