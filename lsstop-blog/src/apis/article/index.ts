@@ -138,10 +138,16 @@ export interface ArticleSearchItem {
 
 /** 搜索文章（标题搜索） */
 export function searchArticleByTitle(keyword: string) {
-  return http.get<ArticleSearchItem[]>('/article/search/title', { params: { keyword } });
+  return http.get<ArticleSearchItem[]>('/article/search/title', {
+    params: { keyword },
+    showProgress: false,
+  });
 }
 
 /** 搜索文章（内容搜索） */
 export function searchArticleByContent(keyword: string) {
-  return http.get<ArticleSearchItem[]>('/article/search/content', { params: { keyword } });
+  return http.get<ArticleSearchItem[]>('/article/search/content', {
+    params: { keyword },
+    showProgress: false,
+  });
 }

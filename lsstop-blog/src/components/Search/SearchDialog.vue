@@ -25,11 +25,13 @@
             ref="inputRef"
             v-model="searchValue"
             class="search-input"
+            maxlength="50"
             :placeholder="searchMode === 'title' ? '请输入搜索内容' : '回车进行内容搜索'"
             @keyup.enter="handleContentSearch"
             @focus="handleFocus"
           />
           <div class="search-mode-toggle">
+            <div class="mode-slider" :class="{ 'slide-right': searchMode === 'content' }" />
             <span
               class="mode-btn"
               :class="{ active: searchMode === 'title' }"
@@ -55,21 +57,27 @@
           <!-- 搜索历史 -->
           <div class="section-header">
             <span class="section-title">搜索历史</span>
-            <span class="section-action" @click="clearHistory">
-              <v-icon size="16">mdi-delete-outline</v-icon>
-              清除记录
+            <span v-if="historyList.length > 0" class="section-action" @click="clearHistory">
+              <v-icon size="16">mdi-trash-can-outline</v-icon>
+              清除全部
             </span>
           </div>
-          <div class="history-tags">
-            <span
+          <div class="history-list">
+            <div
               v-for="item in historyList"
               :key="item"
-              class="history-tag"
+              class="history-item"
               @click="historySearch(item)"
             >
-              {{ item }}
-            </span>
-            <span v-if="historyList.length === 0" class="empty-text">暂无搜索记录</span>
+              <i class="iconfont iconlishi history-icon" />
+              <span class="history-text">{{ item }}</span>
+              <v-icon class="history-delete" size="18" @click.stop="removeHistory(item)">
+                mdi-close
+              </v-icon>
+            </div>
+            <div v-if="historyList.length === 0" class="empty-container">
+              <span class="empty-text">暂无搜索记录</span>
+            </div>
           </div>
         </template>
 
@@ -123,6 +131,8 @@ import {
 } from '@/apis/article';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
 import { useLocalStorage } from '@/composables/useLocalStorage';
+import { getErrorMessage } from '@/utils/error';
+import { highlightKeyword } from '@/utils/format';
 
 const router = useRouter();
 const snackbar = useSnackbarStore();
@@ -146,13 +156,6 @@ interface SearchResult extends ArticleSearchItem {
   highlightedContent?: string;
 }
 const searchResults = ref<SearchResult[]>([]);
-
-// 高亮关键词
-function highlightKeyword(text: string, keyword: string) {
-  if (!keyword) return text;
-  const regex = new RegExp(`(${keyword})`, 'gi');
-  return text.replace(regex, '<span class="highlight">$1</span>');
-}
 
 // 标题搜索（实时）
 async function searchByTitle() {
@@ -182,18 +185,14 @@ async function handleContentSearch() {
   loading.value = true;
   try {
     const res = await searchArticleByContent(searchValue.value);
-    if (!res.data) {
-      snackbar.warning('搜索请求过于频繁，请稍后再试');
-      return;
-    }
     searchResults.value = (res.data || []).map((item) => ({
       ...item,
       highlightedContent: item.articleContent
         ? highlightKeyword(item.articleContent, searchValue.value)
         : undefined,
     }));
-  } catch {
-    snackbar.error('搜索失败，请稍后再试');
+  } catch (error) {
+    snackbar.error(getErrorMessage(error));
   } finally {
     loading.value = false;
   }
@@ -208,13 +207,18 @@ function handleFocus() {
 function addToHistory(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return;
-  // 去重并添加到开头
-  historyList.value = [trimmed, ...historyList.value.filter((h) => h !== trimmed)].slice(0, 10);
+  // 去重并添加到开头，最多保留7条
+  historyList.value = [trimmed, ...historyList.value.filter((h) => h !== trimmed)].slice(0, 7);
 }
 
 // 清除搜索历史
 function clearHistory() {
   historyList.value = [];
+}
+
+// 删除单条搜索历史
+function removeHistory(value: string) {
+  historyList.value = historyList.value.filter((h) => h !== value);
 }
 
 // 点击历史记录搜索
@@ -324,6 +328,7 @@ watch(dialogVisible, (val) => {
 
 /* 标题/内容切换 */
 .search-mode-toggle {
+  position: relative;
   display: flex;
   align-items: center;
   background: #e8e8e8;
@@ -335,13 +340,33 @@ watch(dialogVisible, (val) => {
   background: #3d3d3d;
 }
 
+/* 滑动背景块 */
+.mode-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  height: calc(100% - 4px);
+  background: linear-gradient(135deg, #49b1f5, #79c9f9);
+  border-radius: 14px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(73, 177, 245, 0.3);
+}
+
+.mode-slider.slide-right {
+  transform: translateX(100%);
+}
+
 .mode-btn {
+  position: relative;
+  z-index: 1;
   padding: 4px 12px;
   font-size: 12px;
   border-radius: 14px;
   cursor: pointer;
   color: #666;
-  transition: all 0.2s;
+  transition: color 0.3s ease;
+  user-select: none;
 }
 
 .v-theme--dark .mode-btn {
@@ -349,7 +374,6 @@ watch(dialogVisible, (val) => {
 }
 
 .mode-btn.active {
-  background: #ff6b6b;
   color: #fff;
 }
 
@@ -388,33 +412,65 @@ watch(dialogVisible, (val) => {
 }
 
 .section-action:hover {
-  color: #ff6b6b;
+  color: #49b1f5;
 }
 
 .section-action :deep(.v-icon) {
   margin-right: 2px;
 }
 
-/* 搜索历史标签 */
-.history-tags {
+/* 搜索历史列表 */
+.history-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
 }
 
-.history-tag {
-  padding: 6px 14px;
-  background: #49b1f5;
-  color: #fff;
-  border-radius: 16px;
-  font-size: 13px;
+.history-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 8px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s;
 }
 
-.history-tag:hover {
-  background: #3da1e5;
-  transform: scale(1.02);
+.history-item:hover {
+  background-color: #f5f5f5;
+}
+
+.v-theme--dark .history-item:hover {
+  background-color: #2d2d2d;
+}
+
+.history-icon {
+  font-size: 16px;
+  color: #999;
+  margin-right: 10px;
+}
+
+.history-text {
+  flex: 1;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.history-delete {
+  color: #999;
+  opacity: 0;
+  transition:
+    opacity 0.2s,
+    color 0.2s;
+}
+
+.history-item:hover .history-delete {
+  opacity: 1;
+}
+
+.history-delete:hover {
+  color: #49b1f5;
 }
 
 /* 加载和空状态 */
@@ -507,20 +563,20 @@ watch(dialogVisible, (val) => {
 
 /* 关键词高亮 */
 :deep(.highlight) {
-  background-color: #fff3cd;
-  color: #856404;
+  background-color: #e3f2fd;
+  color: #1976d2;
   padding: 0 2px;
   border-radius: 2px;
 }
 
 .v-theme--dark :deep(.highlight) {
-  background-color: #664d03;
-  color: #ffc107;
+  background-color: #1e3a5f;
+  color: #64b5f6;
 }
 </style>
 
 <style>
 .search-dialog-content {
-  height: 65vh !important;
+  height: 70vh !important;
 }
 </style>
