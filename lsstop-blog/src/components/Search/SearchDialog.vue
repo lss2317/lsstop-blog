@@ -160,6 +160,7 @@ const hasSearched = ref(false); // 内容搜索是否已执行
 
 // 防抖和竞态控制
 const isComposing = ref(false); // 中文输入法组合状态
+const isFromHistory = ref(false); // 是否来自历史记录点击
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let searchVersion = 0; // 请求版本号，用于处理竞态
 
@@ -278,13 +279,15 @@ function removeHistory(value: string) {
 
 // 点击历史记录搜索
 function historySearch(value: string) {
+  isFromHistory.value = true;
   searchValue.value = value;
   showHistory.value = false;
   if (searchMode.value === 'title') {
-    searchByTitle(); // 历史记录点击直接搜索，不需要防抖
+    searchByTitle();
   } else {
     handleContentSearch();
   }
+  isFromHistory.value = false;
 }
 
 // 跳转文章详情
@@ -300,7 +303,12 @@ function goToArticle(id: number, saveHistory = false) {
 watch(searchValue, (val) => {
   showHistory.value = !val;
 
-  // 内容搜索模式下，输入变化时重置搜索状态
+  // 历史记录点击时跳过，避免重复触发搜索
+  if (isFromHistory.value) {
+    return;
+  }
+
+  // 内容搜索模式下，用户输入变化时重置搜索状态
   if (searchMode.value === 'content') {
     hasSearched.value = false;
   }
@@ -352,6 +360,10 @@ watch(dialogVisible, (val) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.v-theme--dark .search-card {
+  background: #212121;
 }
 
 /* 标题栏 */
@@ -489,6 +501,10 @@ watch(dialogVisible, (val) => {
   transition: color 0.2s;
 }
 
+.v-theme--dark .section-action {
+  color: #aaa;
+}
+
 .section-action:hover {
   color: #49b1f5;
 }
@@ -524,6 +540,10 @@ watch(dialogVisible, (val) => {
   font-size: 16px;
   color: #999;
   margin-right: 10px;
+}
+
+.v-theme--dark .history-icon {
+  color: #aaa;
 }
 
 .history-text {
