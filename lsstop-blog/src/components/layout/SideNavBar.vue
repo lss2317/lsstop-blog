@@ -74,7 +74,9 @@
       </div>
       <div v-else>
         <div class="menus-item">
-          <a @click="navigateTo('/user')"> <i class="iconfont icongerenzhongxin" /> 个人中心 </a>
+          <a @click="navigateTo(`/user/${userInfoStore.userInfo.userId}`)">
+            <i class="iconfont icongerenzhongxin" /> 个人中心
+          </a>
         </div>
         <div class="menus-item">
           <a @click="handleLogout"><i class="iconfont icontuichu" /> 退出</a>

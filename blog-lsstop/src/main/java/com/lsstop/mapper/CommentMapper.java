@@ -104,4 +104,12 @@ public interface CommentMapper {
      * @return 删除的子评论数量
      */
     int deleteByParentId(@Param("parentId") Integer parentId, @Param("deletedAt") Long deletedAt);
+
+    /**
+     * 统计用户的评论数量
+     *
+     * @param userId 用户ID
+     * @return 评论数量
+     */
+    Integer countByUserId(@Param("userId") String userId);
 }

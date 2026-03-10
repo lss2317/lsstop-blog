@@ -104,4 +104,38 @@
         VALUES (#{userId}, #{nickname}, #{avatar}, 0, NOW(), NOW())
     </insert>
 
+    <!-- 用户主页详情ResultMap -->
+    <resultMap id="UserHomeResultMap" type="com.lsstop.domain.vo.UserProfileVO">
+        <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="nickname" column="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="website" column="website" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="intro" column="intro" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="email" column="email" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="qqBound" column="qq_bound" jdbcType="BOOLEAN" javaType="java.lang.Boolean"/>
+        <result property="weiboBound" column="weibo_bound" jdbcType="BOOLEAN" javaType="java.lang.Boolean"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <!-- 查询用户主页详情 -->
+    <select id="selectUserHomeDetail" parameterType="java.lang.String" resultMap="UserHomeResultMap">
+        SELECT
+            p.user_id,
+            p.nickname,
+            p.avatar,
+            p.website,
+            p.intro,
+            email_auth.identifier AS email,
+            IF(qq_auth.id IS NOT NULL, TRUE, FALSE) AS qq_bound,
+            IF(weibo_auth.id IS NOT NULL, TRUE, FALSE) AS weibo_bound,
+            u.create_time
+        FROM blog_user_profile p
+        INNER JOIN blog_user u ON u.user_uid = p.user_id AND u.deleted_at = 0
+        LEFT JOIN blog_user_auth email_auth ON email_auth.user_id = p.user_id AND email_auth.login_type = 1 AND email_auth.deleted_at = 0
+        LEFT JOIN blog_user_auth qq_auth ON qq_auth.user_id = p.user_id AND qq_auth.login_type = 2 AND qq_auth.deleted_at = 0
+        LEFT JOIN blog_user_auth weibo_auth ON weibo_auth.user_id = p.user_id AND weibo_auth.login_type = 3 AND weibo_auth.deleted_at = 0
+        WHERE p.user_id = #{userId}
+          AND p.deleted_at = 0
+    </select>
+
 </mapper>

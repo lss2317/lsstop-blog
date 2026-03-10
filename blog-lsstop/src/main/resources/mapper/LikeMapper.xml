@@ -45,4 +45,14 @@
         update_time = now()
     </insert>
 
+    <!-- 统计用户获赞数量（评论被点赞数） -->
+    <select id="countLikesByUserId" resultType="java.lang.Integer">
+        select count(*)
+        from blog_like_record lr
+        inner join blog_comment c on lr.target_id = c.id and c.deleted_at = 0
+        where c.user_id = #{userId}
+          and lr.type = 3
+          and lr.status = 1
+    </select>
+
 </mapper>

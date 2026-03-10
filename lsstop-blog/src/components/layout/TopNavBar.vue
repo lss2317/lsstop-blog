@@ -81,7 +81,7 @@
             <i v-else class="iconfont icongerenzhongxin user-icon" />
             <ul class="menus-submenu">
               <li>
-                <a @click="navigateTo('/user')">
+                <a @click="navigateTo(`/user/${userInfoStore.userInfo.userId}`)">
                   <i class="iconfont icongerenzhongxin" /> 个人中心
                 </a>
               </li>
@@ -99,7 +99,7 @@
   <SearchDialog v-model="showSearch" />
 </template>
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useDrawerStore } from '@/stores/modules/drawer';
 import SearchDialog from '@/components/Search/SearchDialog.vue';
@@ -135,7 +135,16 @@ function navigateTo(path: string) {
 
 const navClass = ref<'nav' | 'nav-fixed'>('nav');
 
+// 个人中心页面直接使用固定样式
+const isUserProfile = computed(() => route.name === 'UserProfile');
+
 const handleScroll = () => {
+  // 个人中心页面始终使用固定样式
+  if (isUserProfile.value) {
+    navClass.value = 'nav-fixed';
+    return;
+  }
+
   const top = window.scrollY;
   if (top > 60) {
     if (navClass.value !== 'nav-fixed') {
@@ -148,6 +157,14 @@ const handleScroll = () => {
     navClass.value = 'nav';
   }
 };
+
+// 监听路由变化，切换导航栏样式
+watch(
+  () => route.name,
+  () => {
+    handleScroll();
+  },
+);
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll);

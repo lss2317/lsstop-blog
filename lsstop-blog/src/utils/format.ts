@@ -70,3 +70,12 @@ export function extractKeywordContext(
 
   return result;
 }
+
+/**
+ * 格式化网站显示，移除 http(s):// 前缀和尾部斜杠
+ * @param url 原始 URL
+ * @returns 简化后的网站地址
+ */
+export function formatWebsite(url: string): string {
+  return url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+}

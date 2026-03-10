@@ -3,6 +3,7 @@ package com.lsstop.mapper;
 import com.lsstop.domain.entity.UserAuthEntity;
 import com.lsstop.domain.entity.UserEntity;
 import com.lsstop.domain.entity.UserProfileEntity;
+import com.lsstop.domain.vo.UserProfileVO;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -87,5 +88,13 @@ public interface AuthMapper {
      * @return 插入行数
      */
     int insertUserProfile(UserProfileEntity userProfile);
+
+    /**
+     * 查询用户主页详情（包含基本信息、绑定状态、注册时间）
+     *
+     * @param userId 用户ID
+     * @return 用户主页详情
+     */
+    UserProfileVO selectUserHomeDetail(@Param("userId") String userId);
 
 }

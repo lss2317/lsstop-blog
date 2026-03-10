@@ -98,4 +98,27 @@ public class StringUtils {
         int end = Math.min(plainText.length(), index + keyword.length() + contextLength);
         return plainText.substring(start, end);
     }
+
+    /**
+     * 邮箱脱敏处理
+     * <p>例如：example@qq.com -> exa***@qq.com</p>
+     *
+     * @param email 原始邮箱
+     * @return 脱敏后的邮箱
+     */
+    public static String maskEmail(String email) {
+        if (email == null || email.isEmpty()) {
+            return email;
+        }
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 1) {
+            return email;
+        }
+        String prefix = email.substring(0, atIndex);
+        String suffix = email.substring(atIndex);
+        if (prefix.length() <= 3) {
+            return prefix.charAt(0) + "***" + suffix;
+        }
+        return prefix.substring(0, 3) + "***" + suffix;
+    }
 }

@@ -38,4 +38,12 @@ public interface LikeMapper {
      */
     void batchInsertOrUpdate(@Param("records") List<LikeRecordEntity> records);
 
+    /**
+     * 统计用户获赞数量（评论被点赞数）
+     *
+     * @param userId 用户ID
+     * @return 获赞数量
+     */
+    Integer countLikesByUserId(@Param("userId") String userId);
+
 }

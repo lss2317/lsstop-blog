@@ -124,6 +124,15 @@ export const constantRouter = [
       pageLabel: 'message',
     },
   },
+  {
+    path: '/user/:userId',
+    name: 'UserProfile',
+    component: () => import('@/views/User/UserProfile.vue'),
+    meta: {
+      title: '个人中心',
+      pageLabel: 'user',
+    },
+  },
   // 访问其他任何不存在的路由，重定向到首页
   // {
   //   path: '/:pathMatch(.*)*',

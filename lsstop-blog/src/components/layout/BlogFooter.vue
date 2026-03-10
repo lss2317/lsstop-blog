@@ -1,5 +1,11 @@
 <template>
-  <v-footer app padless absolute style="background: rgba(0, 0, 0, 0); padding: 0" v-if="!isMessage">
+  <v-footer
+    app
+    padless
+    absolute
+    style="background: rgba(0, 0, 0, 0); padding: 0"
+    v-if="!hideFooter"
+  >
     <div class="footer-wrap">
       <div>
         ©{{ dateFormat.year(websiteCreateTime) }} - {{ new Date().getFullYear() }} By
@@ -38,8 +44,12 @@ const websiteConfigStore = useWebsiteConfigStore();
 const { config } = storeToRefs(websiteConfigStore);
 
 const websiteCreateTime = computed(() => config.value.siteStartTime);
-const isMessage = computed(() => route.path === '/message');
 const websiteAuthor = computed(() => config.value.siteAuthor);
+
+// 隐藏 footer 的页面
+const hideFooter = computed(() => {
+  return route.path === '/message' || route.name === 'UserProfile';
+});
 </script>
 
 <style scoped>

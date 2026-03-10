@@ -170,4 +170,13 @@
           and deleted_at = 0
     </update>
 
+    <!-- 统计用户的评论数量 -->
+    <select id="countByUserId" resultType="java.lang.Integer">
+        select count(*)
+        from blog_comment
+        where user_id = #{userId}
+          and deleted_at = 0
+          and review = 0
+    </select>
+
 </mapper>

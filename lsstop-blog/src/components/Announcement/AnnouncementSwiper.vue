@@ -451,8 +451,7 @@ onUnmounted(() => {
   line-height: 1.65;
   white-space: pre-wrap;
   color: rgba(0, 0, 0, 0.7);
-  min-height: 150px;
-  max-height: 420px;
+  height: 400px;
   overflow-y: auto;
 }
 

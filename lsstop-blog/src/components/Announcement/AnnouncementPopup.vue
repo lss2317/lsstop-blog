@@ -169,8 +169,7 @@ watch(
   font-size: 0.95rem;
   line-height: 1.65;
   color: rgba(0, 0, 0, 0.7);
-  min-height: 150px;
-  max-height: 420px;
+  height: 400px;
   overflow-y: auto;
 }
 
