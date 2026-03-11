@@ -95,15 +95,17 @@
           <div v-if="isOwner" class="settings-card fade-in-item" style="--delay: 0.1s">
             <h3 class="card-title">账号设置</h3>
             <div class="settings-list">
-              <div class="setting-item" @click="openEmailDialog">
+              <div class="setting-item">
                 <v-icon size="18">mdi-email-outline</v-icon>
                 <span class="setting-label">邮箱</span>
                 <span class="setting-value">{{ profileData.email || '未绑定' }}</span>
+                <button class="setting-action-btn" @click="openEmailDialog">修改</button>
               </div>
-              <div class="setting-item" @click="openPasswordDialog">
+              <div class="setting-item">
                 <v-icon size="18">mdi-lock-outline</v-icon>
                 <span class="setting-label">密码</span>
-                <span class="setting-value">修改</span>
+                <span class="setting-value">******</span>
+                <button class="setting-action-btn" @click="openPasswordDialog">修改</button>
               </div>
             </div>
           </div>
@@ -112,19 +114,33 @@
           <div v-if="isOwner" class="settings-card fade-in-item" style="--delay: 0.2s">
             <h3 class="card-title">绑定第三方账号</h3>
             <div class="settings-list">
-              <div class="setting-item" @click="handleQQBind">
+              <div class="setting-item">
                 <span class="iconfont iconqq" style="color: #00aaee; font-size: 18px" />
                 <span class="setting-label">QQ</span>
                 <span class="setting-value" :class="{ bound: profileData.qqBound }">
                   {{ profileData.qqBound ? '已绑定' : '未绑定' }}
                 </span>
+                <button
+                  class="setting-action-btn"
+                  :class="{ 'setting-action-btn--danger': profileData.qqBound }"
+                  @click="handleQQBind"
+                >
+                  {{ profileData.qqBound ? '解绑' : '绑定' }}
+                </button>
               </div>
-              <div class="setting-item" @click="handleWeiboBind">
+              <div class="setting-item">
                 <span class="iconfont iconweibo" style="color: #e05244; font-size: 18px" />
                 <span class="setting-label">微博</span>
                 <span class="setting-value" :class="{ bound: profileData.weiboBound }">
                   {{ profileData.weiboBound ? '已绑定' : '未绑定' }}
                 </span>
+                <button
+                  class="setting-action-btn"
+                  :class="{ 'setting-action-btn--danger': profileData.weiboBound }"
+                  @click="handleWeiboBind"
+                >
+                  {{ profileData.weiboBound ? '解绑' : '绑定' }}
+                </button>
               </div>
             </div>
           </div>
@@ -178,7 +194,12 @@
             />
           </div>
           <div class="edit-form-item">
-            <input v-model="editForm.website" class="edit-input" placeholder="请输入个人网站URL" />
+            <input
+              v-model="editForm.website"
+              class="edit-input"
+              placeholder="请输入个人网站URL"
+              @keydown.space.prevent
+            />
           </div>
           <div class="edit-form-item">
             <textarea
@@ -219,6 +240,7 @@
               class="edit-input"
               placeholder="请输入新邮箱"
               type="email"
+              @keydown.space.prevent
             />
           </div>
           <div class="edit-form-item">
@@ -228,6 +250,7 @@
                 class="edit-input edit-code-input"
                 placeholder="请输入验证码"
                 maxlength="6"
+                @keydown.space.prevent
               />
               <button
                 class="edit-code-btn"
@@ -268,6 +291,7 @@
                 class="edit-input"
                 placeholder="请输入旧密码"
                 :type="passwordForm.showOld ? 'text' : 'password'"
+                @keydown.space.prevent
               />
               <button class="edit-eye-btn" @click="passwordForm.showOld = !passwordForm.showOld">
                 <v-icon size="18">{{ passwordForm.showOld ? 'mdi-eye' : 'mdi-eye-off' }}</v-icon>
@@ -282,6 +306,7 @@
                 placeholder="请输入新密码（6-20位）"
                 :type="passwordForm.showNew ? 'text' : 'password'"
                 maxlength="20"
+                @keydown.space.prevent
               />
               <button class="edit-eye-btn" @click="passwordForm.showNew = !passwordForm.showNew">
                 <v-icon size="18">{{ passwordForm.showNew ? 'mdi-eye' : 'mdi-eye-off' }}</v-icon>
@@ -296,6 +321,7 @@
                 placeholder="请再次输入新密码"
                 :type="passwordForm.showConfirm ? 'text' : 'password'"
                 maxlength="20"
+                @keydown.space.prevent
               />
               <button
                 class="edit-eye-btn"
@@ -330,7 +356,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import useUserInfoStore from '@/stores/modules/userInfo';
@@ -365,16 +391,21 @@ const profileData = ref<UserProfileInfo | null>(null);
 
 // 是否是自己的主页
 const isOwner = computed(() => {
-  return userInfo.value.userId === route.params.userId;
+  return String(userInfo.value?.userId || '') === String(route.params.userId || '');
 });
 
 // 响应式判断
-const isMobile = computed(() => {
-  return document.documentElement.clientWidth <= 960;
-});
+const isMobile = ref(false);
+
+const handleResize = () => {
+  isMobile.value = window.innerWidth <= 960;
+};
 
 // 获取用户信息
+let requestId = 0;
+
 const fetchUserProfile = async () => {
+  const currentId = ++requestId;
   const userId = route.params.userId as string;
   if (!userId) {
     loading.value = false;
@@ -384,26 +415,30 @@ const fetchUserProfile = async () => {
   loading.value = true;
   try {
     const res = await getUserProfile(userId);
+    if (currentId !== requestId) return;
     profileData.value = res.data;
   } catch {
+    if (currentId !== requestId) return;
     profileData.value = null;
   } finally {
-    loading.value = false;
+    if (currentId === requestId) {
+      loading.value = false;
+    }
   }
 };
 
 // 监听路由变化
-watch(
-  () => route.params.userId,
-  () => {
-    if (route.name === 'UserProfile') {
-      fetchUserProfile();
-    }
-  },
-);
+watch(() => route.params.userId, fetchUserProfile);
 
 onMounted(() => {
   fetchUserProfile();
+  handleResize();
+  window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+  clearEmailTimer();
 });
 
 // ========== 上传头像 ==========
@@ -502,6 +537,14 @@ const emailForm = reactive({
   code: '',
   countdown: 0,
 });
+let emailTimer: number | null = null;
+
+const clearEmailTimer = () => {
+  if (emailTimer) {
+    clearInterval(emailTimer);
+    emailTimer = null;
+  }
+};
 
 const openEmailDialog = () => {
   emailForm.newEmail = '';
@@ -525,11 +568,13 @@ const sendEmailCode = async () => {
     await sendUpdateEmailCode(email);
     snackbar.success('验证码已发送');
     // 开始倒计时
+    clearEmailTimer();
     emailForm.countdown = 60;
-    const timer = setInterval(() => {
-      emailForm.countdown--;
-      if (emailForm.countdown <= 0) {
-        clearInterval(timer);
+    emailTimer = window.setInterval(() => {
+      if (emailForm.countdown > 0) {
+        emailForm.countdown--;
+      } else {
+        clearEmailTimer();
       }
     }, 1000);
   } catch (error) {
@@ -755,12 +800,6 @@ const confirmUnbind = async () => {
   opacity: 1;
 }
 
-.v-theme--dark .avatar-hover-tip {
-  background: #3a3a3a;
-  color: rgba(255, 255, 255, 0.9);
-  border-color: #525252;
-}
-
 .user-info {
   flex: 1;
   min-width: 0;
@@ -879,12 +918,6 @@ const confirmUnbind = async () => {
   display: flex;
   align-items: center;
   padding: 10px 0;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.setting-item:hover {
-  opacity: 0.7;
 }
 
 .setting-item .v-icon,
@@ -902,10 +935,37 @@ const confirmUnbind = async () => {
 .setting-value {
   font-size: 13px;
   color: #bfbfbf;
+  margin-right: 12px;
 }
 
 .setting-value.bound {
   color: #52c41a;
+}
+
+.setting-action-btn {
+  padding: 4px 12px;
+  font-size: 13px;
+  color: #8c8c8c;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.setting-action-btn:hover {
+  color: #595959;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.setting-action-btn--danger {
+  color: #ff4d4f;
+}
+
+.setting-action-btn--danger:hover {
+  color: #ff7875;
+  background: rgba(255, 77, 79, 0.08);
 }
 
 /* 内容卡片 */
@@ -1029,67 +1089,6 @@ const confirmUnbind = async () => {
   padding: 40px 0;
 }
 
-/* 对话框样式 */
-.dialog-card {
-  border-radius: 12px !important;
-}
-
-.dialog-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 18px;
-  font-weight: 500;
-  padding: 20px 24px 16px;
-}
-
-.close-btn {
-  cursor: pointer;
-  color: #bfbfbf;
-}
-
-.close-btn:hover {
-  color: #595959;
-}
-
-.dialog-content {
-  padding: 0 24px 16px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group:last-child {
-  margin-bottom: 0;
-}
-
-.form-label {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: #262626;
-  margin-bottom: 8px;
-}
-
-.code-input-wrapper {
-  display: flex;
-  gap: 12px;
-}
-
-.code-input-wrapper .v-text-field {
-  flex: 1;
-}
-
-.send-code-btn {
-  min-width: 80px;
-}
-
-.dialog-actions {
-  padding: 8px 16px 16px;
-  justify-content: flex-end;
-}
-
 /* 编辑弹框样式 - 力扣风格 */
 .edit-dialog {
   background: #fff;
@@ -1210,28 +1209,32 @@ const confirmUnbind = async () => {
 }
 
 .edit-code-btn {
+  flex-shrink: 0;
+  min-width: 80px;
   height: 36px;
-  padding: 0 16px;
+  padding: 0 10px;
   border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid #3b82f6;
-  background: transparent;
-  color: #3b82f6;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .edit-code-btn:hover {
-  background: rgba(59, 130, 246, 0.1);
+  border-color: #d1d5db;
+  background: #f1f5f9;
+  color: #374151;
 }
 
 .edit-code-btn:disabled {
-  opacity: 0.5;
+  background: #f8fafc;
+  border-color: #e5e7eb;
+  color: #94a3b8;
   cursor: not-allowed;
-  border-color: #d9d9d9;
-  color: #bfbfbf;
 }
 
 .edit-password-wrapper {
@@ -1315,7 +1318,7 @@ const confirmUnbind = async () => {
 }
 </style>
 
-<!-- 夜间模式样式 -->
+<!-- 夜间模式样式（类名已足够特定，污染风险低） -->
 <style>
 .v-theme--dark .profile-page {
   background: #141414;
@@ -1372,6 +1375,24 @@ const confirmUnbind = async () => {
   color: #52c41a;
 }
 
+.v-theme--dark .setting-action-btn {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.v-theme--dark .setting-action-btn:hover {
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.v-theme--dark .setting-action-btn--danger {
+  color: #ff7875;
+}
+
+.v-theme--dark .setting-action-btn--danger:hover {
+  color: #ffa39e;
+  background: rgba(255, 120, 117, 0.12);
+}
+
 .v-theme--dark .edit-profile-btn {
   background: rgba(45, 181, 93, 0.15);
   color: #5ec269;
@@ -1379,10 +1400,6 @@ const confirmUnbind = async () => {
 
 .v-theme--dark .edit-profile-btn:hover {
   background: rgba(45, 181, 93, 0.2);
-}
-
-.v-theme--dark .dialog-card {
-  background: #1f1f1f;
 }
 
 /* 编辑弹框暗色模式 */
@@ -1429,16 +1446,20 @@ const confirmUnbind = async () => {
 }
 
 .v-theme--dark .edit-code-btn {
-  border-color: #3b82f6;
-  color: #60a5fa;
+  border-color: #404040;
+  background: #2a2a2a;
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .v-theme--dark .edit-code-btn:hover {
-  background: rgba(59, 130, 246, 0.15);
+  border-color: #525252;
+  background: #333333;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .v-theme--dark .edit-code-btn:disabled {
-  border-color: #525252;
+  background: #2a2a2a;
+  border-color: #404040;
   color: rgba(255, 255, 255, 0.3);
 }
 
@@ -1452,5 +1473,11 @@ const confirmUnbind = async () => {
 
 .v-theme--dark .skeleton-meta {
   border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.v-theme--dark .avatar-hover-tip {
+  background: #3a3a3a;
+  color: rgba(255, 255, 255, 0.9);
+  border-color: #525252;
 }
 </style>
