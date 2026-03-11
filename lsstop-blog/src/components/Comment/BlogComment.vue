@@ -78,12 +78,12 @@
       <div class="lc-comment-item" v-for="item of commentList" :key="item.id">
         <!-- 头像 -->
         <div class="lc-avatar">
-          <img :src="item.avatar" alt="用户头像" />
+          <img :src="item.avatar || defaultAvatar" alt="用户头像" />
         </div>
         <div class="lc-comment-main">
           <!-- 用户信息 -->
           <div class="lc-user-row">
-            <span class="lc-nickname">{{ item.nickname }}</span>
+            <span class="lc-nickname">{{ item.nickname || '已注销用户' }}</span>
             <span class="lc-self-tag" v-if="isSelf(item.userId)">我</span>
           </div>
           <!-- 时间地点 -->
@@ -187,11 +187,11 @@
               <template v-for="reply of item.replyList ?? []" :key="reply.id">
                 <div class="lc-reply-item">
                   <div class="lc-avatar small">
-                    <img :src="reply.avatar" alt="用户头像" />
+                    <img :src="reply.avatar || defaultAvatar" alt="用户头像" />
                   </div>
                   <div class="lc-reply-main">
                     <div class="lc-user-row">
-                      <span class="lc-nickname">{{ reply.nickname }}</span>
+                      <span class="lc-nickname">{{ reply.nickname || '已注销用户' }}</span>
                       <span class="lc-self-tag" v-if="isSelf(reply.userId)">我</span>
                     </div>
                     <div class="lc-meta-row">
@@ -207,11 +207,8 @@
                         :class="['lc-content', !expandedReplyMap[reply.id] ? 'collapsed' : '']"
                         :ref="(el) => setReplyContentRef(reply.id, el as HTMLElement)"
                       >
-                        <a
-                          v-if="reply.replyNickname"
-                          class="lc-reply-to"
-                          :href="'/user/' + reply.replyUserId"
-                          >@{{ reply.replyNickname }}</a
+                        <span v-if="reply.replyUserId" class="lc-reply-to"
+                          >@{{ reply.replyNickname || '已注销用户' }}</span
                         ><span v-html="parseEmoji(reply.content)"></span>
                       </div>
                       <div
@@ -347,6 +344,7 @@ import { parseEmoji } from '@/utils/emoji';
 import useLikeStore from '@/stores/modules/like';
 import useUserInfoStore from '@/stores/modules/userInfo';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
+import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
 import { LikeTypeEnum } from '@/constants/likeType';
 import type { Comment, Reply } from '@/apis/comment';
 import { getComments, addComment, getReplyList, deleteComment } from '@/apis/comment';
@@ -409,6 +407,9 @@ const submitting = ref(false);
 const sortBarRef = ref<HTMLElement | null>(null);
 //每页默认最大条数
 const pageSize = 10;
+
+// 默认头像
+const defaultAvatar = computed(() => useWebsiteConfigStore().config.defaultUserAvatar);
 
 // 计算总页数
 const totalPages = computed(() => Math.ceil(count.value / pageSize));
