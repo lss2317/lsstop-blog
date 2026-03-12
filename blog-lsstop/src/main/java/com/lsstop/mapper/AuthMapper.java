@@ -4,6 +4,7 @@ import com.lsstop.domain.entity.UserAuthEntity;
 import com.lsstop.domain.entity.UserEntity;
 import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.vo.UserProfileVO;
+import com.lsstop.domain.vo.UserPublicProfileVO;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -96,5 +97,13 @@ public interface AuthMapper {
      * @return 用户主页详情
      */
     UserProfileVO selectUserHomeDetail(@Param("userId") String userId);
+
+    /**
+     * 查询用户公开主页详情（不包含敏感信息）
+     *
+     * @param userId 用户ID
+     * @return 用户公开主页详情
+     */
+    UserPublicProfileVO selectUserPublicHomeDetail(@Param("userId") String userId);
 
 }

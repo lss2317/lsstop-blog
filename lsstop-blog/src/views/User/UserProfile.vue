@@ -84,8 +84,9 @@
               </div>
               <div v-if="profileData.website" class="meta-item">
                 <v-icon size="18">mdi-link-variant</v-icon>
-                <a :href="profileData.website" target="_blank" class="meta-link">
+                <a :href="profileData.website" target="_blank" rel="noopener noreferrer" class="meta-link">
                   {{ formatWebsite(profileData.website) }}
+                  <v-icon size="14" class="external-icon">mdi-arrow-top-right</v-icon>
                 </a>
               </div>
             </div>
@@ -98,7 +99,7 @@
               <div class="setting-item">
                 <v-icon size="18">mdi-email-outline</v-icon>
                 <span class="setting-label">邮箱</span>
-                <span class="setting-value">{{ profileData.email || '未绑定' }}</span>
+                <span class="setting-value">{{ ownerProfile?.email || '未绑定' }}</span>
                 <button class="setting-action-btn" @click="openEmailDialog">修改</button>
               </div>
               <div class="setting-item">
@@ -117,29 +118,29 @@
               <div class="setting-item">
                 <span class="iconfont iconqq" style="color: #00aaee; font-size: 18px" />
                 <span class="setting-label">QQ</span>
-                <span class="setting-value" :class="{ bound: profileData.qqBound }">
-                  {{ profileData.qqBound ? '已绑定' : '未绑定' }}
+                <span class="setting-value" :class="{ bound: ownerProfile?.qqBound }">
+                  {{ ownerProfile?.qqBound ? '已绑定' : '未绑定' }}
                 </span>
                 <button
                   class="setting-action-btn"
-                  :class="{ 'setting-action-btn--danger': profileData.qqBound }"
+                  :class="{ 'setting-action-btn--danger': ownerProfile?.qqBound }"
                   @click="handleQQBind"
                 >
-                  {{ profileData.qqBound ? '解绑' : '绑定' }}
+                  {{ ownerProfile?.qqBound ? '解绑' : '绑定' }}
                 </button>
               </div>
               <div class="setting-item">
                 <span class="iconfont iconweibo" style="color: #e05244; font-size: 18px" />
                 <span class="setting-label">微博</span>
-                <span class="setting-value" :class="{ bound: profileData.weiboBound }">
-                  {{ profileData.weiboBound ? '已绑定' : '未绑定' }}
+                <span class="setting-value" :class="{ bound: ownerProfile?.weiboBound }">
+                  {{ ownerProfile?.weiboBound ? '已绑定' : '未绑定' }}
                 </span>
                 <button
                   class="setting-action-btn"
-                  :class="{ 'setting-action-btn--danger': profileData.weiboBound }"
+                  :class="{ 'setting-action-btn--danger': ownerProfile?.weiboBound }"
                   @click="handleWeiboBind"
                 >
-                  {{ profileData.weiboBound ? '解绑' : '绑定' }}
+                  {{ ownerProfile?.weiboBound ? '解绑' : '绑定' }}
                 </button>
               </div>
             </div>
@@ -198,6 +199,7 @@
               v-model="editForm.website"
               class="edit-input"
               placeholder="请输入个人网站URL"
+              maxlength="200"
               @keydown.space.prevent
             />
           </div>
@@ -363,6 +365,7 @@ import useUserInfoStore from '@/stores/modules/userInfo';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
 import {
   getUserProfile,
+  getUserPublicProfile,
   updateUserInfo,
   updateEmail,
   updatePassword,
@@ -370,6 +373,7 @@ import {
   sendUpdateEmailCode,
   uploadAvatar,
   type UserProfileInfo,
+  type UserPublicProfile,
   type SocialType,
 } from '@/apis/user';
 import { isValidEmail } from '@/utils/validate';
@@ -386,12 +390,20 @@ const { userInfo } = storeToRefs(userInfoStore);
 // 加载状态
 const loading = ref(true);
 
-// 用户数据
-const profileData = ref<UserProfileInfo | null>(null);
+// 用户数据（自己的完整信息 或 他人的公开信息）
+const profileData = ref<UserProfileInfo | UserPublicProfile | null>(null);
 
 // 是否是自己的主页
 const isOwner = computed(() => {
   return String(userInfo.value?.userId || '') === String(route.params.userId || '');
+});
+
+// 完整的用户信息（仅 isOwner 时使用，包含邮箱、绑定状态等敏感字段）
+const ownerProfile = computed((): UserProfileInfo | null => {
+  if (isOwner.value && profileData.value) {
+    return profileData.value as UserProfileInfo;
+  }
+  return null;
 });
 
 // 响应式判断
@@ -412,9 +424,13 @@ const fetchUserProfile = async () => {
     return;
   }
 
+  // 判断是否是自己的主页
+  const isSelf = String(userInfo.value?.userId || '') === String(userId);
+
   loading.value = true;
   try {
-    const res = await getUserProfile(userId);
+    // 自己调用完整信息接口，他人调用公开信息接口
+    const res = isSelf ? await getUserProfile() : await getUserPublicProfile(userId);
     if (currentId !== requestId) return;
     profileData.value = res.data;
   } catch {
@@ -427,11 +443,16 @@ const fetchUserProfile = async () => {
   }
 };
 
-// 监听路由变化
-watch(() => route.params.userId, fetchUserProfile);
+// 监听路由变化（immediate 首次也触发，替代 onMounted 中的调用）
+watch(
+  () => route.params.userId,
+  async () => {
+    await fetchUserProfile();
+  },
+  { immediate: true },
+);
 
 onMounted(() => {
-  fetchUserProfile();
   handleResize();
   window.addEventListener('resize', handleResize);
 });
@@ -441,7 +462,7 @@ onUnmounted(() => {
   clearEmailTimer();
 });
 
-// ========== 上传头像 ==========
+// 上传头像
 const avatarInput = ref<HTMLInputElement | null>(null);
 
 const triggerAvatarUpload = () => {
@@ -480,7 +501,7 @@ const handleAvatarChange = async (event: Event) => {
   }
 };
 
-// ========== 编辑个人信息 ==========
+// 编辑个人信息
 const editDialog = ref(false);
 const editLoading = ref(false);
 const editForm = reactive({
@@ -529,7 +550,7 @@ const saveUserInfo = async () => {
   }
 };
 
-// ========== 修改邮箱 ==========
+// 修改邮箱
 const emailDialog = ref(false);
 const emailLoading = ref(false);
 const emailForm = reactive({
@@ -612,7 +633,7 @@ const saveEmail = async () => {
   }
 };
 
-// ========== 修改密码 ==========
+// 修改密码
 const passwordDialog = ref(false);
 const passwordLoading = ref(false);
 const passwordForm = reactive({
@@ -668,13 +689,13 @@ const savePassword = async () => {
   }
 };
 
-// ========== 社交账号绑定 ==========
+// 社交账号绑定
 const unbindDialog = ref(false);
 const unbindLoading = ref(false);
 const unbindType = ref<SocialType>('qq');
 
 const handleQQBind = () => {
-  if (profileData.value?.qqBound) {
+  if (ownerProfile.value?.qqBound) {
     // 已绑定，显示解绑确认
     unbindType.value = 'qq';
     unbindDialog.value = true;
@@ -686,7 +707,7 @@ const handleQQBind = () => {
 };
 
 const handleWeiboBind = () => {
-  if (profileData.value?.weiboBound) {
+  if (ownerProfile.value?.weiboBound) {
     // 已绑定，显示解绑确认
     unbindType.value = 'weibo';
     unbindDialog.value = true;
@@ -823,9 +844,12 @@ const confirmUnbind = async () => {
 }
 
 .user-intro {
-  font-size: 14px;
-  color: #595959;
-  line-height: 1.6;
+  word-break: break-all;
+  text-align: justify;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.625;
+  color: hsl(0, 0%, 45%);
   margin: 0 0 16px;
 }
 
@@ -892,12 +916,21 @@ const confirmUnbind = async () => {
 }
 
 .meta-link {
-  color: #1890ff;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #2db55d;
   text-decoration: none;
+  transition: color 0.2s;
 }
 
 .meta-link:hover {
+  color: #1a8a42;
   text-decoration: underline;
+}
+
+.meta-link .external-icon {
+  color: inherit;
 }
 
 /* 设置卡片 */

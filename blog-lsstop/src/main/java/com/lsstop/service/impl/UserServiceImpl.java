@@ -4,6 +4,7 @@ import com.lsstop.constant.AuthConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.vo.UserProfileVO;
+import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
@@ -62,14 +63,44 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 获取用户主页详情
+     * 获取用户公开主页详情（查看他人）
      *
      * @param userId 用户ID
-     * @return 用户主页详情
+     * @return 用户公开主页详情
      */
     @Override
-    public UserProfileVO getUserHomeDetail(String userId) {
-        String cacheKey = RedisConst.USER_INFO + "home:" + userId;
+    public UserPublicProfileVO getUserHomeDetail(String userId) {
+        String cacheKey = RedisConst.USER_HOME_PUBLIC + userId;
+        // 先从缓存获取
+        UserPublicProfileVO cachedUser = redisUtils.get(cacheKey, UserPublicProfileVO.class);
+        if (cachedUser != null) {
+            return cachedUser;
+        }
+        // 缓存不存在，查询数据库
+        UserPublicProfileVO userPublicProfileVO = authMapper.selectUserPublicHomeDetail(userId);
+        if (userPublicProfileVO == null) {
+            throw new BusinessException(AuthConst.USER_NOT_FOUND);
+        }
+        // 查询评论数量
+        Integer commentCount = commentMapper.countByUserId(userId);
+        userPublicProfileVO.setCommentCount(commentCount != null ? commentCount : 0);
+        // 查询获赞数量
+        Integer likeCount = likeMapper.countLikesByUserId(userId);
+        userPublicProfileVO.setLikeCount(likeCount != null ? likeCount : 0);
+        // 写入缓存，过期时间1小时
+        redisUtils.set(cacheKey, userPublicProfileVO, RedisConst.EXPIRE_ONE_HOUR);
+        return userPublicProfileVO;
+    }
+
+    /**
+     * 获取当前用户主页详情（查看自己）
+     *
+     * @param userId 用户ID
+     * @return 用户完整主页详情
+     */
+    @Override
+    public UserProfileVO getMyHomeDetail(String userId) {
+        String cacheKey = RedisConst.USER_HOME_ME + userId;
         // 先从缓存获取
         UserProfileVO cachedUser = redisUtils.get(cacheKey, UserProfileVO.class);
         if (cachedUser != null) {

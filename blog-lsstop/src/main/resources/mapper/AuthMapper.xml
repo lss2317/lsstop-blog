@@ -138,4 +138,29 @@
           AND p.deleted_at = 0
     </select>
 
+    <!-- 用户公开主页详情ResultMap -->
+    <resultMap id="UserPublicHomeResultMap" type="com.lsstop.domain.vo.UserPublicProfileVO">
+        <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="nickname" column="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="website" column="website" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="intro" column="intro" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <!-- 查询用户公开主页详情 -->
+    <select id="selectUserPublicHomeDetail" parameterType="java.lang.String" resultMap="UserPublicHomeResultMap">
+        SELECT
+            p.user_id,
+            p.nickname,
+            p.avatar,
+            p.website,
+            p.intro,
+            u.create_time
+        FROM blog_user_profile p
+        INNER JOIN blog_user u ON u.user_uid = p.user_id AND u.deleted_at = 0
+        WHERE p.user_id = #{userId}
+          AND p.deleted_at = 0
+    </select>
+
 </mapper>

@@ -119,6 +119,16 @@ public class RedisConst {
     public static final String USER_INFO = PREFIX + "user:info:";
 
     /**
+     * 用户公开主页缓存
+     */
+    public static final String USER_HOME_PUBLIC = PREFIX + "user:home:public:";
+
+    /**
+     * 用户个人主页缓存
+     */
+    public static final String USER_HOME_ME = PREFIX + "user:home:me:";
+
+    /**
      * 前台用户RefreshToken
      */
     public static final String FRONT_REFRESH_TOKEN = PREFIX + "front:refresh:token:";

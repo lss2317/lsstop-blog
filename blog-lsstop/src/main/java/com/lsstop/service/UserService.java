@@ -1,6 +1,7 @@
 package com.lsstop.service;
 
 import com.lsstop.domain.vo.UserProfileVO;
+import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.domain.vo.UserInfoVO;
 
 /**
@@ -20,11 +21,19 @@ public interface UserService {
     UserInfoVO getUserProfile(String userId);
 
     /**
-     * 获取用户主页详情
+     * 获取用户公开主页详情（查看他人）
      *
      * @param userId 用户ID
-     * @return 用户主页详情
+     * @return 用户公开主页详情
      */
-    UserProfileVO getUserHomeDetail(String userId);
+    UserPublicProfileVO getUserHomeDetail(String userId);
+
+    /**
+     * 获取当前用户主页详情（查看自己）
+     *
+     * @param userId 用户ID
+     * @return 用户完整主页详情
+     */
+    UserProfileVO getMyHomeDetail(String userId);
 
 }

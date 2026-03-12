@@ -32,9 +32,34 @@ export interface UserProfileInfo {
   createTime: string;
 }
 
-/** 获取用户主页详情 */
-export const getUserProfile = (userId: string) => {
-  return http.get<UserProfileInfo>(`/user/profile/${userId}`);
+/** 获取自己的主页详情 */
+export const getUserProfile = () => {
+  return http.get<UserProfileInfo>('/user/profile');
+};
+
+/** 用户公开信息（去除敏感信息） */
+export interface UserPublicProfile {
+  /** 用户id */
+  userId: string;
+  /** 昵称 */
+  nickname: string;
+  /** 头像 */
+  avatar: string;
+  /** 个人网站 */
+  website: string | null;
+  /** 个人简介 */
+  intro: string | null;
+  /** 评论数量 */
+  commentCount: number;
+  /** 获赞数量 */
+  likeCount: number;
+  /** 注册时间 */
+  createTime: string;
+}
+
+/** 获取指定用户的公开信息 */
+export const getUserPublicProfile = (userId: string) => {
+  return http.get<UserPublicProfile>(`/user/profile/${userId}`);
 };
 
 /** 更新用户信息参数 */
