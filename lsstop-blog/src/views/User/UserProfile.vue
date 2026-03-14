@@ -84,7 +84,12 @@
               </div>
               <div v-if="profileData.website" class="meta-item">
                 <v-icon size="18">mdi-link-variant</v-icon>
-                <a :href="profileData.website" target="_blank" rel="noopener noreferrer" class="meta-link">
+                <a
+                  :href="profileData.website"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="meta-link"
+                >
                   {{ formatWebsite(profileData.website) }}
                   <v-icon size="14" class="external-icon">mdi-arrow-top-right</v-icon>
                 </a>
@@ -99,7 +104,7 @@
               <div class="setting-item">
                 <v-icon size="18">mdi-email-outline</v-icon>
                 <span class="setting-label">邮箱</span>
-                <span class="setting-value">{{ ownerProfile?.email || '未绑定' }}</span>
+                <span class="setting-value">{{ ownerProfile?.email }}</span>
                 <button class="setting-action-btn" @click="openEmailDialog">修改</button>
               </div>
               <div class="setting-item">
@@ -161,13 +166,9 @@
 
       <!-- 用户不存在 -->
       <template v-else>
-        <div class="profile-sidebar">
-          <div class="user-card">
-            <div class="empty-wrapper">
-              <v-icon size="64" color="grey">mdi-account-off</v-icon>
-              <p class="empty-text">用户不存在</p>
-            </div>
-          </div>
+        <div class="not-found-card">
+          <v-icon size="80" color="grey-lighten-1">mdi-account-off</v-icon>
+          <p class="not-found-text">用户不存在</p>
         </div>
       </template>
     </div>
@@ -217,7 +218,16 @@
         <div class="edit-dialog-footer">
           <button class="edit-btn edit-btn-cancel" @click="editDialog = false">取消</button>
           <button class="edit-btn edit-btn-save" :disabled="editLoading" @click="saveUserInfo">
-            {{ editLoading ? '保存中...' : '保存' }}
+            <Transition name="btn-fade" mode="out-in">
+              <v-progress-circular
+                v-if="editLoading"
+                key="loading"
+                indeterminate
+                size="16"
+                width="2"
+              />
+              <span v-else key="text">保存</span>
+            </Transition>
           </button>
         </div>
       </div>
@@ -267,7 +277,16 @@
         <div class="edit-dialog-footer">
           <button class="edit-btn edit-btn-cancel" @click="emailDialog = false">取消</button>
           <button class="edit-btn edit-btn-save" :disabled="emailLoading" @click="saveEmail">
-            {{ emailLoading ? '保存中...' : '确认' }}
+            <Transition name="btn-fade" mode="out-in">
+              <v-progress-circular
+                v-if="emailLoading"
+                key="loading"
+                indeterminate
+                size="16"
+                width="2"
+              />
+              <span v-else key="text">确认</span>
+            </Transition>
           </button>
         </div>
       </div>
@@ -339,7 +358,16 @@
         <div class="edit-dialog-footer">
           <button class="edit-btn edit-btn-cancel" @click="passwordDialog = false">取消</button>
           <button class="edit-btn edit-btn-save" :disabled="passwordLoading" @click="savePassword">
-            {{ passwordLoading ? '保存中...' : '确认' }}
+            <Transition name="btn-fade" mode="out-in">
+              <v-progress-circular
+                v-if="passwordLoading"
+                key="loading"
+                indeterminate
+                size="16"
+                width="2"
+              />
+              <span v-else key="text">确认</span>
+            </Transition>
           </button>
         </div>
       </div>
@@ -370,12 +398,12 @@ import {
   updateEmail,
   updatePassword,
   unbindSocial,
-  sendUpdateEmailCode,
   uploadAvatar,
   type UserProfileInfo,
   type UserPublicProfile,
   type SocialType,
 } from '@/apis/user';
+import { sendEmailCode as sendEmailCodeApi, CodePurpose } from '@/apis/auth';
 import { isValidEmail } from '@/utils/validate';
 import { getErrorMessage } from '@/utils/error';
 import { formatWebsite } from '@/utils/format';
@@ -586,7 +614,7 @@ const sendEmailCode = async () => {
   if (emailForm.countdown > 0) return;
 
   try {
-    await sendUpdateEmailCode(email);
+    await sendEmailCodeApi({ email, purpose: CodePurpose.UPDATE_EMAIL });
     snackbar.success('验证码已发送');
     // 开始倒计时
     clearEmailTimer();
@@ -1032,6 +1060,24 @@ const confirmUnbind = async () => {
   font-size: 14px;
 }
 
+/* 用户不存在卡片 */
+.not-found-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 12px;
+  padding: 160px 40px;
+}
+
+.not-found-text {
+  margin-top: 20px;
+  color: #bfbfbf;
+  font-size: 16px;
+}
+
 /* 骨架屏样式 */
 .skeleton-card {
   animation: skeleton-fade-in 0.3s ease-out;
@@ -1243,7 +1289,7 @@ const confirmUnbind = async () => {
 
 .edit-code-btn {
   flex-shrink: 0;
-  min-width: 80px;
+  min-width: 88px;
   height: 36px;
   padding: 0 10px;
   border-radius: 6px;
@@ -1325,6 +1371,7 @@ const confirmUnbind = async () => {
 }
 
 .edit-btn-save {
+  min-width: 64px;
   background: #3b82f6;
   color: #fff;
 }
@@ -1336,6 +1383,17 @@ const confirmUnbind = async () => {
 .edit-btn-save:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* 按钮内容切换过渡 */
+.btn-fade-enter-active,
+.btn-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.btn-fade-enter-from,
+.btn-fade-leave-to {
+  opacity: 0;
 }
 
 /* 响应式 */
@@ -1512,5 +1570,13 @@ const confirmUnbind = async () => {
   background: #3a3a3a;
   color: rgba(255, 255, 255, 0.9);
   border-color: #525252;
+}
+
+.v-theme--dark .not-found-card {
+  background: #1f1f1f;
+}
+
+.v-theme--dark .not-found-text {
+  color: rgba(255, 255, 255, 0.3);
 }
 </style>

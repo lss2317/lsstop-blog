@@ -163,4 +163,14 @@
           AND p.deleted_at = 0
     </select>
 
+    <!-- 更新用户登录标识 -->
+    <update id="updateIdentifier">
+        UPDATE blog_user_auth
+        SET identifier   = #{newIdentifier},
+            update_time  = NOW()
+        WHERE user_id = #{userId}
+          AND login_type = #{loginType}
+          AND deleted_at = 0
+    </update>
+
 </mapper>

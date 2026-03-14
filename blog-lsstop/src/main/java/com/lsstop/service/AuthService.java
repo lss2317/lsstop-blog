@@ -1,5 +1,6 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.dto.ChangeEmailDTO;
 import com.lsstop.domain.dto.EmailCodeLoginDTO;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
@@ -87,5 +88,13 @@ public interface AuthService {
      * @return 登录结果（注册成功后自动登录）
      */
     LoginVO register(RegisterDTO dto);
+
+    /**
+     * 修改绑定邮箱
+     *
+     * @param userId 用户ID
+     * @param dto    修改邮箱请求参数
+     */
+    void changeEmail(String userId, ChangeEmailDTO dto);
 
 }

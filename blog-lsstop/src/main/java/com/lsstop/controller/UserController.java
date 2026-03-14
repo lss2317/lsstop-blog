@@ -1,14 +1,19 @@
 package com.lsstop.controller;
 
 import com.lsstop.common.Result;
+import com.lsstop.domain.dto.ChangeEmailDTO;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.domain.vo.UserInfoVO;
+import com.lsstop.service.AuthService;
 import com.lsstop.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -22,6 +27,9 @@ public class UserController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private AuthService authService;
 
     /**
      * 获取当前登录用户信息
@@ -56,6 +64,20 @@ public class UserController {
     public Result<UserProfileVO> getMyHomeDetail(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         return Result.success(userService.getMyHomeDetail(userId));
+    }
+
+    /**
+     * 修改绑定邮箱
+     *
+     * @param request 请求对象（拦截器已验证token并存入userId）
+     * @param dto     修改邮箱参数
+     * @return 操作结果
+     */
+    @PostMapping("/front/user/email")
+    public Result<Void> changeEmail(HttpServletRequest request, @RequestBody @Validated ChangeEmailDTO dto) {
+        String userId = (String) request.getAttribute("userId");
+        authService.changeEmail(userId, dto);
+        return Result.success();
     }
 
 }

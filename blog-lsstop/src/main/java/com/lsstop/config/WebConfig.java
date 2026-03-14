@@ -33,6 +33,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/front/comment/deleteComment",
                         "/front/message/addMessage",
                         "/front/user/info",
-                        "/front/user/profile");
+                        "/front/user/profile",
+                        "/front/user/email");
     }
 }

@@ -35,7 +35,16 @@
           :disabled="!commentContent.trim() || submitting"
           @click="insertComment"
         >
-          {{ submitting ? '提交中...' : '评论' }}
+          <Transition name="btn-fade" mode="out-in">
+            <v-progress-circular
+              v-if="submitting"
+              key="loading"
+              indeterminate
+              size="16"
+              width="2"
+            />
+            <span v-else key="text">评论</span>
+          </Transition>
         </button>
       </div>
     </div>
@@ -1007,6 +1016,7 @@ onUnmounted(() => {
 }
 
 .lc-submit-btn {
+  min-width: 72px;
   padding: 8px 24px;
   background: #2db55d;
   color: #fff;
@@ -1514,6 +1524,17 @@ onUnmounted(() => {
 
 <!-- 夜间模式样式 -->
 <style>
+/* 按钮内容切换过渡 */
+.btn-fade-enter-active,
+.btn-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.btn-fade-enter-from,
+.btn-fade-leave-to {
+  opacity: 0;
+}
+
 .v-theme--dark .lc-comment-container {
   background: transparent;
 }

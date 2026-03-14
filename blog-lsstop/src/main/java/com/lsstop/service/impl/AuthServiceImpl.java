@@ -5,6 +5,7 @@ import com.lsstop.constant.AuthConst;
 import com.lsstop.constant.RabbitMQConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.dto.EmailDTO;
+import com.lsstop.domain.dto.ChangeEmailDTO;
 import com.lsstop.domain.entity.UserAuthEntity;
 import com.lsstop.domain.entity.UserEntity;
 import com.lsstop.domain.entity.UserProfileEntity;
@@ -443,6 +444,45 @@ public class AuthServiceImpl implements AuthService {
 
         // 自动登录，返回登录结果
         return buildLoginVO(userAuth);
+    }
+
+    /**
+     * 修改绑定邮箱
+     *
+     * @param userId 用户ID
+     * @param dto    修改邮箱请求参数
+     */
+    @Override
+    public void changeEmail(String userId, ChangeEmailDTO dto) {
+        String newEmail = dto.getNewEmail().trim().toLowerCase(Locale.ROOT);
+        String code = dto.getCode().trim();
+        String codeKey = RedisConst.EMAIL_CODE + CodePurposeEnum.CHANGE_EMAIL.getKey() + ":" + newEmail;
+
+        // 验证验证码
+        String storedCode = redisUtils.get(codeKey, String.class);
+        if (storedCode == null || !storedCode.equals(code)) {
+            throw new BusinessException(AuthConst.CODE_INVALID_OR_EXPIRED);
+        }
+
+        // 获取当前绑定的邮箱
+        String currentEmail = authMapper.selectEmailByUserId(userId);
+
+        // 检查新邮箱是否与当前邮箱相同
+        if (newEmail.equals(currentEmail)) {
+            throw new BusinessException(AuthConst.NEW_EMAIL_SAME_AS_OLD);
+        }
+
+        // 检查新邮箱是否已被其他账号使用
+        UserAuthEntity existingAuth = authMapper.selectByIdentifierAndType(newEmail, LoginTypeEnum.EMAIL.getCode());
+        if (existingAuth != null) {
+            throw new BusinessException(AuthConst.EMAIL_ALREADY_REGISTERED);
+        }
+
+        // 更新邮箱
+        authMapper.updateIdentifier(userId, LoginTypeEnum.EMAIL.getCode(), newEmail);
+
+        // 删除验证码
+        redisUtils.delete(codeKey);
     }
 
 }

@@ -114,8 +114,8 @@ jwt:
   secret: your-jwt-secret-key-must-be-at-least-256-bits-long
   # 前台配置
   front:
-    # Access Token 过期时间：15分钟（毫秒）
-    access-token-expiration: 900000
+    # Access Token 过期时间：30分钟（毫秒）
+    access-token-expiration: 1800000
     # Refresh Token 过期时间：3天（毫秒）
     refresh-token-expiration: 259200000
   # 后台配置

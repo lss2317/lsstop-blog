@@ -152,4 +152,14 @@ public class AuthConst {
      * 密码最大长度
      */
     public static final int PASSWORD_MAX_LENGTH = 20;
+
+    /**
+     * 新邮箱不能与原邮箱相同
+     */
+    public static final String NEW_EMAIL_SAME_AS_OLD = "新邮箱不能与原邮箱相同";
+
+    /**
+     * 邮箱修改成功
+     */
+    public static final String EMAIL_CHANGE_SUCCESS = "邮箱修改成功";
 }

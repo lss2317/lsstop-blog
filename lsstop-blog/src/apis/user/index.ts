@@ -76,7 +76,7 @@ export interface UpdateUserParams {
 
 /** 更新用户信息 */
 export const updateUserInfo = (data: UpdateUserParams) => {
-  return http.put<null>('/user/info', data);
+  return http.put<null>('/user/info', data, { showProgress: false });
 };
 
 /** 修改邮箱参数 */
@@ -89,7 +89,7 @@ export interface UpdateEmailParams {
 
 /** 修改邮箱 */
 export const updateEmail = (data: UpdateEmailParams) => {
-  return http.put<null>('/user/email', data);
+  return http.post<null>('/user/email', data, { showProgress: false });
 };
 
 /** 修改密码参数 */
@@ -102,7 +102,7 @@ export interface UpdatePasswordParams {
 
 /** 修改密码 */
 export const updatePassword = (data: UpdatePasswordParams) => {
-  return http.put<null>('/user/password', data);
+  return http.put<null>('/user/password', data, { showProgress: false });
 };
 
 /** 解绑社交账号类型 */
@@ -110,17 +110,12 @@ export type SocialType = 'qq' | 'weibo';
 
 /** 解绑社交账号 */
 export const unbindSocial = (type: SocialType) => {
-  return http.delete<null>(`/user/social/${type}`);
-};
-
-/** 发送修改邮箱验证码 */
-export const sendUpdateEmailCode = (email: string) => {
-  return http.post<null>('/user/email/code', { email }, { showProgress: false });
+  return http.delete<null>(`/user/social/${type}`, { showProgress: false });
 };
 
 /** 上传头像 */
 export const uploadAvatar = (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
-  return http.post<string>('/user/avatar', formData);
+  return http.post<string>('/user/avatar', formData, { showProgress: false });
 };

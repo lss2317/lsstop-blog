@@ -31,7 +31,7 @@ export interface RegisterParams {
 export interface SendCodeParams {
   /** 邮箱 */
   email: string;
-  /** 验证码用途：1-登录 2-注册 3-重置密码 */
+  /** 验证码用途：1-登录 2-注册 3-重置密码 4-修改邮箱 */
   purpose: number;
 }
 
@@ -40,6 +40,7 @@ export const CodePurpose = {
   LOGIN: 1,
   REGISTER: 2,
   RESET_PASSWORD: 3,
+  UPDATE_EMAIL: 4,
 } as const;
 
 // 邮箱登录

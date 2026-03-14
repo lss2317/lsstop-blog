@@ -26,7 +26,12 @@ public enum CodePurposeEnum {
     /**
      * 重置密码
      */
-    RESET_PASSWORD(3, "reset_password", "重置密码", "重置密码");
+    RESET_PASSWORD(3, "reset_password", "重置密码", "重置密码"),
+
+    /**
+     * 修改邮箱
+     */
+    CHANGE_EMAIL(4, "change_email", "修改邮箱", "修改邮箱");
 
     /**
      * 用途编码

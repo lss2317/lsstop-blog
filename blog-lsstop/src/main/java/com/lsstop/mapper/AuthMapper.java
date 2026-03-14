@@ -106,4 +106,14 @@ public interface AuthMapper {
      */
     UserPublicProfileVO selectUserPublicHomeDetail(@Param("userId") String userId);
 
+    /**
+     * 更新用户登录标识（如邮箱）
+     *
+     * @param userId        用户ID
+     * @param loginType     登录类型
+     * @param newIdentifier 新登录标识
+     * @return 更新行数
+     */
+    int updateIdentifier(@Param("userId") String userId, @Param("loginType") Integer loginType, @Param("newIdentifier") String newIdentifier);
+
 }
