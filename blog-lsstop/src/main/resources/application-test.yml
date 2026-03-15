@@ -124,3 +124,18 @@ jwt:
     access-token-expiration: 600000
     # Refresh Token 过期时间：1天（毫秒）
     refresh-token-expiration: 86400000
+
+# 腾讯云 COS 配置
+cos:
+  # SecretId（从腾讯云控制台获取）
+  secret-id: your-secret-id
+  # SecretKey（从腾讯云控制台获取）
+  secret-key: your-secret-key
+  # 存储桶所在地域（如：ap-shanghai、ap-guangzhou）
+  region: ap-shanghai
+  # 存储桶名称（格式：bucket-appid）
+  bucket-name: your-bucket-1250000000
+  # 访问域名
+  domain: https://your-bucket-1250000000.cos.ap-shanghai.myqcloud.com
+  # 上传目录前缀
+  path-prefix: blog/

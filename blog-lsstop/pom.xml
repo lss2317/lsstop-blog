@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.8</version>
+        <version>3.5.11</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.lsstop</groupId>
@@ -15,10 +15,11 @@
     <description>blog-lsstop</description>
     <properties>
         <java.version>17</java.version>
-        <!-- 修复安全漏洞 GHSA-qqpg-mvqg-649v -->
+        <!-- 修复安全漏洞 -->
         <logback.version>1.5.25</logback.version>
-        <!-- 修复安全漏洞 GHSA-rqfh-9r24-8c9r -->
         <assertj.version>3.27.7</assertj.version>
+        <jackson-bom.version>2.21.1</jackson-bom.version>
+        <tomcat.version>10.1.50</tomcat.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Web 启动器 -->
@@ -50,11 +51,10 @@
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
             <version>3.5.15</version>
         </dependency>
-        <!-- 基础工具包-->
+        <!-- 基础工具包（版本由 Spring Boot 管理） -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.18.0</version>
         </dependency>
         <!-- fastjson2 -->
         <dependency>
@@ -104,6 +104,42 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <!-- 腾讯云 COS 对象存储 -->
+        <dependency>
+            <groupId>com.qcloud</groupId>
+            <artifactId>cos_api</artifactId>
+            <version>5.6.263</version>
+            <exclusions>
+                <!-- 排除有漏洞的传递依赖 -->
+                <exclusion>
+                    <groupId>com.squareup.okhttp3</groupId>
+                    <artifactId>okhttp</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.squareup.okio</groupId>
+                    <artifactId>okio</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-jdk15on</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.ini4j</groupId>
+                    <artifactId>ini4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- 修复 COS SDK 传递依赖漏洞 -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.83</version>
         </dependency>
         <!-- JWT -->
         <dependency>
