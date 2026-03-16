@@ -9,19 +9,7 @@
     <div class="avatar-cropper-dialog">
       <!-- 关闭按钮 -->
       <button class="cropper-close-btn" @click="handleCancel">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          width="1em"
-          height="1em"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M13.414 12L19 17.586A1 1 0 0117.586 19L12 13.414 6.414 19A1 1 0 015 17.586L10.586 12 5 6.414A1 1 0 116.414 5L12 10.586 17.586 5A1 1 0 1119 6.414L13.414 12z"
-            clip-rule="evenodd"
-          />
-        </svg>
+        <v-icon size="24">mdi-close</v-icon>
       </button>
 
       <!-- 标题 -->
@@ -49,20 +37,8 @@
 
         <!-- 缩放控制 -->
         <div class="cropper-controls">
-          <button class="zoom-btn" @click="zoomOut">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="1em"
-              height="1em"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zm-4.444-6.889a1.111 1.111 0 110-2.222h8.888a1.111 1.111 0 110 2.222H7.556z"
-                clip-rule="evenodd"
-              />
-            </svg>
+          <button class="zoom-btn" :disabled="!ready" @click="zoomOut">
+            <v-icon size="16">mdi-minus-circle-outline</v-icon>
           </button>
           <input
             v-model.number="scale"
@@ -71,22 +47,11 @@
             :min="minScale"
             :max="maxScale"
             step="0.01"
+            :disabled="!ready"
             :style="sliderBackground"
           />
-          <button class="zoom-btn" @click="zoomIn">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="1em"
-              height="1em"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zm1.111-9.111h3.333a1.111 1.111 0 110 2.222h-3.333v3.333a1.111 1.111 0 11-2.222 0v-3.333H7.556a1.111 1.111 0 010-2.222h3.333V7.556a1.111 1.111 0 012.222 0v3.333z"
-                clip-rule="evenodd"
-              />
-            </svg>
+          <button class="zoom-btn" :disabled="!ready" @click="zoomIn">
+            <v-icon size="16">mdi-plus-circle-outline</v-icon>
           </button>
         </div>
       </div>
@@ -255,7 +220,7 @@ const loadImage = (file: File) => {
 };
 
 // 初始化裁剪器
-const initCropper = () => {
+const initCropper = async () => {
   if (!image.value) return;
 
   const img = image.value;
@@ -267,6 +232,10 @@ const initCropper = () => {
   // 居中
   posX.value = 0;
   posY.value = 0;
+
+  // 等待 DOM 更新，确保 input 的 min/max 属性已生效
+  // 否则 v-model 会被浏览器钳位到旧的 min/max 范围
+  await nextTick();
 
   // 设置 scale 会触发 watch，自动调用 draw()
   scale.value = minScale.value;
@@ -447,18 +416,18 @@ const handleSave = () => {
   // 绘制方形图片（不做圆形裁剪，圆形只是预览参考）
   outputCtx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
 
-  // 转换为 Blob
+  // 转换为 Blob（使用 JPEG 格式，0.92 质量，在保持高清晰度的同时大幅减小文件体积）
   outputCanvas.toBlob(
     (blob) => {
       if (blob) {
-        const file = new File([blob], 'avatar.png', { type: 'image/png' });
+        const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
         emit('save', file);
       } else {
         emit('error', '图片处理失败');
       }
     },
-    'image/png',
-    1,
+    'image/jpeg',
+    0.92,
   );
 };
 
@@ -502,11 +471,6 @@ const handleCancel = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.cropper-close-btn svg {
-  width: 24px;
-  height: 24px;
 }
 
 .cropper-close-btn:hover {
@@ -582,13 +546,18 @@ const handleCancel = () => {
   transition: color 0.2s;
 }
 
-.zoom-btn svg {
-  width: 16px;
-  height: 16px;
+.zoom-btn:hover:not(:disabled) {
+  color: #595959;
 }
 
-.zoom-btn:hover {
-  color: #595959;
+.zoom-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.zoom-slider:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .zoom-slider {
@@ -718,7 +687,7 @@ const handleCancel = () => {
   color: rgba(255, 255, 255, 0.45);
 }
 
-.v-theme--dark .zoom-btn:hover {
+.v-theme--dark .zoom-btn:hover:not(:disabled) {
   color: rgba(255, 255, 255, 0.65);
 }
 
