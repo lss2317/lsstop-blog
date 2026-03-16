@@ -173,4 +173,13 @@
           AND deleted_at = 0
     </update>
 
+    <!-- 更新用户头像 -->
+    <update id="updateAvatar">
+        UPDATE blog_user_profile
+        SET avatar      = #{avatar},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+          AND deleted_at = 0
+    </update>
+
 </mapper>

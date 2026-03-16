@@ -3,6 +3,7 @@ package com.lsstop.service;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.domain.vo.UserInfoVO;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户服务接口
@@ -35,5 +36,14 @@ public interface UserService {
      * @return 用户完整主页详情
      */
     UserProfileVO getMyHomeDetail(String userId);
+
+    /**
+     * 更新用户头像
+     *
+     * @param userId 用户ID
+     * @param file   头像文件
+     * @return 新头像URL
+     */
+    String updateAvatar(String userId, MultipartFile file);
 
 }

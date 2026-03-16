@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户控制器
@@ -78,6 +80,20 @@ public class UserController {
         String userId = (String) request.getAttribute("userId");
         authService.changeEmail(userId, dto);
         return Result.success();
+    }
+
+    /**
+     * 更新用户头像
+     *
+     * @param request 请求对象（拦截器已验证token并存入userId）
+     * @param file    头像文件
+     * @return 新头像URL
+     */
+    @PostMapping("/front/user/avatar")
+    public Result<String> updateAvatar(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
+        String userId = (String) request.getAttribute("userId");
+        String avatarUrl = userService.updateAvatar(userId, file);
+        return Result.success(avatarUrl);
     }
 
 }

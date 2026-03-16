@@ -113,7 +113,7 @@ export const unbindSocial = (type: SocialType) => {
   return http.delete<null>(`/user/social/${type}`, { showProgress: false });
 };
 
-/** 上传头像 */
+/** 更新用户头像 */
 export const uploadAvatar = (file: File) => {
   const formData = new FormData();
   formData.append('file', file);

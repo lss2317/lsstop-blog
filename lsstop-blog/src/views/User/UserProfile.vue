@@ -404,7 +404,7 @@ import {
   type SocialType,
 } from '@/apis/user';
 import { sendEmailCode as sendEmailCodeApi, CodePurpose } from '@/apis/auth';
-import { isValidEmail } from '@/utils/validate';
+import { isValidEmail, validateImageFile } from '@/utils/validate';
 import { getErrorMessage } from '@/utils/error';
 import { formatWebsite } from '@/utils/format';
 import { dateFormat } from '@/utils/date';
@@ -502,15 +502,10 @@ const handleAvatarChange = async (event: Event) => {
   const file = input.files?.[0];
   if (!file) return;
 
-  // 检查文件类型
-  if (!file.type.startsWith('image/')) {
-    snackbar.error('请选择图片文件');
-    return;
-  }
-
-  // 检查文件大小（限制 2MB）
-  if (file.size > 2 * 1024 * 1024) {
-    snackbar.error('图片大小不能超过 2MB');
+  // 验证图片文件
+  const validation = validateImageFile(file, 5);
+  if (!validation.valid) {
+    snackbar.error(validation.error!);
     return;
   }
 

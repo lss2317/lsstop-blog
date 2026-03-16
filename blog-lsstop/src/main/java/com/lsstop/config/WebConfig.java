@@ -34,6 +34,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/front/message/addMessage",
                         "/front/user/info",
                         "/front/user/profile",
-                        "/front/user/email");
+                        "/front/user/email",
+                        "/front/user/avatar");
     }
 }

@@ -6,15 +6,18 @@ import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.domain.vo.UserInfoVO;
+import com.lsstop.enums.FileFolderEnum;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.mapper.CommentMapper;
 import com.lsstop.mapper.LikeMapper;
+import com.lsstop.service.CosService;
 import com.lsstop.service.UserService;
 import com.lsstop.utils.RedisUtils;
 import com.lsstop.utils.StringUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户服务实现类
@@ -36,6 +39,9 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private RedisUtils redisUtils;
+
+    @Resource
+    private CosService cosService;
 
     /**
      * 根据用户ID获取用户资料
@@ -124,6 +130,35 @@ public class UserServiceImpl implements UserService {
         // 写入缓存，过期时间1小时
         redisUtils.set(cacheKey, userProfileVO, RedisConst.EXPIRE_ONE_HOUR);
         return userProfileVO;
+    }
+
+    /**
+     * 更新用户头像
+     *
+     * @param userId 用户ID
+     * @param file   头像文件
+     * @return 新头像URL
+     */
+    @Override
+    public String updateAvatar(String userId, MultipartFile file) {
+        // 上传头像到COS
+        String avatarUrl = cosService.uploadImage(file, FileFolderEnum.AVATAR.getFolder());
+        try {
+            // 更新数据库
+            int rows = authMapper.updateAvatar(userId, avatarUrl);
+            if (rows == 0) {
+                throw new BusinessException(AuthConst.USER_NOT_FOUND);
+            }
+        } catch (Exception e) {
+            // 数据库更新失败，删除已上传的文件
+            cosService.deleteFile(avatarUrl);
+            throw e;
+        }
+        // 清除用户相关缓存
+        redisUtils.delete(RedisConst.USER_INFO + userId);
+        redisUtils.delete(RedisConst.USER_HOME_ME + userId);
+        redisUtils.delete(RedisConst.USER_HOME_PUBLIC + userId);
+        return avatarUrl;
     }
 
 }

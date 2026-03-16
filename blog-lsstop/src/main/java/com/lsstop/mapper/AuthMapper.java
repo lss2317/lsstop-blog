@@ -116,4 +116,13 @@ public interface AuthMapper {
      */
     int updateIdentifier(@Param("userId") String userId, @Param("loginType") Integer loginType, @Param("newIdentifier") String newIdentifier);
 
+    /**
+     * 更新用户头像
+     *
+     * @param userId 用户ID
+     * @param avatar 头像URL
+     * @return 更新行数
+     */
+    int updateAvatar(@Param("userId") String userId, @Param("avatar") String avatar);
+
 }
