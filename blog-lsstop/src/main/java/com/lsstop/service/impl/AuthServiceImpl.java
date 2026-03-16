@@ -6,6 +6,7 @@ import com.lsstop.constant.RabbitMQConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.dto.EmailDTO;
 import com.lsstop.domain.dto.ChangeEmailDTO;
+import com.lsstop.domain.dto.ChangePasswordDTO;
 import com.lsstop.domain.entity.UserAuthEntity;
 import com.lsstop.domain.entity.UserEntity;
 import com.lsstop.domain.entity.UserProfileEntity;
@@ -483,6 +484,38 @@ public class AuthServiceImpl implements AuthService {
 
         // 删除验证码
         redisUtils.delete(codeKey);
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param userId 用户ID
+     * @param dto    修改密码请求参数
+     */
+    @Override
+    public void changePassword(String userId, ChangePasswordDTO dto) {
+        // 查询用户邮箱认证信息
+        UserAuthEntity userAuth = authMapper.selectEmailAuthByUserId(userId);
+        if (userAuth == null) {
+            throw new BusinessException(AuthConst.USER_NOT_FOUND);
+        }
+
+        // 验证旧密码是否正确
+        if (!PasswordUtils.verify(dto.getOldPassword(), userAuth.getCredential())) {
+            throw new BusinessException(AuthConst.OLD_PASSWORD_ERROR);
+        }
+
+        // 校验新密码格式
+        String newPassword = PasswordUtils.validateAndTrim(dto.getNewPassword());
+
+        // 检查新密码是否与旧密码相同
+        if (PasswordUtils.verify(newPassword, userAuth.getCredential())) {
+            throw new BusinessException(AuthConst.NEW_PASSWORD_SAME_AS_OLD);
+        }
+
+        // 加密新密码并更新
+        String encryptedPassword = PasswordUtils.encrypt(newPassword);
+        authMapper.updateCredentialByUserId(userId, encryptedPassword);
     }
 
 }

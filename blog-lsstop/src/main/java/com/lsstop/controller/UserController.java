@@ -2,6 +2,8 @@ package com.lsstop.controller;
 
 import com.lsstop.common.Result;
 import com.lsstop.domain.dto.ChangeEmailDTO;
+import com.lsstop.domain.dto.ChangePasswordDTO;
+import com.lsstop.domain.dto.UpdateUserInfoDTO;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.domain.vo.UserInfoVO;
@@ -39,7 +41,7 @@ public class UserController {
      * @param request 请求对象（拦截器已验证token并存入userId）
      * @return 用户资料信息
      */
-    @GetMapping("/front/user/info")
+    @GetMapping("/front/user/me")
     public Result<UserInfoVO> getUserInfo(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         return Result.success(userService.getUserProfile(userId));
@@ -94,6 +96,34 @@ public class UserController {
         String userId = (String) request.getAttribute("userId");
         String avatarUrl = userService.updateAvatar(userId, file);
         return Result.success(avatarUrl);
+    }
+
+    /**
+     * 更新用户信息
+     *
+     * @param request 请求对象（拦截器已验证token并存入userId）
+     * @param dto     更新用户信息参数
+     * @return 操作结果
+     */
+    @PostMapping("/front/user/info")
+    public Result<Void> updateUserInfo(HttpServletRequest request, @RequestBody @Validated UpdateUserInfoDTO dto) {
+        String userId = (String) request.getAttribute("userId");
+        userService.updateUserInfo(userId, dto);
+        return Result.success();
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param request 请求对象（拦截器已验证token并存入userId）
+     * @param dto     修改密码参数
+     * @return 操作结果
+     */
+    @PostMapping("/front/user/password")
+    public Result<Void> changePassword(HttpServletRequest request, @RequestBody @Validated ChangePasswordDTO dto) {
+        String userId = (String) request.getAttribute("userId");
+        authService.changePassword(userId, dto);
+        return Result.success();
     }
 
 }

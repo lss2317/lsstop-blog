@@ -98,7 +98,7 @@ const visible = computed({
   set: (value) => emit('update:modelValue', value),
 });
 
-// ==================== 常量定义 ====================
+// 常量定义
 const CANVAS_SIZE = 360; // 画布显示尺寸
 const RETINA_SCALE = 2; // 高清缩放倍数
 const MASK_PADDING = 20; // 遮罩边距（实际像素）
@@ -157,7 +157,7 @@ watch(visible, async (val) => {
     // 如果有预加载的图片，检查有效性后直接使用
     if (props.preloadedImage?.complete && props.preloadedImage.naturalWidth > 0) {
       image.value = props.preloadedImage;
-      initCropper();
+      void initCropper();
     } else if (props.imageFile) {
       loadImage(props.imageFile);
     }
@@ -445,9 +445,7 @@ const handleCancel = () => {
   transform: none;
   overflow: hidden;
   border-radius: 13px;
-  padding: 20px;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding: 20px 24px;
   text-align: left;
   background: #fff;
   box-shadow:
@@ -565,9 +563,7 @@ const handleCancel = () => {
   height: 4px;
   appearance: none;
   border-radius: 4px;
-  background: #e5e5e5;
-  background-image: linear-gradient(#2db55d, #2db55d);
-  background-repeat: no-repeat;
+  background: #e5e5e5 linear-gradient(#2db55d, #2db55d) no-repeat;
   cursor: pointer;
 }
 

@@ -125,4 +125,33 @@ public interface AuthMapper {
      */
     int updateAvatar(@Param("userId") String userId, @Param("avatar") String avatar);
 
+    /**
+     * 更新用户资料信息
+     *
+     * @param userId   用户ID
+     * @param nickname 昵称
+     * @param website  个人网站
+     * @param intro    个人简介
+     * @return 更新行数
+     */
+    int updateUserInfo(@Param("userId") String userId, @Param("nickname") String nickname,
+                       @Param("website") String website, @Param("intro") String intro);
+
+    /**
+     * 根据用户ID查询邮箱认证信息
+     *
+     * @param userId 用户ID
+     * @return 用户邮箱认证信息
+     */
+    UserAuthEntity selectEmailAuthByUserId(@Param("userId") String userId);
+
+    /**
+     * 根据用户ID更新密码
+     *
+     * @param userId     用户ID
+     * @param credential 新密码（已加密）
+     * @return 更新行数
+     */
+    int updateCredentialByUserId(@Param("userId") String userId, @Param("credential") String credential);
+
 }

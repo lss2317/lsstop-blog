@@ -1,5 +1,6 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.dto.UpdateUserInfoDTO;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.domain.vo.UserInfoVO;
@@ -45,5 +46,13 @@ public interface UserService {
      * @return 新头像URL
      */
     String updateAvatar(String userId, MultipartFile file);
+
+    /**
+     * 更新用户信息
+     *
+     * @param userId 用户ID
+     * @param dto    更新用户信息参数
+     */
+    void updateUserInfo(String userId, UpdateUserInfoDTO dto);
 
 }

@@ -3,7 +3,7 @@ import type { UserInfo } from '@/stores/modules/userInfo';
 
 // 获取当前登录用户信息
 export const getUserInfo = () => {
-  return http.get<UserInfo>('/user/info');
+  return http.get<UserInfo>('/user/me');
 };
 
 /** 用户主页详情 */
@@ -65,9 +65,7 @@ export const getUserPublicProfile = (userId: string) => {
 /** 更新用户信息参数 */
 export interface UpdateUserParams {
   /** 昵称 */
-  nickname?: string;
-  /** 头像 */
-  avatar?: string;
+  nickname: string;
   /** 个人网站 */
   website?: string;
   /** 个人简介 */
@@ -76,7 +74,7 @@ export interface UpdateUserParams {
 
 /** 更新用户信息 */
 export const updateUserInfo = (data: UpdateUserParams) => {
-  return http.put<null>('/user/info', data, { showProgress: false });
+  return http.post<null>('/user/info', data, { showProgress: false });
 };
 
 /** 修改邮箱参数 */
@@ -102,7 +100,7 @@ export interface UpdatePasswordParams {
 
 /** 修改密码 */
 export const updatePassword = (data: UpdatePasswordParams) => {
-  return http.put<null>('/user/password', data, { showProgress: false });
+  return http.post<null>('/user/password', data, { showProgress: false });
 };
 
 /** 解绑社交账号类型 */

@@ -1,6 +1,7 @@
 package com.lsstop.service;
 
 import com.lsstop.domain.dto.ChangeEmailDTO;
+import com.lsstop.domain.dto.ChangePasswordDTO;
 import com.lsstop.domain.dto.EmailCodeLoginDTO;
 import com.lsstop.domain.dto.EmailLoginDTO;
 import com.lsstop.domain.dto.QQLoginDTO;
@@ -96,5 +97,13 @@ public interface AuthService {
      * @param dto    修改邮箱请求参数
      */
     void changeEmail(String userId, ChangeEmailDTO dto);
+
+    /**
+     * 修改密码
+     *
+     * @param userId 用户ID
+     * @param dto    修改密码请求参数
+     */
+    void changePassword(String userId, ChangePasswordDTO dto);
 
 }

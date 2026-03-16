@@ -1,5 +1,6 @@
 package com.lsstop.utils;
 
+import java.net.URI;
 import java.util.regex.Pattern;
 
 /**
@@ -20,16 +21,16 @@ public class StringUtils {
      */
     private static final Pattern MARKDOWN_PATTERN = Pattern.compile(
             "```[\\s\\S]*?```" +           // 代码块
-            "|`[^`]+`" +                    // 行内代码
-            "|!?\\[[^\\]]*\\]\\([^)]*\\)" + // 链接和图片
-            "|#{1,6}\\s*" +                 // 标题
-            "|[*_]{1,3}([^*_]+)[*_]{1,3}" + // 加粗/斜体
-            "|>+\\s*" +                     // 引用
-            "|[-*+]\\s+" +                  // 无序列表
-            "|\\d+\\.\\s+" +                // 有序列表
-            "|\\|" +                        // 表格分隔符
-            "|[-]{3,}" +                    // 分隔线
-            "|\\\\n"                         // 转义换行
+                    "|`[^`]+`" +                    // 行内代码
+                    "|!?\\[[^\\]]*\\]\\([^)]*\\)" + // 链接和图片
+                    "|#{1,6}\\s*" +                 // 标题
+                    "|[*_]{1,3}([^*_]+)[*_]{1,3}" + // 加粗/斜体
+                    "|>+\\s*" +                     // 引用
+                    "|[-*+]\\s+" +                  // 无序列表
+                    "|\\d+\\.\\s+" +                // 有序列表
+                    "|\\|" +                        // 表格分隔符
+                    "|[-]{3,}" +                    // 分隔线
+                    "|\\\\n"                         // 转义换行
     );
 
     /**
@@ -120,5 +121,30 @@ public class StringUtils {
             return prefix.charAt(0) + "***" + suffix;
         }
         return prefix.substring(0, 3) + "***" + suffix;
+    }
+
+    /**
+     * 校验URL格式是否合法
+     * <p>合法URL必须以 http:// 或 https:// 开头，且包含有效的host</p>
+     *
+     * @param url URL字符串
+     * @return true-合法，false-不合法
+     */
+    public static boolean isValidUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return false;
+        }
+        String trimmedUrl = url.trim();
+        if (!trimmedUrl.startsWith("http://") && !trimmedUrl.startsWith("https://")) {
+            return false;
+        }
+        try {
+            URI uri = URI.create(trimmedUrl);
+            // 检查host是否存在且不为空
+            String host = uri.getHost();
+            return host != null && !host.isBlank();
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }

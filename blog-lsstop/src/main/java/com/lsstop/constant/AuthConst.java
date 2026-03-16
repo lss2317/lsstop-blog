@@ -162,4 +162,14 @@ public class AuthConst {
      * 邮箱修改成功
      */
     public static final String EMAIL_CHANGE_SUCCESS = "邮箱修改成功";
+
+    /**
+     * 个人网站格式不正确
+     */
+    public static final String WEBSITE_FORMAT_INVALID = "个人网站格式不正确";
+
+    /**
+     * 旧密码错误
+     */
+    public static final String OLD_PASSWORD_ERROR = "旧密码错误";
 }

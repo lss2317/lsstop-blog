@@ -2,6 +2,7 @@ package com.lsstop.service.impl;
 
 import com.lsstop.constant.AuthConst;
 import com.lsstop.constant.RedisConst;
+import com.lsstop.domain.dto.UpdateUserInfoDTO;
 import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
@@ -155,10 +156,55 @@ public class UserServiceImpl implements UserService {
             throw e;
         }
         // 清除用户相关缓存
+        clearUserCache(userId);
+        return avatarUrl;
+    }
+
+    /**
+     * 更新用户信息
+     *
+     * @param userId 用户ID
+     * @param dto    更新用户信息参数
+     */
+    @Override
+    public void updateUserInfo(String userId, UpdateUserInfoDTO dto) {
+        // 昵称去除前后空格
+        String nickname = dto.getNickname().trim();
+        // 校验个人网站格式
+        String website = dto.getWebsite();
+        if (website != null && !website.isBlank()) {
+            website = website.trim();
+            if (!StringUtils.isValidUrl(website)) {
+                throw new BusinessException(AuthConst.WEBSITE_FORMAT_INVALID);
+            }
+        } else {
+            website = null;
+        }
+        // 校验个人简介，避免全空格
+        String intro = dto.getIntro();
+        if (intro != null && !intro.isBlank()) {
+            intro = intro.trim();
+        } else {
+            intro = null;
+        }
+        // 更新数据库
+        int rows = authMapper.updateUserInfo(userId, nickname, website, intro);
+        if (rows == 0) {
+            throw new BusinessException(AuthConst.USER_NOT_FOUND);
+        }
+        // 清除用户相关缓存
+        clearUserCache(userId);
+    }
+
+    /**
+     * 清除用户相关缓存
+     *
+     * @param userId 用户ID
+     */
+    private void clearUserCache(String userId) {
         redisUtils.delete(RedisConst.USER_INFO + userId);
         redisUtils.delete(RedisConst.USER_HOME_ME + userId);
         redisUtils.delete(RedisConst.USER_HOME_PUBLIC + userId);
-        return avatarUrl;
     }
 
 }

@@ -119,21 +119,23 @@
 
     <!-- 查询用户主页详情 -->
     <select id="selectUserHomeDetail" parameterType="java.lang.String" resultMap="UserHomeResultMap">
-        SELECT
-            p.user_id,
-            p.nickname,
-            p.avatar,
-            p.website,
-            p.intro,
-            email_auth.identifier AS email,
-            IF(qq_auth.id IS NOT NULL, TRUE, FALSE) AS qq_bound,
-            IF(weibo_auth.id IS NOT NULL, TRUE, FALSE) AS weibo_bound,
-            u.create_time
+        SELECT p.user_id,
+               p.nickname,
+               p.avatar,
+               p.website,
+               p.intro,
+               email_auth.identifier                      AS email,
+               IF(qq_auth.id IS NOT NULL, TRUE, FALSE)    AS qq_bound,
+               IF(weibo_auth.id IS NOT NULL, TRUE, FALSE) AS weibo_bound,
+               u.create_time
         FROM blog_user_profile p
-        INNER JOIN blog_user u ON u.user_uid = p.user_id AND u.deleted_at = 0
-        LEFT JOIN blog_user_auth email_auth ON email_auth.user_id = p.user_id AND email_auth.login_type = 1 AND email_auth.deleted_at = 0
-        LEFT JOIN blog_user_auth qq_auth ON qq_auth.user_id = p.user_id AND qq_auth.login_type = 2 AND qq_auth.deleted_at = 0
-        LEFT JOIN blog_user_auth weibo_auth ON weibo_auth.user_id = p.user_id AND weibo_auth.login_type = 3 AND weibo_auth.deleted_at = 0
+                 INNER JOIN blog_user u ON u.user_uid = p.user_id AND u.deleted_at = 0
+                 LEFT JOIN blog_user_auth email_auth
+                           ON email_auth.user_id = p.user_id AND email_auth.login_type = 1 AND email_auth.deleted_at = 0
+                 LEFT JOIN blog_user_auth qq_auth
+                           ON qq_auth.user_id = p.user_id AND qq_auth.login_type = 2 AND qq_auth.deleted_at = 0
+                 LEFT JOIN blog_user_auth weibo_auth
+                           ON weibo_auth.user_id = p.user_id AND weibo_auth.login_type = 3 AND weibo_auth.deleted_at = 0
         WHERE p.user_id = #{userId}
           AND p.deleted_at = 0
     </select>
@@ -150,15 +152,14 @@
 
     <!-- 查询用户公开主页详情 -->
     <select id="selectUserPublicHomeDetail" parameterType="java.lang.String" resultMap="UserPublicHomeResultMap">
-        SELECT
-            p.user_id,
-            p.nickname,
-            p.avatar,
-            p.website,
-            p.intro,
-            u.create_time
+        SELECT p.user_id,
+               p.nickname,
+               p.avatar,
+               p.website,
+               p.intro,
+               u.create_time
         FROM blog_user_profile p
-        INNER JOIN blog_user u ON u.user_uid = p.user_id AND u.deleted_at = 0
+                 INNER JOIN blog_user u ON u.user_uid = p.user_id AND u.deleted_at = 0
         WHERE p.user_id = #{userId}
           AND p.deleted_at = 0
     </select>
@@ -166,8 +167,8 @@
     <!-- 更新用户登录标识 -->
     <update id="updateIdentifier">
         UPDATE blog_user_auth
-        SET identifier   = #{newIdentifier},
-            update_time  = NOW()
+        SET identifier  = #{newIdentifier},
+            update_time = NOW()
         WHERE user_id = #{userId}
           AND login_type = #{loginType}
           AND deleted_at = 0
@@ -179,6 +180,36 @@
         SET avatar      = #{avatar},
             update_time = NOW()
         WHERE user_id = #{userId}
+          AND deleted_at = 0
+    </update>
+
+    <!-- 更新用户资料信息 -->
+    <update id="updateUserInfo">
+        UPDATE blog_user_profile
+        SET nickname    = #{nickname},
+            website     = #{website},
+            intro       = #{intro},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+          AND deleted_at = 0
+    </update>
+
+    <!-- 根据用户ID查询邮箱认证信息 -->
+    <select id="selectEmailAuthByUserId" parameterType="java.lang.String" resultMap="UserAuthResultMap">
+        SELECT user_id, login_type, identifier, credential
+        FROM blog_user_auth
+        WHERE user_id = #{userId}
+          AND login_type = 1
+          AND deleted_at = 0
+    </select>
+
+    <!-- 根据用户ID更新密码 -->
+    <update id="updateCredentialByUserId">
+        UPDATE blog_user_auth
+        SET credential  = #{credential},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+          AND login_type = 1
           AND deleted_at = 0
     </update>
 
