@@ -174,7 +174,12 @@
     </div>
 
     <!-- 编辑个人信息对话框 -->
-    <v-dialog v-model="editDialog" max-width="448" :fullscreen="isMobile">
+    <v-dialog
+      v-model="editDialog"
+      max-width="448"
+      :fullscreen="isMobile"
+      transition="dialog-scale-transition"
+    >
       <div class="edit-dialog">
         <div class="edit-dialog-header">
           <div class="edit-dialog-title">
@@ -234,7 +239,12 @@
     </v-dialog>
 
     <!-- 修改邮箱对话框 -->
-    <v-dialog v-model="emailDialog" max-width="448" :fullscreen="isMobile">
+    <v-dialog
+      v-model="emailDialog"
+      max-width="448"
+      :fullscreen="isMobile"
+      transition="dialog-scale-transition"
+    >
       <div class="edit-dialog">
         <div class="edit-dialog-header">
           <div class="edit-dialog-title">
@@ -293,7 +303,12 @@
     </v-dialog>
 
     <!-- 修改密码对话框 -->
-    <v-dialog v-model="passwordDialog" max-width="448" :fullscreen="isMobile">
+    <v-dialog
+      v-model="passwordDialog"
+      max-width="448"
+      :fullscreen="isMobile"
+      transition="dialog-scale-transition"
+    >
       <div class="edit-dialog">
         <div class="edit-dialog-header">
           <div class="edit-dialog-title">
@@ -475,6 +490,7 @@ const fetchUserProfile = async () => {
     const res = isSelf ? await getUserProfile() : await getUserPublicProfile(userId);
     if (currentId !== requestId) return;
     profileData.value = res.data;
+    document.title = `${res.data.nickname} | 阿圣BLOG`;
   } catch {
     if (currentId !== requestId) return;
     profileData.value = null;
@@ -1612,5 +1628,21 @@ const confirmUnbind = async () => {
 
 .v-theme--dark .not-found-text {
   color: rgba(255, 255, 255, 0.3);
+}
+
+/* 对话框过渡动画 */
+.dialog-scale-transition-enter-active,
+.dialog-scale-transition-leave-active {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dialog-scale-transition-enter-from {
+  opacity: 0;
+  transform: scale(0.92);
+}
+
+.dialog-scale-transition-leave-to {
+  opacity: 0;
+  transform: scale(0.96);
 }
 </style>
