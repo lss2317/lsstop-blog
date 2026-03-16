@@ -373,6 +373,19 @@
       </div>
     </v-dialog>
 
+    <!-- 头像裁剪对话框 -->
+    <AvatarCropper
+      v-model="avatarCropperDialog"
+      :image-file="avatarFile"
+      :preloaded-image="preloadedImage"
+      :loading="avatarUploading"
+      @save="handleCroppedAvatar"
+      @cancel="
+        avatarFile = null;
+        preloadedImage = null;
+      "
+    />
+
     <!-- 解绑确认对话框 -->
     <ConfirmDialog
       v-model="unbindDialog"
@@ -409,6 +422,7 @@ import { getErrorMessage } from '@/utils/error';
 import { formatWebsite } from '@/utils/format';
 import { dateFormat } from '@/utils/date';
 import ConfirmDialog from '@/components/Dialog/ConfirmDialog.vue';
+import AvatarCropper from '@/components/Dialog/AvatarCropper.vue';
 
 const route = useRoute();
 const userInfoStore = useUserInfoStore();
@@ -492,6 +506,10 @@ onUnmounted(() => {
 
 // 上传头像
 const avatarInput = ref<HTMLInputElement | null>(null);
+const avatarCropperDialog = ref(false);
+const avatarFile = ref<File | null>(null);
+const avatarUploading = ref(false);
+const preloadedImage = ref<HTMLImageElement | null>(null);
 
 const triggerAvatarUpload = () => {
   avatarInput.value?.click();
@@ -506,12 +524,34 @@ const handleAvatarChange = async (event: Event) => {
   const validation = validateImageFile(file, 5);
   if (!validation.valid) {
     snackbar.error(validation.error!);
+    input.value = '';
     return;
   }
 
+  // 先预加载图片
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    URL.revokeObjectURL(url);
+    preloadedImage.value = img;
+    avatarFile.value = file;
+    avatarCropperDialog.value = true;
+  };
+  img.src = url;
+
+  // 清空 input，允许重复选择同一文件
+  input.value = '';
+};
+
+// 处理裁剪后的头像
+const handleCroppedAvatar = async (croppedFile: File) => {
+  avatarUploading.value = true;
   try {
-    const res = await uploadAvatar(file);
+    const res = await uploadAvatar(croppedFile);
     snackbar.success('头像上传成功');
+    avatarCropperDialog.value = false;
+    avatarFile.value = null;
+    preloadedImage.value = null;
     // 刷新用户信息
     await fetchUserProfile();
     // 同步更新 store
@@ -519,8 +559,7 @@ const handleAvatarChange = async (event: Event) => {
   } catch (error) {
     snackbar.error(getErrorMessage(error));
   } finally {
-    // 清空 input，允许重复选择同一文件
-    input.value = '';
+    avatarUploading.value = false;
   }
 };
 
