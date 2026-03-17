@@ -90,7 +90,7 @@
                   rel="noopener noreferrer"
                   class="meta-link"
                 >
-                  {{ formatWebsite(profileData.website) }}
+                  <span class="meta-link-text">{{ formatWebsite(profileData.website) }}</span>
                   <v-icon size="14" class="external-icon">mdi-arrow-top-right</v-icon>
                 </a>
               </div>
@@ -118,7 +118,7 @@
 
           <!-- 社交账号卡片（仅自己可见） -->
           <div v-if="isOwner" class="settings-card fade-in-item" style="--delay: 0.2s">
-            <h3 class="card-title">绑定第三方账号</h3>
+            <h3 class="card-title">第三方登录</h3>
             <div class="settings-list">
               <div class="setting-item">
                 <span class="iconfont iconqq" style="color: #00aaee; font-size: 18px" />
@@ -395,7 +395,7 @@
       :preloaded-image="preloadedImage"
       :loading="avatarUploading"
       @save="handleCroppedAvatar"
-      @cancel="
+      @close="
         avatarFile = null;
         preloadedImage = null;
       "
@@ -972,8 +972,9 @@ const confirmUnbind = async () => {
 }
 
 .user-meta {
-  border-top: 1px solid #f0f0f0;
-  padding-top: 16px;
+  background: #f7f8fa;
+  border-radius: 8px;
+  padding: 12px 14px;
 }
 
 .meta-item {
@@ -981,8 +982,8 @@ const confirmUnbind = async () => {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #8c8c8c;
-  margin-bottom: 12px;
+  color: #595959;
+  margin-bottom: 8px;
 }
 
 .meta-item:last-child {
@@ -990,7 +991,7 @@ const confirmUnbind = async () => {
 }
 
 .meta-item .v-icon {
-  color: #bfbfbf;
+  color: #8c8c8c;
 }
 
 .meta-link {
@@ -1000,6 +1001,8 @@ const confirmUnbind = async () => {
   color: #2db55d;
   text-decoration: none;
   transition: color 0.2s;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .meta-link:hover {
@@ -1007,7 +1010,14 @@ const confirmUnbind = async () => {
   text-decoration: underline;
 }
 
+.meta-link-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .meta-link .external-icon {
+  flex-shrink: 0;
   color: inherit;
 }
 
@@ -1459,7 +1469,7 @@ const confirmUnbind = async () => {
 }
 </style>
 
-<!-- 夜间模式样式（类名已足够特定，污染风险低） -->
+<!-- 夜间模式样式 -->
 <style>
 .v-theme--dark .profile-page {
   background: #141414;
@@ -1475,8 +1485,7 @@ const confirmUnbind = async () => {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.v-theme--dark .user-id,
-.v-theme--dark .meta-item {
+.v-theme--dark .user-id {
   color: rgba(255, 255, 255, 0.45);
 }
 
@@ -1497,7 +1506,15 @@ const confirmUnbind = async () => {
 }
 
 .v-theme--dark .user-meta {
-  border-top-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.v-theme--dark .meta-item {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.v-theme--dark .meta-item .v-icon {
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .v-theme--dark .card-title {

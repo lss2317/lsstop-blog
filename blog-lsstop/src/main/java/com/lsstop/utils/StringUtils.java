@@ -17,6 +17,13 @@ public class StringUtils {
     private static final int DEFAULT_CONTEXT_LENGTH = 100;
 
     /**
+     * 加粗/斜体正则模式（需要保留内部文本）
+     */
+    private static final Pattern BOLD_ITALIC_PATTERN = Pattern.compile(
+            "[*_]{1,3}([^*_]+)[*_]{1,3}"
+    );
+
+    /**
      * Markdown标识符正则模式（预编译提高性能）
      */
     private static final Pattern MARKDOWN_PATTERN = Pattern.compile(
@@ -24,7 +31,6 @@ public class StringUtils {
                     "|`[^`]+`" +                    // 行内代码
                     "|!?\\[[^\\]]*\\]\\([^)]*\\)" + // 链接和图片
                     "|#{1,6}\\s*" +                 // 标题
-                    "|[*_]{1,3}([^*_]+)[*_]{1,3}" + // 加粗/斜体
                     "|>+\\s*" +                     // 引用
                     "|[-*+]\\s+" +                  // 无序列表
                     "|\\d+\\.\\s+" +                // 有序列表
@@ -57,7 +63,10 @@ public class StringUtils {
         if (text == null || text.isEmpty()) {
             return "";
         }
-        return MARKDOWN_PATTERN.matcher(text)
+        // 先处理加粗/斜体，保留内部文本
+        String result = BOLD_ITALIC_PATTERN.matcher(text).replaceAll("$1");
+        // 再去除其他Markdown标识符
+        return MARKDOWN_PATTERN.matcher(result)
                 .replaceAll("")
                 .replaceAll("\\s+", " ")
                 .trim();

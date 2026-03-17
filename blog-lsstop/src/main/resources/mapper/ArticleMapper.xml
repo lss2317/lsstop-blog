@@ -96,7 +96,7 @@
                t.id as tag_id,
                t.tag_name
         from (
-            select id, article_cover, article_title, article_content, category_id, is_top, create_time
+            select id, article_cover, article_title, LEFT(article_content, 400) as article_content, category_id, is_top, create_time
             from blog_article
             where deleted_at = 0 and status = 1
             order by is_top desc, create_time desc

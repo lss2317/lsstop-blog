@@ -89,7 +89,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'update:modelValue': [value: boolean];
   save: [file: File];
-  cancel: [];
+  close: [];
   error: [message: string];
 }>();
 
@@ -213,7 +213,7 @@ const loadImage = (file: File) => {
     // 竞态检查
     if (currentLoadId !== loadId) return;
     visible.value = false;
-    emit('cancel');
+    emit('close');
   };
 
   img.src = url;
@@ -434,7 +434,7 @@ const handleSave = () => {
 // 取消（统一顺序：先关弹窗，再 emit）
 const handleCancel = () => {
   visible.value = false;
-  emit('cancel');
+  emit('close');
 };
 </script>
 
