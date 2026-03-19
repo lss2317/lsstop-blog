@@ -33,6 +33,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/front/comment/deleteComment",
                         "/front/message/addMessage",
                         "/front/user/**")
-                .excludePathPatterns("/front/user/profile/*");
+                .excludePathPatterns("/front/user/profile/*",
+                        "/front/user/recentComments/*");
     }
 }

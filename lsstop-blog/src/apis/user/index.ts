@@ -117,3 +117,18 @@ export const uploadAvatar = (file: File) => {
   formData.append('file', file);
   return http.post<string>('/user/avatar', formData, { showProgress: false });
 };
+
+/** 用户最近评论项 */
+export interface UserRecentCommentVO {
+  id: number;
+  content: string;
+  createTime: string;
+  targetType: number;
+  targetId: number;
+  targetTitle: string | null;
+}
+
+/** 获取用户最近评论 */
+export const getUserRecentComments = (userId: string) => {
+  return http.get<UserRecentCommentVO[]>(`/user/recentComments/${userId}`);
+};

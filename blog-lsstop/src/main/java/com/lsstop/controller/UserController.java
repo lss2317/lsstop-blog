@@ -1,13 +1,16 @@
 package com.lsstop.controller;
 
 import com.lsstop.common.Result;
+import com.lsstop.constant.CommentConst;
 import com.lsstop.domain.dto.ChangeEmailDTO;
 import com.lsstop.domain.dto.ChangePasswordDTO;
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.domain.vo.UserInfoVO;
+import com.lsstop.domain.vo.UserRecentCommentVO;
 import com.lsstop.service.AuthService;
+import com.lsstop.service.CommentService;
 import com.lsstop.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 /**
  * 用户控制器
@@ -34,6 +39,9 @@ public class UserController {
 
     @Resource
     private AuthService authService;
+
+    @Resource
+    private CommentService commentService;
 
     /**
      * 获取当前登录用户信息
@@ -124,6 +132,18 @@ public class UserController {
         String userId = (String) request.getAttribute("userId");
         authService.changePassword(userId, dto);
         return Result.success();
+    }
+
+    /**
+     * 获取指定用户最近评论
+     *
+     * @param userId 用户ID
+     * @return 用户最近评论列表（最多10条）
+     */
+    @GetMapping("/front/user/recentComments/{userId}")
+    public Result<List<UserRecentCommentVO>> getRecentComments(@PathVariable String userId) {
+        List<UserRecentCommentVO> comments = commentService.getRecentComments(userId, CommentConst.RECENT_COMMENT_LIMIT);
+        return Result.success(comments);
     }
 
 }

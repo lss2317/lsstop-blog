@@ -122,8 +122,8 @@ jwt:
   admin:
     # Access Token 过期时间：10分钟（毫秒）
     access-token-expiration: 600000
-    # Refresh Token 过期时间：1天（毫秒）
-    refresh-token-expiration: 86400000
+    # Refresh Token 过期时间：3小时（毫秒）
+    refresh-token-expiration: 10800000
 
 # 腾讯云 COS 配置
 cos:

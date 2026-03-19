@@ -67,4 +67,9 @@ public class CommentConst {
      * 评论ID不能为空
      */
     public static final String COMMENT_ID_REQUIRED = "评论ID不能为空";
+
+    /**
+     * 用户最近评论限制数量
+     */
+    public static final int RECENT_COMMENT_LIMIT = 10;
 }

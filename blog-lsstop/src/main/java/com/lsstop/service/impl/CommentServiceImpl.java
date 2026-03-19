@@ -9,6 +9,7 @@ import com.lsstop.domain.entity.WebsiteConfigEntity;
 import com.lsstop.domain.vo.AddCommentVO;
 import com.lsstop.domain.vo.CommentReplyVO;
 import com.lsstop.domain.vo.CommentVO;
+import com.lsstop.domain.vo.UserRecentCommentVO;
 import com.lsstop.enums.CommentTypeEnum;
 import com.lsstop.enums.IllegalPolicyEnum;
 import com.lsstop.enums.StatusEnum;
@@ -252,5 +253,17 @@ public class CommentServiceImpl implements CommentService {
 
         // 删除评论点赞数缓存
         redisUtils.delete(RedisConst.COMMENT_LIKE_COUNT + commentId);
+    }
+
+    /**
+     * 获取用户最近评论列表
+     *
+     * @param userId 用户ID
+     * @param limit  限制数量
+     * @return 用户最近评论列表
+     */
+    @Override
+    public List<UserRecentCommentVO> getRecentComments(String userId, Integer limit) {
+        return commentMapper.selectRecentCommentsByUserId(userId, limit);
     }
 }

@@ -155,10 +155,40 @@
         <!-- 右侧内容区 -->
         <div class="profile-main">
           <div class="content-card fade-in-item" style="--delay: 0.15s">
-            <h3 class="card-title">最近动态</h3>
-            <div class="empty-content">
-              <v-icon size="48" color="grey-lighten-1">mdi-history</v-icon>
-              <p>暂无动态</p>
+            <h3 class="card-title">最近评论</h3>
+            <!-- 加载中 -->
+            <div v-if="commentsLoading" class="comments-skeleton">
+              <div v-for="i in 3" :key="i" class="comment-skeleton-item">
+                <v-skeleton-loader type="text" width="60%" />
+                <v-skeleton-loader type="text" width="40%" />
+              </div>
+            </div>
+            <!-- 评论列表 -->
+            <div v-else-if="recentComments.length > 0" class="comments-list">
+              <div
+                v-for="comment in recentComments"
+                :key="comment.id"
+                class="comment-item"
+                @click="goToCommentTarget(comment)"
+              >
+                <div class="comment-header">
+                  <div class="comment-target">
+                    <v-icon
+                      size="14"
+                      :class="['comment-icon', getCommentIconClass(comment.targetType)]"
+                      >{{ getCommentIcon(comment.targetType) }}</v-icon
+                    >
+                    <span class="comment-target-text">{{ formatCommentTarget(comment) }}</span>
+                  </div>
+                  <span class="comment-time">{{ formatTime(comment.createTime) }}</span>
+                </div>
+                <span class="comment-content" v-html="parseEmoji(comment.content)"></span>
+              </div>
+            </div>
+            <!-- 无评论 -->
+            <div v-else class="empty-content">
+              <v-icon size="48" color="grey-lighten-1">mdi-comment-off-outline</v-icon>
+              <p>暂无评论</p>
             </div>
           </div>
         </div>
@@ -262,6 +292,7 @@
               class="edit-input"
               placeholder="请输入新邮箱"
               type="email"
+              maxlength="100"
               @keydown.space.prevent
             />
           </div>
@@ -427,22 +458,27 @@ import {
   updatePassword,
   unbindSocial,
   uploadAvatar,
+  getUserRecentComments,
   type UserProfileInfo,
   type UserPublicProfile,
   type SocialType,
+  type UserRecentCommentVO,
 } from '@/apis/user';
 import { sendEmailCode as sendEmailCodeApi, CodePurpose } from '@/apis/auth';
 import { isValidEmail, validateImageFile } from '@/utils/validate';
 import { getErrorMessage } from '@/utils/error';
 import { formatWebsite } from '@/utils/format';
-import { dateFormat } from '@/utils/date';
+import { dateFormat, formatTime } from '@/utils/date';
+import { parseEmoji } from '@/utils/emoji';
 import ConfirmDialog from '@/components/Dialog/ConfirmDialog.vue';
 import AvatarCropper from '@/components/Dialog/AvatarCropper.vue';
+import { useNavigate } from '@/composables/useNavigate';
 
 const route = useRoute();
 const userInfoStore = useUserInfoStore();
 const snackbar = useSnackbarStore();
 const { userInfo } = storeToRefs(userInfoStore);
+const { navigateTo } = useNavigate();
 
 // 加载状态
 const loading = ref(true);
@@ -501,11 +537,88 @@ const fetchUserProfile = async () => {
   }
 };
 
+// 最近评论
+const recentComments = ref<UserRecentCommentVO[]>([]);
+const commentsLoading = ref(false);
+
+const fetchRecentComments = async () => {
+  const userId = route.params.userId as string;
+  if (!userId) return;
+
+  commentsLoading.value = true;
+  try {
+    const res = await getUserRecentComments(userId);
+    recentComments.value = res.data;
+  } catch {
+    recentComments.value = [];
+  } finally {
+    commentsLoading.value = false;
+  }
+};
+
+// 获取评论图标
+const getCommentIcon = (targetType: number): string => {
+  switch (targetType) {
+    case 1:
+      return 'mdi-file-document-outline';
+    case 2:
+      return 'mdi-link-variant';
+    case 3:
+      return 'mdi-comment-processing-outline';
+    default:
+      return 'mdi-comment-outline';
+  }
+};
+
+// 获取评论图标类名
+const getCommentIconClass = (targetType: number): string => {
+  switch (targetType) {
+    case 1:
+      return 'icon-article';
+    case 2:
+      return 'icon-friendlink';
+    case 3:
+      return 'icon-talk';
+    default:
+      return '';
+  }
+};
+
+// 格式化评论目标
+const formatCommentTarget = (comment: UserRecentCommentVO): string => {
+  switch (comment.targetType) {
+    case 1:
+      return `评论了文章《${comment.targetTitle}》`;
+    case 2:
+      return '在友链页留言';
+    case 3:
+      return '评论了说说';
+    default:
+      return '发表了评论';
+  }
+};
+
+// 跳转到评论目标
+const goToCommentTarget = (comment: UserRecentCommentVO) => {
+  switch (comment.targetType) {
+    case 1:
+      navigateTo(`/article/${comment.targetId}`);
+      break;
+    case 2:
+      navigateTo('/friendLink');
+      break;
+    case 3:
+      navigateTo(`/talk/${comment.targetId}`);
+      break;
+  }
+};
+
 // 监听路由变化（immediate 首次也触发，替代 onMounted 中的调用）
 watch(
   () => route.params.userId,
   async () => {
     await fetchUserProfile();
+    await fetchRecentComments();
   },
   { immediate: true },
 );
@@ -1104,6 +1217,108 @@ const confirmUnbind = async () => {
   font-size: 14px;
 }
 
+/* 最近评论 */
+.comments-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.comment-skeleton-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-item {
+  padding: 8px 8px 6px;
+  margin: 0 -8px;
+  border-bottom: 1px solid #f0f0f0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.comment-item:last-child {
+  border-bottom: none;
+}
+
+.comment-item:hover {
+  background: #f0f0f0;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+
+.comment-target {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.comment-icon {
+  flex-shrink: 0;
+}
+
+.comment-icon.icon-article {
+  color: #3b82f6;
+}
+
+.comment-icon.icon-friendlink {
+  color: #f59e0b;
+}
+
+.comment-icon.icon-talk {
+  color: #10b981;
+}
+
+.comment-target-text {
+  font-size: 13px;
+  color: #8c8c8c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comment-content {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #262626;
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comment-content :deep(.comment-emoji) {
+  width: 18px;
+  height: 18px;
+  vertical-align: text-bottom;
+  margin: 0 1px;
+}
+
+.comment-time {
+  font-size: 12px;
+  color: #bfbfbf;
+  flex-shrink: 0;
+}
+
 /* 加载和空状态 */
 .loading-wrapper,
 .empty-wrapper {
@@ -1519,6 +1734,31 @@ const confirmUnbind = async () => {
 
 .v-theme--dark .card-title {
   color: rgba(255, 255, 255, 0.9);
+}
+
+/* 评论列表暗色模式 */
+.v-theme--dark .comment-item {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.v-theme--dark .comment-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.v-theme--dark .comment-target-text {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.v-theme--dark .comment-content {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.v-theme--dark .comment-time {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.v-theme--dark .empty-content {
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .v-theme--dark .setting-label {

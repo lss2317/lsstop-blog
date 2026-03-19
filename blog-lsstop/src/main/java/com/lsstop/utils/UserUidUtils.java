@@ -63,10 +63,11 @@ public class UserUidUtils {
 
     /**
      * 混淆时间戳，打乱规律
+     * 使用乘法散列，保证双射（不同输入对应不同输出）
      */
     private static long obfuscate(long value) {
         value ^= OBFUSCATE_FACTOR;
-        value = Long.reverse(value) >>> 16;
-        return value;
+        value = (value ^ (value >>> 32)) * 0x45D9F3BL;
+        return value ^ (value >>> 28);
     }
 }

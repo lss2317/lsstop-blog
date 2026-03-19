@@ -4,6 +4,7 @@ import com.lsstop.domain.entity.CommentEntity;
 import com.lsstop.domain.vo.AddCommentVO;
 import com.lsstop.domain.vo.CommentReplyVO;
 import com.lsstop.domain.vo.CommentVO;
+import com.lsstop.domain.vo.UserRecentCommentVO;
 
 import java.util.List;
 
@@ -62,4 +63,13 @@ public interface CommentService {
      * @param userId    当前用户ID
      */
     void deleteComment(Integer commentId, String userId);
+
+    /**
+     * 获取用户最近评论列表
+     *
+     * @param userId 用户ID
+     * @param limit  限制数量
+     * @return 用户最近评论列表
+     */
+    List<UserRecentCommentVO> getRecentComments(String userId, Integer limit);
 }

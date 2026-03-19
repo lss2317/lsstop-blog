@@ -4,6 +4,7 @@ import com.lsstop.domain.entity.CommentEntity;
 import com.lsstop.domain.vo.CommentCountVO;
 import com.lsstop.domain.vo.CommentReplyVO;
 import com.lsstop.domain.vo.CommentVO;
+import com.lsstop.domain.vo.UserRecentCommentVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -112,4 +113,14 @@ public interface CommentMapper {
      * @return 评论数量
      */
     Integer countByUserId(@Param("userId") String userId);
+
+    /**
+     * 查询用户最近评论列表
+     *
+     * @param userId 用户ID
+     * @param limit  限制数量
+     * @return 用户最近评论列表
+     */
+    List<UserRecentCommentVO> selectRecentCommentsByUserId(@Param("userId") String userId,
+                                                           @Param("limit") Integer limit);
 }

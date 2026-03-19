@@ -16,10 +16,8 @@
     <properties>
         <java.version>17</java.version>
         <!-- 修复安全漏洞 -->
-        <logback.version>1.5.25</logback.version>
-        <assertj.version>3.27.7</assertj.version>
+        <commons-lang3.version>3.18.0</commons-lang3.version>
         <jackson-bom.version>2.21.1</jackson-bom.version>
-        <tomcat.version>10.1.50</tomcat.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Web 启动器 -->

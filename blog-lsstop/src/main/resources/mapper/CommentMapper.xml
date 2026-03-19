@@ -179,4 +179,31 @@
           and review = 0
     </select>
 
+    <!-- 用户最近评论VO ResultMap -->
+    <resultMap id="userRecentCommentVOResultMap" type="com.lsstop.domain.vo.UserRecentCommentVO">
+        <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="content" property="content" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="target_type" property="targetType" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="target_id" property="targetId" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="target_title" property="targetTitle" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <!-- 查询用户最近评论列表 -->
+    <select id="selectRecentCommentsByUserId" resultMap="userRecentCommentVOResultMap">
+        select c.id,
+               c.content,
+               c.target_type,
+               c.target_id,
+               a.article_title as target_title,
+               c.create_time
+        from blog_comment c
+                 left join blog_article a on c.target_type = 1 and c.target_id = a.id and a.deleted_at = 0
+        where c.user_id = #{userId}
+          and c.deleted_at = 0
+          and c.review = 0
+        order by c.create_time desc
+        limit #{limit}
+    </select>
+
 </mapper>
