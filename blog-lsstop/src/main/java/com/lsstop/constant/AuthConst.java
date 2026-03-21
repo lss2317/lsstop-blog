@@ -172,4 +172,54 @@ public class AuthConst {
      * 旧密码错误
      */
     public static final String OLD_PASSWORD_ERROR = "旧密码错误";
+
+    /**
+     * QQ获取openId接口
+     */
+    public static final String QQ_OPENID_URL = "https://graph.qq.com/oauth2.0/me?access_token=%s&fmt=json";
+
+    /**
+     * 微博获取uid接口
+     */
+    public static final String WEIBO_UID_URL = "https://api.weibo.com/2/account/get_uid.json?access_token=%s";
+
+    /**
+     * QQ认证失败
+     */
+    public static final String QQ_AUTH_FAILED = "QQ认证失败";
+
+    /**
+     * 微博认证失败
+     */
+    public static final String WEIBO_AUTH_FAILED = "微博认证失败";
+
+    /**
+     * QQ账号未绑定
+     */
+    public static final String QQ_NOT_BINDDED = "该QQ账号未绑定，请先注册并绑定";
+
+    /**
+     * 微博账号未绑定
+     */
+    public static final String WEIBO_NOT_BINDDED = "该微博账号未绑定，请先注册并绑定";
+
+    /**
+     * QQ登录失败
+     */
+    public static final String QQ_LOGIN_FAILED = "QQ登录失败，请重试";
+
+    /**
+     * 微博登录失败
+     */
+    public static final String WEIBO_LOGIN_FAILED = "微博登录失败，请重试";
+
+    /**
+     * QQ响应字段 openid
+     */
+    public static final String QQ_RESPONSE_OPENID = "openid";
+
+    /**
+     * 微博响应字段 uid
+     */
+    public static final String WEIBO_RESPONSE_UID = "uid";
 }

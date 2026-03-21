@@ -3,7 +3,10 @@ package com.lsstop.config;
 import com.lsstop.interceptor.AdminAuthInterceptor;
 import com.lsstop.interceptor.FrontAuthInterceptor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -35,5 +38,16 @@ public class WebConfig implements WebMvcConfigurer {
                         "/front/user/**")
                 .excludePathPatterns("/front/user/profile/*",
                         "/front/user/recentComments/*");
+    }
+
+    /**
+     * RestTemplate Bean
+     */
+    @Bean
+    public RestTemplate restTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000);
+        factory.setReadTimeout(5000);
+        return new RestTemplate(factory);
     }
 }

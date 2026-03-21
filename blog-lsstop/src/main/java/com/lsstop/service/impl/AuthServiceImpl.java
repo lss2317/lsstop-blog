@@ -36,9 +36,12 @@ import com.lsstop.utils.RedisUtils;
 import com.lsstop.utils.UserUidUtils;
 import com.lsstop.config.JwtConfig;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import com.alibaba.fastjson2.JSONObject;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -52,6 +55,7 @@ import java.util.concurrent.TimeUnit;
  * @author lishusheng
  * @date 2026/01/03
  */
+@Slf4j
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -78,6 +82,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Resource
     private WebsiteConfigService websiteConfigService;
+
+    @Resource
+    private RestTemplate restTemplate;
 
     /**
      * 邮箱密码登录
@@ -182,14 +189,53 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public LoginVO qqLogin(QQLoginDTO dto) {
-        // TODO: 调用QQ开放平台接口验证access_token
-        // 1. 使用accessToken调用QQ接口获取openId
-        // 2. 根据 openId 查询用户认证信息
-        // UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(openId, LoginTypeEnum.QQ.getCode());
-        // 3. 如果用户不存在，可考虑自动注册
-        // 4. 返回登录结果
-        // return buildLoginVO(userAuth);
-        throw new BusinessException("QQ登录功能暂未实现");
+        String accessToken = dto.getAccessToken();
+        String openId = dto.getOpenId();
+        String userId = null;
+
+        try {
+            // 验证 accessToken 并获取真实 openId
+            String verifyUrl = String.format(AuthConst.QQ_OPENID_URL, accessToken);
+            String response = restTemplate.getForObject(verifyUrl, String.class);
+
+            // 解析响应，提取真实 openid
+            if (response == null) {
+                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+            }
+            JSONObject json = JSONObject.parseObject(response);
+            String realOpenId = json.getString(AuthConst.QQ_RESPONSE_OPENID);
+            if (realOpenId == null || !realOpenId.equals(openId)) {
+                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+            }
+
+            // 根据 openId 查询用户认证信息
+            UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(openId, LoginTypeEnum.QQ.getCode());
+            if (userAuth == null) {
+                throw new BusinessException(AuthConst.QQ_NOT_BINDDED);
+            }
+            userId = userAuth.getUserId();
+
+            // 检查用户是否被禁用
+            UserEntity user = authMapper.selectUserById(userId);
+            if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
+                throw new BusinessException(AuthConst.ACCOUNT_DISABLED);
+            }
+
+            // 更新最后登录时间
+            authMapper.updateLastLoginTime(userId);
+
+            // 发送登录成功日志
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthConst.LOGIN_SUCCESS);
+
+            return buildLoginVO(userAuth);
+        } catch (BusinessException e) {
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("QQ登录失败", e);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), AuthConst.QQ_LOGIN_FAILED);
+            throw new BusinessException(AuthConst.QQ_LOGIN_FAILED);
+        }
     }
 
     /**
@@ -200,14 +246,53 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public LoginVO weiboLogin(WeiboLoginDTO dto) {
-        // TODO: 调用微博开放平台接口验证access_token
-        // 1. 使用accessToken调用微博接口获取uid
-        // 2. 根据 uid 查询用户认证信息
-        // UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(uid, LoginTypeEnum.WEIBO.getCode());
-        // 3. 如果用户不存在，可考虑自动注册
-        // 4. 返回登录结果
-        // return buildLoginVO(userAuth);
-        throw new BusinessException("微博登录功能暂未实现");
+        String accessToken = dto.getAccessToken();
+        String uid = dto.getUid();
+        String userId = null;
+
+        try {
+            // 验证 accessToken 并获取真实 uid
+            String verifyUrl = String.format(AuthConst.WEIBO_UID_URL, accessToken);
+            String response = restTemplate.getForObject(verifyUrl, String.class);
+
+            // 解析响应，提取真实 uid
+            if (response == null) {
+                throw new BusinessException(AuthConst.WEIBO_AUTH_FAILED);
+            }
+            JSONObject json = JSONObject.parseObject(response);
+            Long realUid = json.getLong(AuthConst.WEIBO_RESPONSE_UID);
+            if (realUid == null || !String.valueOf(realUid).equals(uid)) {
+                throw new BusinessException(AuthConst.WEIBO_AUTH_FAILED);
+            }
+
+            // 根据 uid 查询用户认证信息
+            UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(uid, LoginTypeEnum.WEIBO.getCode());
+            if (userAuth == null) {
+                throw new BusinessException(AuthConst.WEIBO_NOT_BINDDED);
+            }
+            userId = userAuth.getUserId();
+
+            // 检查用户是否被禁用
+            UserEntity user = authMapper.selectUserById(userId);
+            if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
+                throw new BusinessException(AuthConst.ACCOUNT_DISABLED);
+            }
+
+            // 更新最后登录时间
+            authMapper.updateLastLoginTime(userId);
+
+            // 发送登录成功日志
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthConst.LOGIN_SUCCESS);
+
+            return buildLoginVO(userAuth);
+        } catch (BusinessException e) {
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("微博登录失败", e);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), AuthConst.WEIBO_LOGIN_FAILED);
+            throw new BusinessException(AuthConst.WEIBO_LOGIN_FAILED);
+        }
     }
 
     /**

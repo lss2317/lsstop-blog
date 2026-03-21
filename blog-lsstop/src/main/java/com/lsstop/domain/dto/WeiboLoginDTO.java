@@ -18,4 +18,10 @@ public class WeiboLoginDTO {
     @NotBlank(message = "accessToken不能为空")
     private String accessToken;
 
+    /**
+     * 微博 uid
+     */
+    @NotBlank(message = "uid不能为空")
+    private String uid;
+
 }

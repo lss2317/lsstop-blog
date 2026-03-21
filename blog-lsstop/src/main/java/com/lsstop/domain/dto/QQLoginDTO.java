@@ -18,4 +18,10 @@ public class QQLoginDTO {
     @NotBlank(message = "accessToken不能为空")
     private String accessToken;
 
+    /**
+     * QQ openId
+     */
+    @NotBlank(message = "openId不能为空")
+    private String openId;
+
 }

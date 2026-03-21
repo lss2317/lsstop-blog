@@ -540,19 +540,25 @@ const fetchUserProfile = async () => {
 // 最近评论
 const recentComments = ref<UserRecentCommentVO[]>([]);
 const commentsLoading = ref(false);
+let commentsRequestId = 0;
 
 const fetchRecentComments = async () => {
+  const currentId = ++commentsRequestId;
   const userId = route.params.userId as string;
   if (!userId) return;
 
   commentsLoading.value = true;
   try {
     const res = await getUserRecentComments(userId);
+    if (currentId !== commentsRequestId) return;
     recentComments.value = res.data;
   } catch {
+    if (currentId !== commentsRequestId) return;
     recentComments.value = [];
   } finally {
-    commentsLoading.value = false;
+    if (currentId === commentsRequestId) {
+      commentsLoading.value = false;
+    }
   }
 };
 
@@ -665,6 +671,10 @@ const handleAvatarChange = async (event: Event) => {
     preloadedImage.value = img;
     avatarFile.value = file;
     avatarCropperDialog.value = true;
+  };
+  img.onerror = () => {
+    URL.revokeObjectURL(url);
+    snackbar.error('图片加载失败，请重新选择');
   };
   img.src = url;
 
