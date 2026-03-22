@@ -1,6 +1,7 @@
 package com.lsstop.service.impl;
 
 import com.lsstop.config.BlogConfig;
+import com.lsstop.config.OAuthConfig;
 import com.lsstop.constant.AuthConst;
 import com.lsstop.constant.RabbitMQConst;
 import com.lsstop.constant.RedisConst;
@@ -43,6 +44,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import com.alibaba.fastjson2.JSONObject;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Locale;
@@ -79,6 +82,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Resource
     private BlogConfig blogConfig;
+
+    @Resource
+    private OAuthConfig oauthConfig;
 
     @Resource
     private WebsiteConfigService websiteConfigService;
@@ -189,22 +195,35 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public LoginVO qqLogin(QQLoginDTO dto) {
-        String accessToken = dto.getAccessToken();
-        String openId = dto.getOpenId();
         String userId = null;
 
         try {
-            // 验证 accessToken 并获取真实 openId
-            String verifyUrl = String.format(AuthConst.QQ_OPENID_URL, accessToken);
-            String response = restTemplate.getForObject(verifyUrl, String.class);
+            // 用 code 换取 access_token
+            String tokenUrl = String.format(AuthConst.QQ_ACCESS_TOKEN_URL,
+                    oauthConfig.getQq().getAppId(),
+                    oauthConfig.getQq().getAppKey(),
+                    dto.getCode(),
+                    URLEncoder.encode(oauthConfig.getQq().getRedirectUri(), StandardCharsets.UTF_8));
+            String tokenResponse = restTemplate.getForObject(tokenUrl, String.class);
 
-            // 解析响应，提取真实 openid
-            if (response == null) {
+            if (tokenResponse == null) {
                 throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
             }
-            JSONObject json = JSONObject.parseObject(response);
-            String realOpenId = json.getString(AuthConst.QQ_RESPONSE_OPENID);
-            if (realOpenId == null || !realOpenId.equals(openId)) {
+            JSONObject tokenJson = JSONObject.parseObject(tokenResponse);
+            String accessToken = tokenJson.getString(AuthConst.QQ_RESPONSE_ACCESS_TOKEN);
+            if (accessToken == null) {
+                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+            }
+
+            // 用 access_token 获取 openId
+            String openIdUrl = String.format(AuthConst.QQ_OPENID_URL, accessToken);
+            String openIdResponse = restTemplate.getForObject(openIdUrl, String.class);
+            if (openIdResponse == null) {
+                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+            }
+            JSONObject openIdJson = JSONObject.parseObject(openIdResponse);
+            String openId = openIdJson.getString(AuthConst.QQ_RESPONSE_OPENID);
+            if (openId == null) {
                 throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
             }
 
@@ -246,22 +265,24 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public LoginVO weiboLogin(WeiboLoginDTO dto) {
-        String accessToken = dto.getAccessToken();
-        String uid = dto.getUid();
         String userId = null;
 
         try {
-            // 验证 accessToken 并获取真实 uid
-            String verifyUrl = String.format(AuthConst.WEIBO_UID_URL, accessToken);
-            String response = restTemplate.getForObject(verifyUrl, String.class);
+            // 用 code 换取 access_token 和 uid
+            String tokenUrl = String.format(AuthConst.WEIBO_ACCESS_TOKEN_URL,
+                    oauthConfig.getWeibo().getAppKey(),
+                    oauthConfig.getWeibo().getAppSecret(),
+                    dto.getCode(),
+                    URLEncoder.encode(oauthConfig.getWeibo().getRedirectUri(), StandardCharsets.UTF_8));
+            String tokenResponse = restTemplate.postForObject(tokenUrl, null, String.class);
 
-            // 解析响应，提取真实 uid
-            if (response == null) {
+            if (tokenResponse == null) {
                 throw new BusinessException(AuthConst.WEIBO_AUTH_FAILED);
             }
-            JSONObject json = JSONObject.parseObject(response);
-            Long realUid = json.getLong(AuthConst.WEIBO_RESPONSE_UID);
-            if (realUid == null || !String.valueOf(realUid).equals(uid)) {
+            JSONObject tokenJson = JSONObject.parseObject(tokenResponse);
+            String accessToken = tokenJson.getString(AuthConst.WEIBO_RESPONSE_ACCESS_TOKEN);
+            String uid = String.valueOf(tokenJson.get(AuthConst.WEIBO_RESPONSE_UID));
+            if (accessToken == null || uid == null) {
                 throw new BusinessException(AuthConst.WEIBO_AUTH_FAILED);
             }
 

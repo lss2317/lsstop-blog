@@ -315,6 +315,7 @@ import { useSnackbarStore } from '@/stores/modules/snackbar';
 import { tokenManager } from '@/utils/token';
 import { isValidEmail } from '@/utils/validate';
 import { getErrorMessage } from '@/utils/error';
+import { OAUTH_CONFIG } from '@/constants/oauth';
 
 const loginStore = useLoginStore();
 const userInfoStore = useUserInfoStore();
@@ -647,14 +648,27 @@ const handleResetPassword = async () => {
   }
 };
 
-// 微博登录
-const weiboLogin = () => {
-  // TODO: 实现微博登录
-};
-
 // QQ登录
 const qqLogin = () => {
-  // TODO: 实现QQ登录
+  const { appId, redirectUri } = OAUTH_CONFIG.qq;
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: appId,
+    redirect_uri: redirectUri,
+    scope: 'get_user_info',
+  });
+  window.location.href = `https://graph.qq.com/oauth2.0/authorize?${params.toString()}`;
+};
+
+// 微博登录
+const weiboLogin = () => {
+  const { appId, redirectUri } = OAUTH_CONFIG.weibo;
+  const params = new URLSearchParams({
+    client_id: appId,
+    redirect_uri: redirectUri,
+    response_type: 'code',
+  });
+  window.location.href = `https://api.weibo.com/oauth2/authorize?${params.toString()}`;
 };
 </script>
 

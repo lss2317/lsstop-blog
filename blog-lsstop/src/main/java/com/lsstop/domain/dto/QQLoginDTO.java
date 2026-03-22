@@ -12,16 +12,8 @@ import lombok.Data;
 @Data
 public class QQLoginDTO {
 
-    /**
-     * QQ OAuth access_token
-     */
-    @NotBlank(message = "accessToken不能为空")
-    private String accessToken;
-
-    /**
-     * QQ openId
-     */
-    @NotBlank(message = "openId不能为空")
-    private String openId;
+    /** QQ授权码 */
+    @NotBlank(message = "code不能为空")
+    private String code;
 
 }

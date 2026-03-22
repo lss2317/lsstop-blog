@@ -88,3 +88,25 @@ export interface LogoutParams {
 export const logout = (data: LogoutParams) => {
   return http.post<null>('/auth/logout', data, { showProgress: false });
 };
+
+// QQ登录请求参数
+export interface QQLoginParams {
+  /** QQ授权码 */
+  code: string;
+}
+
+// QQ登录
+export const qqLogin = (data: QQLoginParams) => {
+  return http.post<UserInfo>('/auth/login/qq', data, { showProgress: false });
+};
+
+// 微博登录请求参数
+export interface WeiboLoginParams {
+  /** 微博授权码 */
+  code: string;
+}
+
+// 微博登录
+export const weiboLogin = (data: WeiboLoginParams) => {
+  return http.post<UserInfo>('/auth/login/weibo', data, { showProgress: false });
+};

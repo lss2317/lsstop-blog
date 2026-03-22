@@ -139,3 +139,22 @@ cos:
   domain: https://your-bucket-1250000000.cos.ap-shanghai.myqcloud.com
   # 上传目录前缀
   path-prefix: blog/
+
+# 第三方 OAuth 登录配置
+oauth:
+  # QQ 登录
+  qq:
+    # App ID
+    app-id: your-qq-app-id
+    # App Key
+    app-key: your-qq-app-key
+    # 回调地址
+    redirect-uri: https://your-blog-url.com/oauth/qq/callback
+  # 微博登录
+  weibo:
+    # App Key
+    app-key: your-weibo-app-key
+    # App Secret
+    app-secret: your-weibo-app-secret
+    # 回调地址
+    redirect-uri: https://your-blog-url.com/oauth/weibo/callback

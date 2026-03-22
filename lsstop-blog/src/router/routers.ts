@@ -133,6 +133,25 @@ export const constantRouter = [
       pageLabel: 'user',
     },
   },
+  // OAuth回调路由
+  {
+    path: '/qq/myback',
+    name: 'QQCallback',
+    component: () => import('@/views/OAuth/OAuthCallback.vue'),
+    meta: {
+      title: 'QQ登录',
+      oauthType: 'qq',
+    },
+  },
+  {
+    path: '/weibo/myback',
+    name: 'WeiboCallback',
+    component: () => import('@/views/OAuth/OAuthCallback.vue'),
+    meta: {
+      title: '微博登录',
+      oauthType: 'weibo',
+    },
+  },
   // 访问其他任何不存在的路由，重定向到首页
   // {
   //   path: '/:pathMatch(.*)*',

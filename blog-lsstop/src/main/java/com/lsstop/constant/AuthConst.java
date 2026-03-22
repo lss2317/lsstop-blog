@@ -179,9 +179,30 @@ public class AuthConst {
     public static final String QQ_OPENID_URL = "https://graph.qq.com/oauth2.0/me?access_token=%s&fmt=json";
 
     /**
+     * QQ获取access_token接口
+     */
+    public static final String QQ_ACCESS_TOKEN_URL = "https://graph.qq.com/oauth2.0/token?grant_type=authorization_code&client_id=%s&client_secret=%s&code=%s&redirect_uri=%s&fmt=json";
+
+
+    /**
      * 微博获取uid接口
      */
     public static final String WEIBO_UID_URL = "https://api.weibo.com/2/account/get_uid.json?access_token=%s";
+
+    /**
+     * 微博获取access_token接口
+     */
+    public static final String WEIBO_ACCESS_TOKEN_URL = "https://api.weibo.com/oauth2/access_token?client_id=%s&client_secret=%s&grant_type=authorization_code&code=%s&redirect_uri=%s";
+
+    /**
+     * QQ响应字段 access_token
+     */
+    public static final String QQ_RESPONSE_ACCESS_TOKEN = "access_token";
+
+    /**
+     * 微博响应字段 access_token
+     */
+    public static final String WEIBO_RESPONSE_ACCESS_TOKEN = "access_token";
 
     /**
      * QQ认证失败

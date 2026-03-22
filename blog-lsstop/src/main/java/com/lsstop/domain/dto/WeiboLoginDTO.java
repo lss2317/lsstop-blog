@@ -12,16 +12,8 @@ import lombok.Data;
 @Data
 public class WeiboLoginDTO {
 
-    /**
-     * 微博 OAuth access_token
-     */
-    @NotBlank(message = "accessToken不能为空")
-    private String accessToken;
-
-    /**
-     * 微博 uid
-     */
-    @NotBlank(message = "uid不能为空")
-    private String uid;
+    /** 微博授权码 */
+    @NotBlank(message = "code不能为空")
+    private String code;
 
 }
