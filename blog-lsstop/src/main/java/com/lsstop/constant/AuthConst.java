@@ -192,7 +192,7 @@ public class AuthConst {
     /**
      * 微博获取access_token接口
      */
-    public static final String WEIBO_ACCESS_TOKEN_URL = "https://api.weibo.com/oauth2/access_token?client_id=%s&client_secret=%s&grant_type=authorization_code&code=%s&redirect_uri=%s";
+    public static final String WEIBO_ACCESS_TOKEN_URL = "https://api.weibo.com/oauth2/access_token";
 
     /**
      * QQ响应字段 access_token

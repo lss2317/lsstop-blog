@@ -44,6 +44,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import com.alibaba.fastjson2.JSONObject;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -268,13 +274,20 @@ public class AuthServiceImpl implements AuthService {
         String userId = null;
 
         try {
-            // 用 code 换取 access_token 和 uid
-            String tokenUrl = String.format(AuthConst.WEIBO_ACCESS_TOKEN_URL,
-                    oauthConfig.getWeibo().getAppKey(),
-                    oauthConfig.getWeibo().getAppSecret(),
-                    dto.getCode(),
-                    URLEncoder.encode(oauthConfig.getWeibo().getRedirectUri(), StandardCharsets.UTF_8));
-            String tokenResponse = restTemplate.postForObject(tokenUrl, null, String.class);
+            // 用 code 换取 access_token 和 uid（使用 POST body 发送参数）
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("client_id", oauthConfig.getWeibo().getAppKey());
+            params.add("client_secret", oauthConfig.getWeibo().getAppSecret());
+            params.add("grant_type", "authorization_code");
+            params.add("code", dto.getCode());
+            params.add("redirect_uri", oauthConfig.getWeibo().getRedirectUri());
+
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+            String tokenResponse = restTemplate.postForObject(
+                    AuthConst.WEIBO_ACCESS_TOKEN_URL, request, String.class);
 
             if (tokenResponse == null) {
                 throw new BusinessException(AuthConst.WEIBO_AUTH_FAILED);
