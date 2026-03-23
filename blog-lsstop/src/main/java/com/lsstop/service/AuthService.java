@@ -1,5 +1,6 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.dto.BindCodeDTO;
 import com.lsstop.domain.dto.ChangeEmailDTO;
 import com.lsstop.domain.dto.ChangePasswordDTO;
 import com.lsstop.domain.dto.EmailCodeLoginDTO;
@@ -105,5 +106,21 @@ public interface AuthService {
      * @param dto    修改密码请求参数
      */
     void changePassword(String userId, ChangePasswordDTO dto);
+
+    /**
+     * 绑定QQ
+     *
+     * @param userId 用户ID
+     * @param dto    绑定请求参数
+     */
+    void bindQQ(String userId, BindCodeDTO dto);
+
+    /**
+     * 绑定微博
+     *
+     * @param userId 用户ID
+     * @param dto    绑定请求参数
+     */
+    void bindWeibo(String userId, BindCodeDTO dto);
 
 }

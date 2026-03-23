@@ -213,4 +213,13 @@
           AND deleted_at = 0
     </update>
 
+    <!-- 根据用户ID和登录类型查询认证记录数 -->
+    <select id="countByUserIdAndType" resultType="int">
+        SELECT COUNT(*)
+        FROM blog_user_auth
+        WHERE user_id = #{userId}
+          AND login_type = #{loginType}
+          AND deleted_at = 0
+    </select>
+
 </mapper>

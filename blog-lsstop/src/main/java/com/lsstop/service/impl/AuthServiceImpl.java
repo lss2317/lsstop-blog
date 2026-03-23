@@ -1,54 +1,36 @@
 package com.lsstop.service.impl;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.lsstop.config.BlogConfig;
+import com.lsstop.config.JwtConfig;
 import com.lsstop.config.OAuthConfig;
 import com.lsstop.constant.AuthConst;
 import com.lsstop.constant.RabbitMQConst;
 import com.lsstop.constant.RedisConst;
-import com.lsstop.domain.dto.EmailDTO;
-import com.lsstop.domain.dto.ChangeEmailDTO;
-import com.lsstop.domain.dto.ChangePasswordDTO;
+import com.lsstop.domain.dto.*;
 import com.lsstop.domain.entity.UserAuthEntity;
 import com.lsstop.domain.entity.UserEntity;
 import com.lsstop.domain.entity.UserProfileEntity;
-import com.lsstop.domain.dto.EmailCodeLoginDTO;
-import com.lsstop.domain.dto.EmailLoginDTO;
-import com.lsstop.domain.dto.QQLoginDTO;
-import com.lsstop.domain.dto.RegisterDTO;
-import com.lsstop.domain.dto.ResetPasswordDTO;
-import com.lsstop.domain.dto.SendCodeDTO;
-import com.lsstop.domain.dto.WeiboLoginDTO;
 import com.lsstop.domain.vo.LoginVO;
 import com.lsstop.domain.vo.TokenVO;
-import com.lsstop.enums.CodePurposeEnum;
-import com.lsstop.enums.EmailTypeEnum;
-import com.lsstop.enums.LoginResultEnum;
-import com.lsstop.enums.LoginSourceEnum;
-import com.lsstop.enums.LoginTypeEnum;
+import com.lsstop.enums.*;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.service.AuthService;
 import com.lsstop.service.LoginLogService;
 import com.lsstop.service.WebsiteConfigService;
-import com.lsstop.utils.VerifyCodeUtils;
-import com.lsstop.utils.JwtUtils;
-import com.lsstop.utils.PasswordUtils;
-import com.lsstop.utils.RedisUtils;
-import com.lsstop.utils.UserUidUtils;
-import com.lsstop.config.JwtConfig;
+import com.lsstop.utils.*;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
-import com.alibaba.fastjson2.JSONObject;
-
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -635,6 +617,139 @@ public class AuthServiceImpl implements AuthService {
         // 加密新密码并更新
         String encryptedPassword = PasswordUtils.encrypt(newPassword);
         authMapper.updateCredentialByUserId(userId, encryptedPassword);
+    }
+
+    /**
+     * 绑定QQ
+     *
+     * @param userId 用户ID
+     * @param dto    绑定请求参数
+     */
+    @Override
+    public void bindQQ(String userId, BindCodeDTO dto) {
+        try {
+            // 检查用户是否已绑定QQ
+            if (authMapper.countByUserIdAndType(userId, LoginTypeEnum.QQ.getCode()) > 0) {
+                throw new BusinessException(AuthConst.QQ_ALREADY_BINDDED);
+            }
+
+            // 用 code 换取 access_token
+            String tokenUrl = String.format(AuthConst.QQ_ACCESS_TOKEN_URL,
+                    oauthConfig.getQq().getAppId(),
+                    oauthConfig.getQq().getAppKey(),
+                    dto.getCode(),
+                    URLEncoder.encode(oauthConfig.getQq().getRedirectUri(), StandardCharsets.UTF_8));
+            String tokenResponse = restTemplate.getForObject(tokenUrl, String.class);
+
+            if (tokenResponse == null) {
+                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+            }
+            JSONObject tokenJson = JSONObject.parseObject(tokenResponse);
+            String accessToken = tokenJson.getString(AuthConst.QQ_RESPONSE_ACCESS_TOKEN);
+            if (accessToken == null) {
+                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+            }
+
+            // 用 access_token 获取 openId
+            String openIdUrl = String.format(AuthConst.QQ_OPENID_URL, accessToken);
+            String openIdResponse = restTemplate.getForObject(openIdUrl, String.class);
+            if (openIdResponse == null) {
+                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+            }
+            JSONObject openIdJson = JSONObject.parseObject(openIdResponse);
+            String openId = openIdJson.getString(AuthConst.QQ_RESPONSE_OPENID);
+            if (openId == null) {
+                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+            }
+
+            // 检查该QQ是否已被其他用户绑定
+            UserAuthEntity existingAuth = authMapper.selectByIdentifierAndType(openId, LoginTypeEnum.QQ.getCode());
+            if (existingAuth != null) {
+                throw new BusinessException(AuthConst.QQ_ALREADY_BINDDED_BY_OTHER);
+            }
+
+            // 插入绑定记录
+            UserAuthEntity userAuth = UserAuthEntity.builder()
+                    .userId(userId)
+                    .loginType(LoginTypeEnum.QQ.getCode())
+                    .identifier(openId)
+                    .build();
+            authMapper.insertUserAuth(userAuth);
+
+            // 清除用户信息缓存
+            redisUtils.delete(RedisConst.USER_INFO + userId);
+            redisUtils.delete(RedisConst.USER_HOME_ME + userId);
+
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("QQ绑定失败", e);
+            throw new BusinessException(AuthConst.QQ_BIND_FAILED);
+        }
+    }
+
+    /**
+     * 绑定微博
+     *
+     * @param userId 用户ID
+     * @param dto    绑定请求参数
+     */
+    @Override
+    public void bindWeibo(String userId, BindCodeDTO dto) {
+        try {
+            // 检查用户是否已绑定微博
+            if (authMapper.countByUserIdAndType(userId, LoginTypeEnum.WEIBO.getCode()) > 0) {
+                throw new BusinessException(AuthConst.WEIBO_ALREADY_BINDDED);
+            }
+
+            // 用 code 换取 access_token 和 uid
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("client_id", oauthConfig.getWeibo().getAppKey());
+            params.add("client_secret", oauthConfig.getWeibo().getAppSecret());
+            params.add("grant_type", "authorization_code");
+            params.add("code", dto.getCode());
+            params.add("redirect_uri", oauthConfig.getWeibo().getRedirectUri());
+
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+            String tokenResponse = restTemplate.postForObject(
+                    AuthConst.WEIBO_ACCESS_TOKEN_URL, request, String.class);
+
+            if (tokenResponse == null) {
+                throw new BusinessException(AuthConst.WEIBO_AUTH_FAILED);
+            }
+            JSONObject tokenJson = JSONObject.parseObject(tokenResponse);
+            String uid = String.valueOf(tokenJson.get(AuthConst.WEIBO_RESPONSE_UID));
+            if (uid == null || "null".equals(uid)) {
+                throw new BusinessException(AuthConst.WEIBO_AUTH_FAILED);
+            }
+
+            // 检查该微博是否已被其他用户绑定
+            UserAuthEntity existingAuth = authMapper.selectByIdentifierAndType(uid, LoginTypeEnum.WEIBO.getCode());
+            if (existingAuth != null) {
+                throw new BusinessException(AuthConst.WEIBO_ALREADY_BINDDED_BY_OTHER);
+            }
+
+            // 插入绑定记录
+            UserAuthEntity userAuth = UserAuthEntity.builder()
+                    .userId(userId)
+                    .loginType(LoginTypeEnum.WEIBO.getCode())
+                    .identifier(uid)
+                    .build();
+            authMapper.insertUserAuth(userAuth);
+
+            // 清除用户信息缓存
+            redisUtils.delete(RedisConst.USER_INFO + userId);
+            redisUtils.delete(RedisConst.USER_HOME_ME + userId);
+
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("微博绑定失败", e);
+            throw new BusinessException(AuthConst.WEIBO_BIND_FAILED);
+        }
     }
 
 }

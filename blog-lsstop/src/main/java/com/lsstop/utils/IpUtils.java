@@ -189,7 +189,7 @@ public class IpUtils {
         }
         String[] parts = region.split("\\|");
         String country = getPart(parts, 0);
-        String province = getPart(parts, 2);
+        String province = getPart(parts, 1);
 
         // 国家不是中国，直接返回国家名
         if (isValidPart(country) && !COUNTRY_CHINA.equals(country)) {

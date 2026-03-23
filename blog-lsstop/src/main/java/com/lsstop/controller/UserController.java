@@ -2,6 +2,7 @@ package com.lsstop.controller;
 
 import com.lsstop.common.Result;
 import com.lsstop.constant.CommentConst;
+import com.lsstop.domain.dto.BindCodeDTO;
 import com.lsstop.domain.dto.ChangeEmailDTO;
 import com.lsstop.domain.dto.ChangePasswordDTO;
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
@@ -144,6 +145,34 @@ public class UserController {
     public Result<List<UserRecentCommentVO>> getRecentComments(@PathVariable String userId) {
         List<UserRecentCommentVO> comments = commentService.getRecentComments(userId, CommentConst.RECENT_COMMENT_LIMIT);
         return Result.success(comments);
+    }
+
+    /**
+     * 绑定QQ
+     *
+     * @param request 请求对象（拦截器已验证token并存入userId）
+     * @param dto     绑定参数
+     * @return 操作结果
+     */
+    @PostMapping("/front/user/bind/qq")
+    public Result<Void> bindQQ(HttpServletRequest request, @RequestBody @Validated BindCodeDTO dto) {
+        String userId = (String) request.getAttribute("userId");
+        authService.bindQQ(userId, dto);
+        return Result.success();
+    }
+
+    /**
+     * 绑定微博
+     *
+     * @param request 请求对象（拦截器已验证token并存入userId）
+     * @param dto     绑定参数
+     * @return 操作结果
+     */
+    @PostMapping("/front/user/bind/weibo")
+    public Result<Void> bindWeibo(HttpServletRequest request, @RequestBody @Validated BindCodeDTO dto) {
+        String userId = (String) request.getAttribute("userId");
+        authService.bindWeibo(userId, dto);
+        return Result.success();
     }
 
 }

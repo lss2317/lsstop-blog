@@ -435,6 +435,7 @@
     <!-- 解绑确认对话框 -->
     <ConfirmDialog
       v-model="unbindDialog"
+      type="error"
       :title="`解绑${unbindType === 'qq' ? 'QQ' : '微博'}`"
       :content="`确定要解绑${unbindType === 'qq' ? 'QQ' : '微博'}账号吗？解绑后将无法使用该账号登录。`"
       confirm-text="解绑"
@@ -473,6 +474,7 @@ import { parseEmoji } from '@/utils/emoji';
 import ConfirmDialog from '@/components/Dialog/ConfirmDialog.vue';
 import AvatarCropper from '@/components/Dialog/AvatarCropper.vue';
 import { useNavigate } from '@/composables/useNavigate';
+import { OAUTH_CONFIG } from '@/constants/oauth';
 
 const route = useRoute();
 const userInfoStore = useUserInfoStore();
@@ -897,25 +899,34 @@ const unbindType = ref<SocialType>('qq');
 
 const handleQQBind = () => {
   if (ownerProfile.value?.qqBound) {
-    // 已绑定，显示解绑确认
     unbindType.value = 'qq';
     unbindDialog.value = true;
   } else {
-    // 未绑定，跳转绑定
-    // TODO: 实现QQ绑定
-    snackbar.info('QQ绑定功能开发中');
+    const { appId, redirectUri } = OAUTH_CONFIG.qq;
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: appId,
+      redirect_uri: redirectUri,
+      scope: 'get_user_info',
+      state: 'bind',
+    });
+    window.location.href = `https://graph.qq.com/oauth2.0/authorize?${params.toString()}`;
   }
 };
 
 const handleWeiboBind = () => {
   if (ownerProfile.value?.weiboBound) {
-    // 已绑定，显示解绑确认
     unbindType.value = 'weibo';
     unbindDialog.value = true;
   } else {
-    // 未绑定，跳转绑定
-    // TODO: 实现微博绑定
-    snackbar.info('微博绑定功能开发中');
+    const { appId, redirectUri } = OAUTH_CONFIG.weibo;
+    const params = new URLSearchParams({
+      client_id: appId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      state: 'bind',
+    });
+    window.location.href = `https://api.weibo.com/oauth2/authorize?${params.toString()}`;
   }
 };
 

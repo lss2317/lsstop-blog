@@ -154,4 +154,13 @@ public interface AuthMapper {
      */
     int updateCredentialByUserId(@Param("userId") String userId, @Param("credential") String credential);
 
+    /**
+     * 根据用户ID和登录类型查询是否存在认证记录
+     *
+     * @param userId    用户ID
+     * @param loginType 登录类型
+     * @return 认证记录数
+     */
+    int countByUserIdAndType(@Param("userId") String userId, @Param("loginType") Integer loginType);
+
 }

@@ -9,8 +9,10 @@
 import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { qqLogin, weiboLogin } from '@/apis/auth';
+import { bindQQ, bindWeibo } from '@/apis/user';
 import type { UserInfo } from '@/stores/modules/userInfo';
 import useUserInfoStore from '@/stores/modules/userInfo';
+import { storeToRefs } from 'pinia';
 import useLikeStore from '@/stores/modules/like';
 import { tokenManager } from '@/utils/token';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
@@ -19,12 +21,12 @@ import { getErrorMessage } from '@/utils/error';
 const route = useRoute();
 const router = useRouter();
 const userInfoStore = useUserInfoStore();
+const { userInfo } = storeToRefs(userInfoStore);
 const likeStore = useLikeStore();
 const snackbar = useSnackbarStore();
 
-const message = ref('正在登录...');
+const message = ref('正在处理...');
 
-// 跳转首页定时器
 let redirectTimer: number | null = null;
 
 const redirectHome = (delay = 2000) => {
@@ -36,13 +38,23 @@ const redirectHome = (delay = 2000) => {
   }, delay);
 };
 
+const redirectToProfile = (delay = 1500) => {
+  if (redirectTimer) {
+    clearTimeout(redirectTimer);
+  }
+  redirectTimer = window.setTimeout(() => {
+    router.push(`/user/${userInfo.value?.userId}`);
+  }, delay);
+};
+
 onBeforeUnmount(() => {
   if (redirectTimer) clearTimeout(redirectTimer);
 });
 
-// QQ登录回调处理
 const handleQQCallback = async () => {
   const code = route.query.code as string;
+  const state = route.query.state as string;
+  const isBind = state === 'bind';
 
   if (!code) {
     message.value = '授权失败，未获取到授权码';
@@ -50,19 +62,33 @@ const handleQQCallback = async () => {
     return;
   }
 
+  message.value = isBind ? '正在绑定...' : '正在登录...';
+
   try {
-    const res = await qqLogin({ code });
-    handleLoginSuccess(res.data);
+    if (isBind) {
+      await bindQQ(code);
+      message.value = '绑定成功，正在跳转...';
+      snackbar.success('QQ绑定成功');
+      redirectToProfile();
+    } else {
+      const res = await qqLogin({ code });
+      handleLoginSuccess(res.data);
+    }
   } catch (error) {
-    message.value = '登录失败';
+    message.value = isBind ? '绑定失败' : '登录失败';
     snackbar.error(getErrorMessage(error));
-    redirectHome();
+    if (isBind) {
+      redirectToProfile();
+    } else {
+      redirectHome();
+    }
   }
 };
 
-// 微博登录回调处理
 const handleWeiboCallback = async () => {
   const code = route.query.code as string;
+  const state = route.query.state as string;
+  const isBind = state === 'bind';
 
   if (!code) {
     message.value = '授权失败，未获取到授权码';
@@ -70,17 +96,29 @@ const handleWeiboCallback = async () => {
     return;
   }
 
+  message.value = isBind ? '正在绑定...' : '正在登录...';
+
   try {
-    const res = await weiboLogin({ code });
-    handleLoginSuccess(res.data);
+    if (isBind) {
+      await bindWeibo(code);
+      message.value = '绑定成功，正在跳转...';
+      snackbar.success('微博绑定成功');
+      redirectToProfile();
+    } else {
+      const res = await weiboLogin({ code });
+      handleLoginSuccess(res.data);
+    }
   } catch (error) {
-    message.value = '登录失败';
+    message.value = isBind ? '绑定失败' : '登录失败';
     snackbar.error(getErrorMessage(error));
-    redirectHome();
+    if (isBind) {
+      redirectToProfile();
+    } else {
+      redirectHome();
+    }
   }
 };
 
-// 登录成功处理
 const handleLoginSuccess = (data: UserInfo) => {
   message.value = '登录成功，正在跳转...';
   userInfoStore.setUserInfo(data);

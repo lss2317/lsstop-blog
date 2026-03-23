@@ -111,6 +111,16 @@ export const unbindSocial = (type: SocialType) => {
   return http.delete<null>(`/user/social/${type}`, { showProgress: false });
 };
 
+/** 绑定QQ */
+export const bindQQ = (code: string) => {
+  return http.post<null>('/user/bind/qq', { code }, { showProgress: false });
+};
+
+/** 绑定微博 */
+export const bindWeibo = (code: string) => {
+  return http.post<null>('/user/bind/weibo', { code }, { showProgress: false });
+};
+
 /** 更新用户头像 */
 export const uploadAvatar = (file: File) => {
   const formData = new FormData();

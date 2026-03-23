@@ -243,4 +243,34 @@ public class AuthConst {
      * 微博响应字段 uid
      */
     public static final String WEIBO_RESPONSE_UID = "uid";
+
+    /**
+     * QQ账号已被其他用户绑定
+     */
+    public static final String QQ_ALREADY_BINDDED_BY_OTHER = "该QQ账号已被其他用户绑定";
+
+    /**
+     * 微博账号已被其他用户绑定
+     */
+    public static final String WEIBO_ALREADY_BINDDED_BY_OTHER = "该微博账号已被其他用户绑定";
+
+    /**
+     * 已绑定QQ
+     */
+    public static final String QQ_ALREADY_BINDDED = "您已绑定QQ账号";
+
+    /**
+     * 已绑定微博
+     */
+    public static final String WEIBO_ALREADY_BINDDED = "您已绑定微博账号";
+
+    /**
+     * QQ绑定失败
+     */
+    public static final String QQ_BIND_FAILED = "QQ绑定失败，请重试";
+
+    /**
+     * 微博绑定失败
+     */
+    public static final String WEIBO_BIND_FAILED = "微博绑定失败，请重试";
 }
