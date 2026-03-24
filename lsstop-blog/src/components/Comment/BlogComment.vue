@@ -92,7 +92,9 @@
         <div class="lc-comment-main">
           <!-- 用户信息 -->
           <div class="lc-user-row">
-            <span class="lc-nickname">{{ item.nickname || '已注销用户' }}</span>
+            <span class="lc-nickname" @click="goToUserProfile(item.userId)">{{
+              item.nickname || '已注销用户'
+            }}</span>
             <span class="lc-self-tag" v-if="isSelf(item.userId)">我</span>
           </div>
           <!-- 时间地点 -->
@@ -166,7 +168,7 @@
             placeholder="请输入回复 ..."
             :submitting="submitting"
             @submit="submitReply(item)"
-            @cancel="cancelReply"
+            @close="cancelReply"
           />
 
           <!-- 回复列表 -->
@@ -200,7 +202,9 @@
                   </div>
                   <div class="lc-reply-main">
                     <div class="lc-user-row">
-                      <span class="lc-nickname">{{ reply.nickname || '已注销用户' }}</span>
+                      <span class="lc-nickname" @click="goToUserProfile(reply.userId)">{{
+                        reply.nickname || '已注销用户'
+                      }}</span>
                       <span class="lc-self-tag" v-if="isSelf(reply.userId)">我</span>
                     </div>
                     <div class="lc-meta-row">
@@ -216,7 +220,10 @@
                         :class="['lc-content', !expandedReplyMap[reply.id] ? 'collapsed' : '']"
                         :ref="(el) => setReplyContentRef(reply.id, el as HTMLElement)"
                       >
-                        <span v-if="reply.replyUserId" class="lc-reply-to"
+                        <span
+                          v-if="reply.replyUserId"
+                          class="lc-reply-to"
+                          @click="goToUserProfile(reply.replyUserId)"
                           >@{{ reply.replyNickname || '已注销用户' }}</span
                         ><span v-html="parseEmoji(reply.content)"></span>
                       </div>
@@ -271,7 +278,7 @@
                     :placeholder="'@' + reply.nickname"
                     :submitting="submitting"
                     @submit="submitReply(item)"
-                    @cancel="cancelReply"
+                    @close="cancelReply"
                   />
                 </div>
               </template>
@@ -362,6 +369,7 @@ import { useContentOverflow } from '@/composables/useContentOverflow';
 import { requiresTypeId } from '@/constants/commentType';
 import { ReviewStatusEnum } from '@/constants/reviewStatus';
 import { getErrorMessage } from '@/utils/error';
+import { useNavigate } from '@/composables/useNavigate';
 
 // props
 const props = defineProps<{
@@ -370,6 +378,7 @@ const props = defineProps<{
 }>();
 
 // stores
+const { navigateTo } = useNavigate();
 const likeStore = useLikeStore();
 const userInfoStore = useUserInfoStore();
 const snackbarStore = useSnackbarStore();
@@ -503,6 +512,11 @@ const isLike = (id: number): boolean => {
 // 判断是否是自己的评论
 const isSelf = (userId: string): boolean => {
   return userInfoStore.userInfo.userId === userId;
+};
+
+// 跳转用户主页
+const goToUserProfile = (userId: string) => {
+  navigateTo(`/user/${userId}`);
 };
 
 // 删除主评论
@@ -1171,6 +1185,7 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .lc-nickname:hover {
@@ -1385,6 +1400,7 @@ onUnmounted(() => {
   font-weight: 500;
   margin-right: 4px;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .lc-reply-to:visited {

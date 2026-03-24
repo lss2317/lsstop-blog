@@ -585,6 +585,10 @@ public class AuthServiceImpl implements AuthService {
 
         // 删除验证码
         redisUtils.delete(codeKey);
+
+        // 清除用户信息缓存
+        redisUtils.delete(RedisConst.USER_INFO + userId);
+        redisUtils.delete(RedisConst.USER_HOME_ME + userId);
     }
 
     /**

@@ -34,7 +34,7 @@
         </div>
       </div>
       <div class="reply-btns">
-        <button class="cancel-btn" :disabled="submitting" @click="$emit('cancel')">取消</button>
+        <button class="cancel-btn" :disabled="submitting" @click="$emit('close')">取消</button>
         <button
           class="submit-btn"
           :disabled="!modelValue.trim() || submitting"
@@ -71,7 +71,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: string];
   submit: [];
-  cancel: [];
+  close: [];
 }>();
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
