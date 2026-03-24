@@ -56,6 +56,11 @@ public class CommentEntity implements BaseData {
     private String replyUserId;
 
     /**
+     * IP地址
+     */
+    private String ipAddress;
+
+    /**
      * IP所在地
      */
     private String ipRegion;

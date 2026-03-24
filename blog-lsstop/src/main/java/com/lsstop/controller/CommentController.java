@@ -63,7 +63,9 @@ public class CommentController {
         }
         CommentEntity comment = commentDTO.asViewObject(CommentEntity.class);
         comment.setUserId(userId);
-        comment.setIpRegion(IpUtils.getIpLocation(IpUtils.getIpAddress(request)));
+        String ipAddress = IpUtils.getIpAddress(request);
+        comment.setIpAddress(ipAddress);
+        comment.setIpRegion(IpUtils.getIpLocation(ipAddress));
         comment.setReview(websiteConfigService.getWebsiteConfig().getEnableCommentReview());
         AddCommentVO vo = commentService.insertComment(comment);
         return Result.success(vo);
