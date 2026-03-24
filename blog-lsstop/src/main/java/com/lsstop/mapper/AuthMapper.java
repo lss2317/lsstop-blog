@@ -163,4 +163,13 @@ public interface AuthMapper {
      */
     int countByUserIdAndType(@Param("userId") String userId, @Param("loginType") Integer loginType);
 
+    /**
+     * 根据用户ID和登录类型删除认证记录（软删除）
+     *
+     * @param userId    用户ID
+     * @param loginType 登录类型
+     * @return 删除行数
+     */
+    int deleteByUserIdAndType(@Param("userId") String userId, @Param("loginType") Integer loginType);
+
 }

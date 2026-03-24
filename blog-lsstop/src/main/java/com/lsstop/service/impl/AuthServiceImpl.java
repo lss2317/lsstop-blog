@@ -752,4 +752,60 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    /**
+     * 解绑QQ
+     *
+     * @param userId 用户ID
+     */
+    @Override
+    public void unbindQQ(String userId) {
+        try {
+            // 检查用户是否已绑定QQ
+            if (authMapper.countByUserIdAndType(userId, LoginTypeEnum.QQ.getCode()) == 0) {
+                throw new BusinessException(AuthConst.QQ_NOT_BINDDED_YET);
+            }
+
+            // 删除绑定记录
+            authMapper.deleteByUserIdAndType(userId, LoginTypeEnum.QQ.getCode());
+
+            // 清除用户信息缓存
+            redisUtils.delete(RedisConst.USER_INFO + userId);
+            redisUtils.delete(RedisConst.USER_HOME_ME + userId);
+
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("QQ解绑失败", e);
+            throw new BusinessException(AuthConst.QQ_UNBIND_FAILED);
+        }
+    }
+
+    /**
+     * 解绑微博
+     *
+     * @param userId 用户ID
+     */
+    @Override
+    public void unbindWeibo(String userId) {
+        try {
+            // 检查用户是否已绑定微博
+            if (authMapper.countByUserIdAndType(userId, LoginTypeEnum.WEIBO.getCode()) == 0) {
+                throw new BusinessException(AuthConst.WEIBO_NOT_BINDDED_YET);
+            }
+
+            // 删除绑定记录
+            authMapper.deleteByUserIdAndType(userId, LoginTypeEnum.WEIBO.getCode());
+
+            // 清除用户信息缓存
+            redisUtils.delete(RedisConst.USER_INFO + userId);
+            redisUtils.delete(RedisConst.USER_HOME_ME + userId);
+
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("微博解绑失败", e);
+            throw new BusinessException(AuthConst.WEIBO_UNBIND_FAILED);
+        }
+    }
+
 }

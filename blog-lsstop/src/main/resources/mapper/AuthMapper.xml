@@ -222,4 +222,14 @@
           AND deleted_at = 0
     </select>
 
+    <!-- 根据用户ID和登录类型删除认证记录（软删除） -->
+    <update id="deleteByUserIdAndType">
+        UPDATE blog_user_auth
+        SET deleted_at  = UNIX_TIMESTAMP(NOW()) * 1000,
+            update_time = NOW()
+        WHERE user_id = #{userId}
+          AND login_type = #{loginType}
+          AND deleted_at = 0
+    </update>
+
 </mapper>

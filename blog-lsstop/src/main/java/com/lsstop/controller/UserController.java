@@ -175,4 +175,30 @@ public class UserController {
         return Result.success();
     }
 
+    /**
+     * 解绑QQ
+     *
+     * @param request 请求对象（拦截器已验证token并存入userId）
+     * @return 操作结果
+     */
+    @PostMapping("/front/user/unbind/qq")
+    public Result<Void> unbindQQ(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        authService.unbindQQ(userId);
+        return Result.success();
+    }
+
+    /**
+     * 解绑微博
+     *
+     * @param request 请求对象（拦截器已验证token并存入userId）
+     * @return 操作结果
+     */
+    @PostMapping("/front/user/unbind/weibo")
+    public Result<Void> unbindWeibo(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        authService.unbindWeibo(userId);
+        return Result.success();
+    }
+
 }

@@ -94,11 +94,6 @@ public class AuthConst {
     public static final String INVALID_CODE_PURPOSE = "无效的验证码用途";
 
     /**
-     * 邮箱尚未注册
-     */
-    public static final String EMAIL_NOT_REGISTERED = "该邮箱尚未注册";
-
-    /**
      * 邮箱已被注册
      */
     public static final String EMAIL_ALREADY_REGISTERED = "该邮箱已被注册";
@@ -182,12 +177,6 @@ public class AuthConst {
      * QQ获取access_token接口
      */
     public static final String QQ_ACCESS_TOKEN_URL = "https://graph.qq.com/oauth2.0/token?grant_type=authorization_code&client_id=%s&client_secret=%s&code=%s&redirect_uri=%s&fmt=json";
-
-
-    /**
-     * 微博获取uid接口
-     */
-    public static final String WEIBO_UID_URL = "https://api.weibo.com/2/account/get_uid.json?access_token=%s";
 
     /**
      * 微博获取access_token接口
@@ -273,4 +262,24 @@ public class AuthConst {
      * 微博绑定失败
      */
     public static final String WEIBO_BIND_FAILED = "微博绑定失败，请重试";
+
+    /**
+     * 未绑定QQ
+     */
+    public static final String QQ_NOT_BINDDED_YET = "您尚未绑定QQ账号";
+
+    /**
+     * 未绑定微博
+     */
+    public static final String WEIBO_NOT_BINDDED_YET = "您尚未绑定微博账号";
+
+    /**
+     * QQ解绑失败
+     */
+    public static final String QQ_UNBIND_FAILED = "QQ解绑失败，请重试";
+
+    /**
+     * 微博解绑失败
+     */
+    public static final String WEIBO_UNBIND_FAILED = "微博解绑失败，请重试";
 }

@@ -108,7 +108,7 @@ export type SocialType = 'qq' | 'weibo';
 
 /** 解绑社交账号 */
 export const unbindSocial = (type: SocialType) => {
-  return http.delete<null>(`/user/social/${type}`, { showProgress: false });
+  return http.post<null>(`/user/unbind/${type}`, null, { showProgress: false });
 };
 
 /** 绑定QQ */

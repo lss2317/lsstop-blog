@@ -123,4 +123,18 @@ public interface AuthService {
      */
     void bindWeibo(String userId, BindCodeDTO dto);
 
+    /**
+     * 解绑QQ
+     *
+     * @param userId 用户ID
+     */
+    void unbindQQ(String userId);
+
+    /**
+     * 解绑微博
+     *
+     * @param userId 用户ID
+     */
+    void unbindWeibo(String userId);
+
 }
