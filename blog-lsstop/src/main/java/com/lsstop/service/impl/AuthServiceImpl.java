@@ -96,19 +96,19 @@ public class AuthServiceImpl implements AuthService {
             // 查询用户认证信息
             UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(email, LoginTypeEnum.EMAIL.getCode());
             if (userAuth == null) {
-                throw new BusinessException(AuthConst.ACCOUNT_OR_PASSWORD_ERROR);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.ACCOUNT_OR_PASSWORD_ERROR);
             }
             userId = userAuth.getUserId();
 
             // 验证密码
             if (!PasswordUtils.verify(password, userAuth.getCredential())) {
-                throw new BusinessException(AuthConst.ACCOUNT_OR_PASSWORD_ERROR);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.ACCOUNT_OR_PASSWORD_ERROR);
             }
 
             // 检查用户是否被禁用
             UserEntity user = authMapper.selectUserById(userId);
             if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
-                throw new BusinessException(AuthConst.ACCOUNT_DISABLED);
+                throw new BusinessException(StatusEnum.BLACK_LIST_ERROR, AuthConst.ACCOUNT_DISABLED);
             }
 
             // 更新最后登录时间
@@ -155,7 +155,7 @@ public class AuthServiceImpl implements AuthService {
             // 检查用户是否被禁用
             UserEntity user = authMapper.selectUserById(userId);
             if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
-                throw new BusinessException(AuthConst.ACCOUNT_DISABLED);
+                throw new BusinessException(StatusEnum.BLACK_LIST_ERROR, AuthConst.ACCOUNT_DISABLED);
             }
 
             // 更新最后登录时间
@@ -195,24 +195,24 @@ public class AuthServiceImpl implements AuthService {
             String tokenResponse = restTemplate.getForObject(tokenUrl, String.class);
 
             if (tokenResponse == null) {
-                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.QQ_AUTH_FAILED);
             }
             JSONObject tokenJson = JSONObject.parseObject(tokenResponse);
             String accessToken = tokenJson.getString(AuthConst.QQ_RESPONSE_ACCESS_TOKEN);
             if (accessToken == null) {
-                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.QQ_AUTH_FAILED);
             }
 
             // 用 access_token 获取 openId
             String openIdUrl = String.format(AuthConst.QQ_OPENID_URL, accessToken);
             String openIdResponse = restTemplate.getForObject(openIdUrl, String.class);
             if (openIdResponse == null) {
-                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.QQ_AUTH_FAILED);
             }
             JSONObject openIdJson = JSONObject.parseObject(openIdResponse);
             String openId = openIdJson.getString(AuthConst.QQ_RESPONSE_OPENID);
             if (openId == null) {
-                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.QQ_AUTH_FAILED);
             }
 
             // 根据 openId 查询用户认证信息
@@ -225,7 +225,7 @@ public class AuthServiceImpl implements AuthService {
             // 检查用户是否被禁用
             UserEntity user = authMapper.selectUserById(userId);
             if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
-                throw new BusinessException(AuthConst.ACCOUNT_DISABLED);
+                throw new BusinessException(StatusEnum.BLACK_LIST_ERROR, AuthConst.ACCOUNT_DISABLED);
             }
 
             // 更新最后登录时间
@@ -241,7 +241,7 @@ public class AuthServiceImpl implements AuthService {
         } catch (Exception e) {
             log.error("QQ登录失败", e);
             loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), AuthConst.QQ_LOGIN_FAILED);
-            throw new BusinessException(AuthConst.QQ_LOGIN_FAILED);
+            throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.QQ_LOGIN_FAILED);
         }
     }
 
@@ -272,13 +272,13 @@ public class AuthServiceImpl implements AuthService {
                     AuthConst.WEIBO_ACCESS_TOKEN_URL, request, String.class);
 
             if (tokenResponse == null) {
-                throw new BusinessException(AuthConst.WEIBO_AUTH_FAILED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.WEIBO_AUTH_FAILED);
             }
             JSONObject tokenJson = JSONObject.parseObject(tokenResponse);
             String accessToken = tokenJson.getString(AuthConst.WEIBO_RESPONSE_ACCESS_TOKEN);
             String uid = String.valueOf(tokenJson.get(AuthConst.WEIBO_RESPONSE_UID));
             if (accessToken == null || uid == null) {
-                throw new BusinessException(AuthConst.WEIBO_AUTH_FAILED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.WEIBO_AUTH_FAILED);
             }
 
             // 根据 uid 查询用户认证信息
@@ -291,7 +291,7 @@ public class AuthServiceImpl implements AuthService {
             // 检查用户是否被禁用
             UserEntity user = authMapper.selectUserById(userId);
             if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
-                throw new BusinessException(AuthConst.ACCOUNT_DISABLED);
+                throw new BusinessException(StatusEnum.BLACK_LIST_ERROR, AuthConst.ACCOUNT_DISABLED);
             }
 
             // 更新最后登录时间
@@ -307,7 +307,7 @@ public class AuthServiceImpl implements AuthService {
         } catch (Exception e) {
             log.error("微博登录失败", e);
             loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), AuthConst.WEIBO_LOGIN_FAILED);
-            throw new BusinessException(AuthConst.WEIBO_LOGIN_FAILED);
+            throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.WEIBO_LOGIN_FAILED);
         }
     }
 
@@ -370,14 +370,14 @@ public class AuthServiceImpl implements AuthService {
     public TokenVO refreshToken(String refreshToken) {
         // 验证refreshToken
         if (!jwtUtils.validateRefreshToken(refreshToken)) {
-            throw new BusinessException(AuthConst.REFRESH_TOKEN_INVALID);
+            throw new BusinessException(StatusEnum.NOT_LOGIN, AuthConst.REFRESH_TOKEN_INVALID);
         }
         // 获取用户ID
         String userId = jwtUtils.getSubject(refreshToken);
         // 检查Redis中的refreshToken是否一致
         String storedToken = redisUtils.get(RedisConst.FRONT_REFRESH_TOKEN + userId, String.class);
         if (storedToken == null || !storedToken.equals(refreshToken)) {
-            throw new BusinessException(AuthConst.REFRESH_TOKEN_EXPIRED);
+            throw new BusinessException(StatusEnum.NOT_LOGIN, AuthConst.REFRESH_TOKEN_EXPIRED);
         }
         // 生成新token
         JwtUtils.TokenPair tokenPair = jwtUtils.generateFrontTokenPair(userId);
@@ -414,7 +414,7 @@ public class AuthServiceImpl implements AuthService {
             Long ttl = redisUtils.getExpire(codeKey);
             long resendThreshold = (AuthConst.CODE_EXPIRE_MINUTES * 60L) - AuthConst.CODE_RESEND_INTERVAL_SECONDS;
             if (ttl != null && ttl > resendThreshold) {
-                throw new BusinessException(AuthConst.CODE_SEND_TOO_FREQUENT);
+                throw new BusinessException(StatusEnum.REQUEST_FREQUENTLY, AuthConst.CODE_SEND_TOO_FREQUENT);
             }
         }
 
@@ -504,7 +504,7 @@ public class AuthServiceImpl implements AuthService {
         // 检查邮箱是否已注册
         UserAuthEntity existingAuth = authMapper.selectByIdentifierAndType(email, LoginTypeEnum.EMAIL.getCode());
         if (existingAuth != null) {
-            throw new BusinessException(AuthConst.EMAIL_ALREADY_REGISTERED);
+            throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST, AuthConst.EMAIL_ALREADY_REGISTERED);
         }
 
         // 生成用户ID
@@ -577,7 +577,7 @@ public class AuthServiceImpl implements AuthService {
         // 检查新邮箱是否已被其他账号使用
         UserAuthEntity existingAuth = authMapper.selectByIdentifierAndType(newEmail, LoginTypeEnum.EMAIL.getCode());
         if (existingAuth != null) {
-            throw new BusinessException(AuthConst.EMAIL_ALREADY_REGISTERED);
+            throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST, AuthConst.EMAIL_ALREADY_REGISTERED);
         }
 
         // 更新邮箱
@@ -602,12 +602,12 @@ public class AuthServiceImpl implements AuthService {
         // 查询用户邮箱认证信息
         UserAuthEntity userAuth = authMapper.selectEmailAuthByUserId(userId);
         if (userAuth == null) {
-            throw new BusinessException(AuthConst.USER_NOT_FOUND);
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
         }
 
         // 验证旧密码是否正确
         if (!PasswordUtils.verify(dto.getOldPassword(), userAuth.getCredential())) {
-            throw new BusinessException(AuthConst.OLD_PASSWORD_ERROR);
+            throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.OLD_PASSWORD_ERROR);
         }
 
         // 校验新密码格式
@@ -634,7 +634,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             // 检查用户是否已绑定QQ
             if (authMapper.countByUserIdAndType(userId, LoginTypeEnum.QQ.getCode()) > 0) {
-                throw new BusinessException(AuthConst.QQ_ALREADY_BINDDED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST, AuthConst.QQ_ALREADY_BINDDED);
             }
 
             // 用 code 换取 access_token
@@ -646,30 +646,30 @@ public class AuthServiceImpl implements AuthService {
             String tokenResponse = restTemplate.getForObject(tokenUrl, String.class);
 
             if (tokenResponse == null) {
-                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.QQ_AUTH_FAILED);
             }
             JSONObject tokenJson = JSONObject.parseObject(tokenResponse);
             String accessToken = tokenJson.getString(AuthConst.QQ_RESPONSE_ACCESS_TOKEN);
             if (accessToken == null) {
-                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.QQ_AUTH_FAILED);
             }
 
             // 用 access_token 获取 openId
             String openIdUrl = String.format(AuthConst.QQ_OPENID_URL, accessToken);
             String openIdResponse = restTemplate.getForObject(openIdUrl, String.class);
             if (openIdResponse == null) {
-                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.QQ_AUTH_FAILED);
             }
             JSONObject openIdJson = JSONObject.parseObject(openIdResponse);
             String openId = openIdJson.getString(AuthConst.QQ_RESPONSE_OPENID);
             if (openId == null) {
-                throw new BusinessException(AuthConst.QQ_AUTH_FAILED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.QQ_AUTH_FAILED);
             }
 
             // 检查该QQ是否已被其他用户绑定
             UserAuthEntity existingAuth = authMapper.selectByIdentifierAndType(openId, LoginTypeEnum.QQ.getCode());
             if (existingAuth != null) {
-                throw new BusinessException(AuthConst.QQ_ALREADY_BINDDED_BY_OTHER);
+                throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST, AuthConst.QQ_ALREADY_BINDDED_BY_OTHER);
             }
 
             // 插入绑定记录
@@ -703,7 +703,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             // 检查用户是否已绑定微博
             if (authMapper.countByUserIdAndType(userId, LoginTypeEnum.WEIBO.getCode()) > 0) {
-                throw new BusinessException(AuthConst.WEIBO_ALREADY_BINDDED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST, AuthConst.WEIBO_ALREADY_BINDDED);
             }
 
             // 用 code 换取 access_token 和 uid
@@ -722,18 +722,18 @@ public class AuthServiceImpl implements AuthService {
                     AuthConst.WEIBO_ACCESS_TOKEN_URL, request, String.class);
 
             if (tokenResponse == null) {
-                throw new BusinessException(AuthConst.WEIBO_AUTH_FAILED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.WEIBO_AUTH_FAILED);
             }
             JSONObject tokenJson = JSONObject.parseObject(tokenResponse);
             String uid = String.valueOf(tokenJson.get(AuthConst.WEIBO_RESPONSE_UID));
             if (uid == null || "null".equals(uid)) {
-                throw new BusinessException(AuthConst.WEIBO_AUTH_FAILED);
+                throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.WEIBO_AUTH_FAILED);
             }
 
             // 检查该微博是否已被其他用户绑定
             UserAuthEntity existingAuth = authMapper.selectByIdentifierAndType(uid, LoginTypeEnum.WEIBO.getCode());
             if (existingAuth != null) {
-                throw new BusinessException(AuthConst.WEIBO_ALREADY_BINDDED_BY_OTHER);
+                throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST, AuthConst.WEIBO_ALREADY_BINDDED_BY_OTHER);
             }
 
             // 插入绑定记录

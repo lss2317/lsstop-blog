@@ -53,12 +53,12 @@ public class BusinessException extends RuntimeException {
     public BusinessException(StatusEnum statusEnum) {
         super(statusEnum.getMsg());
         this.code = statusEnum.getCode();
-        this.httpStatus = HttpStatus.valueOf(statusEnum.getCode());
+        this.httpStatus = statusEnum.getHttpStatus();
     }
 
-    public BusinessException(StatusEnum statusEnum, HttpStatus httpStatus) {
-        super(statusEnum.getMsg());
+    public BusinessException(StatusEnum statusEnum, String message) {
+        super(message);
         this.code = statusEnum.getCode();
-        this.httpStatus = httpStatus;
+        this.httpStatus = statusEnum.getHttpStatus();
     }
 }

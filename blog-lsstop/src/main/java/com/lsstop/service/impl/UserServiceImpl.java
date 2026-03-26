@@ -9,6 +9,7 @@ import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.enums.FileFolderEnum;
+import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.mapper.CommentMapper;
@@ -66,7 +67,7 @@ public class UserServiceImpl implements UserService {
         // 缓存不存在，查询数据库
         UserProfileEntity userProfile = authMapper.selectProfileById(userId);
         if (userProfile == null) {
-            throw new BusinessException(AuthConst.USER_NOT_FOUND);
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
         }
         UserInfoVO userInfoVO = userProfile.asViewObject(UserInfoVO.class);
         // 写入缓存，过期时间1小时
@@ -84,20 +85,14 @@ public class UserServiceImpl implements UserService {
     public UserPublicProfileVO getUserHomeDetail(String userId) {
         String cacheKey = RedisConst.USER_HOME_PUBLIC + userId;
         // 先从缓存获取
-        Object cachedValue = redisUtils.get(cacheKey);
-        if (cachedValue != null) {
-            // 如果是空值标识，直接抛异常
-            if (CommonConst.CACHE_NULL_FLAG.equals(cachedValue)) {
-                throw new BusinessException(AuthConst.USER_NOT_FOUND);
-            }
-            return (UserPublicProfileVO) cachedValue;
+        UserPublicProfileVO cachedUser = redisUtils.get(cacheKey, UserPublicProfileVO.class);
+        if (cachedUser != null) {
+            return cachedUser;
         }
         // 缓存不存在，查询数据库
         UserPublicProfileVO userPublicProfileVO = authMapper.selectUserPublicHomeDetail(userId);
         if (userPublicProfileVO == null) {
-            // 防止缓存穿透，设置空值标识，过期时间 5 分钟
-            redisUtils.set(cacheKey, CommonConst.CACHE_NULL_FLAG, RedisConst.EXPIRE_FIVE_MINUTES);
-            throw new BusinessException(AuthConst.USER_NOT_FOUND);
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
         }
         // 查询评论数量
         Integer commentCount = commentMapper.countByUserId(userId);
@@ -123,20 +118,14 @@ public class UserServiceImpl implements UserService {
     public UserProfileVO getMyHomeDetail(String userId) {
         String cacheKey = RedisConst.USER_HOME_ME + userId;
         // 先从缓存获取
-        Object cachedValue = redisUtils.get(cacheKey);
-        if (cachedValue != null) {
-            // 如果是空值标识，直接抛异常
-            if (CommonConst.CACHE_NULL_FLAG.equals(cachedValue)) {
-                throw new BusinessException(AuthConst.USER_NOT_FOUND);
-            }
-            return (UserProfileVO) cachedValue;
+        UserProfileVO cachedUser = redisUtils.get(cacheKey, UserProfileVO.class);
+        if (cachedUser != null) {
+            return cachedUser;
         }
         // 缓存不存在，查询数据库
         UserProfileVO userProfileVO = authMapper.selectUserHomeDetail(userId);
         if (userProfileVO == null) {
-            // 防止缓存穿透，设置空值标识，过期时间 5 分钟
-            redisUtils.set(cacheKey, CommonConst.CACHE_NULL_FLAG, RedisConst.EXPIRE_FIVE_MINUTES);
-            throw new BusinessException(AuthConst.USER_NOT_FOUND);
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
         }
         // 查询评论数量
         Integer commentCount = commentMapper.countByUserId(userId);
@@ -171,7 +160,7 @@ public class UserServiceImpl implements UserService {
             // 更新数据库
             int rows = authMapper.updateAvatar(userId, avatarUrl);
             if (rows == 0) {
-                throw new BusinessException(AuthConst.USER_NOT_FOUND);
+                throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
             }
         } catch (Exception e) {
             // 数据库更新失败，删除已上传的文件
@@ -213,7 +202,7 @@ public class UserServiceImpl implements UserService {
         // 更新数据库
         int rows = authMapper.updateUserInfo(userId, nickname, website, intro);
         if (rows == 0) {
-            throw new BusinessException(AuthConst.USER_NOT_FOUND);
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
         }
         // 清除用户相关缓存
         clearUserCache(userId);

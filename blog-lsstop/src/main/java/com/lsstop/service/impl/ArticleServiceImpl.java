@@ -4,6 +4,7 @@ import com.lsstop.constant.ArticleConst;
 import com.lsstop.constant.CommentConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.vo.*;
+import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.ArticleMapper;
 import com.lsstop.service.ArticleService;
@@ -87,7 +88,7 @@ public class ArticleServiceImpl implements ArticleService {
     public ArticleVO getArticleById(Integer id, String ip) {
         ArticleVO articleVO = articleMapper.getArticleById(id);
         if (articleVO == null) {
-            throw new BusinessException(ArticleConst.ARTICLE_NOT_FOUND);
+            throw new BusinessException(StatusEnum.NOT_FOUND, ArticleConst.ARTICLE_NOT_FOUND);
         }
         // 浏览量防刷：同一IP 1小时内不重复计数
         String viewRecordKey = RedisConst.ARTICLE_VIEW_RECORD + id + ":" + ip;
