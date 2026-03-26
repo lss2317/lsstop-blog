@@ -83,6 +83,10 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserPublicProfileVO getUserHomeDetail(String userId) {
+        // 校验userId
+        if (userId == null || userId.isBlank()) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR, CommonConst.USER_ID_REQUIRED);
+        }
         String cacheKey = RedisConst.USER_HOME_PUBLIC + userId;
         // 先从缓存获取
         UserPublicProfileVO cachedUser = redisUtils.get(cacheKey, UserPublicProfileVO.class);

@@ -1,5 +1,6 @@
 package com.lsstop.controller;
 
+import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
 import com.lsstop.constant.CommentConst;
 import com.lsstop.domain.dto.BindCodeDTO;
@@ -51,6 +52,7 @@ public class UserController {
      * @return 用户资料信息
      */
     @GetMapping("/front/user/me")
+    @AccessLimit(seconds = 60, maxCount = 60)
     public Result<UserInfoVO> getUserInfo(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         return Result.success(userService.getUserProfile(userId));
@@ -63,6 +65,7 @@ public class UserController {
      * @return 用户公开主页详情
      */
     @GetMapping("/front/user/profile/{userId}")
+    @AccessLimit(seconds = 60, maxCount = 60)
     public Result<UserPublicProfileVO> getUserHomeDetail(@PathVariable String userId) {
         return Result.success(userService.getUserHomeDetail(userId));
     }
@@ -74,6 +77,7 @@ public class UserController {
      * @return 用户完整主页详情
      */
     @GetMapping("/front/user/profile")
+    @AccessLimit(seconds = 60, maxCount = 60)
     public Result<UserProfileVO> getMyHomeDetail(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         return Result.success(userService.getMyHomeDetail(userId));
@@ -87,6 +91,7 @@ public class UserController {
      * @return 操作结果
      */
     @PostMapping("/front/user/email")
+    @AccessLimit(seconds = 60, maxCount = 10)
     public Result<Void> changeEmail(HttpServletRequest request, @RequestBody @Validated ChangeEmailDTO dto) {
         String userId = (String) request.getAttribute("userId");
         authService.changeEmail(userId, dto);
@@ -101,6 +106,7 @@ public class UserController {
      * @return 新头像URL
      */
     @PostMapping("/front/user/avatar")
+    @AccessLimit(seconds = 60, maxCount = 10)
     public Result<String> updateAvatar(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
         String userId = (String) request.getAttribute("userId");
         String avatarUrl = userService.updateAvatar(userId, file);
@@ -115,6 +121,7 @@ public class UserController {
      * @return 操作结果
      */
     @PostMapping("/front/user/info")
+    @AccessLimit(seconds = 60, maxCount = 10)
     public Result<Void> updateUserInfo(HttpServletRequest request, @RequestBody @Validated UpdateUserInfoDTO dto) {
         String userId = (String) request.getAttribute("userId");
         userService.updateUserInfo(userId, dto);
@@ -129,6 +136,7 @@ public class UserController {
      * @return 操作结果
      */
     @PostMapping("/front/user/password")
+    @AccessLimit(seconds = 60, maxCount = 5)
     public Result<Void> changePassword(HttpServletRequest request, @RequestBody @Validated ChangePasswordDTO dto) {
         String userId = (String) request.getAttribute("userId");
         authService.changePassword(userId, dto);
@@ -142,6 +150,7 @@ public class UserController {
      * @return 用户最近评论列表（最多10条）
      */
     @GetMapping("/front/user/recentComments/{userId}")
+    @AccessLimit(seconds = 60, maxCount = 60)
     public Result<List<UserRecentCommentVO>> getRecentComments(@PathVariable String userId) {
         List<UserRecentCommentVO> comments = commentService.getRecentComments(userId, CommentConst.RECENT_COMMENT_LIMIT);
         return Result.success(comments);
@@ -155,6 +164,7 @@ public class UserController {
      * @return 操作结果
      */
     @PostMapping("/front/user/bind/qq")
+    @AccessLimit(seconds = 60, maxCount = 10)
     public Result<Void> bindQQ(HttpServletRequest request, @RequestBody @Validated BindCodeDTO dto) {
         String userId = (String) request.getAttribute("userId");
         authService.bindQQ(userId, dto);
@@ -169,6 +179,7 @@ public class UserController {
      * @return 操作结果
      */
     @PostMapping("/front/user/bind/weibo")
+    @AccessLimit(seconds = 60, maxCount = 10)
     public Result<Void> bindWeibo(HttpServletRequest request, @RequestBody @Validated BindCodeDTO dto) {
         String userId = (String) request.getAttribute("userId");
         authService.bindWeibo(userId, dto);
@@ -182,6 +193,7 @@ public class UserController {
      * @return 操作结果
      */
     @PostMapping("/front/user/unbind/qq")
+    @AccessLimit(seconds = 60, maxCount = 10)
     public Result<Void> unbindQQ(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         authService.unbindQQ(userId);
@@ -195,6 +207,7 @@ public class UserController {
      * @return 操作结果
      */
     @PostMapping("/front/user/unbind/weibo")
+    @AccessLimit(seconds = 60, maxCount = 10)
     public Result<Void> unbindWeibo(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         authService.unbindWeibo(userId);

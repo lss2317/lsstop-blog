@@ -1,5 +1,6 @@
 package com.lsstop.controller;
 
+import com.lsstop.annotation.AccessLimit;
 import com.lsstop.common.Result;
 import com.lsstop.enums.FileFolderEnum;
 import com.lsstop.service.CosService;
@@ -28,6 +29,7 @@ public class FileController {
      * @return 头像访问URL
      */
     @PostMapping("/front/file/avatar")
+    @AccessLimit(seconds = 60, maxCount = 10)
     public Result<String> uploadAvatar(@RequestParam("file") MultipartFile file) {
         String url = cosService.uploadImage(file, FileFolderEnum.AVATAR.getFolder());
         return Result.success(url);
@@ -40,6 +42,7 @@ public class FileController {
      * @return 图片访问URL
      */
     @PostMapping("/admin/file/article")
+    @AccessLimit(seconds = 60, maxCount = 30)
     public Result<String> uploadArticleImage(@RequestParam("file") MultipartFile file) {
         String url = cosService.uploadImage(file, FileFolderEnum.ARTICLE.getFolder());
         return Result.success(url);
@@ -52,6 +55,7 @@ public class FileController {
      * @return 图片访问URL
      */
     @PostMapping("/admin/file/album")
+    @AccessLimit(seconds = 60, maxCount = 30)
     public Result<String> uploadAlbumImage(@RequestParam("file") MultipartFile file) {
         String url = cosService.uploadImage(file, FileFolderEnum.ALBUM.getFolder());
         return Result.success(url);
@@ -64,6 +68,7 @@ public class FileController {
      * @return 图片访问URL
      */
     @PostMapping("/admin/file/talk")
+    @AccessLimit(seconds = 60, maxCount = 30)
     public Result<String> uploadTalkImage(@RequestParam("file") MultipartFile file) {
         String url = cosService.uploadImage(file, FileFolderEnum.TALK.getFolder());
         return Result.success(url);

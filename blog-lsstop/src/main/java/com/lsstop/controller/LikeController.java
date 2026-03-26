@@ -55,7 +55,7 @@ public class LikeController {
      * @return 用户点赞信息
      */
     @GetMapping("/front/like/userLike/{userId}")
-    @AccessLimit(seconds = 10, maxCount = 10)
+    @AccessLimit(seconds = 60, maxCount = 60)
     public Result<UserLikeVO> getUserLikes(@PathVariable String userId) {
         UserLikeVO userLikeVO = likeService.getUserLikes(userId);
         return Result.success(userLikeVO);
