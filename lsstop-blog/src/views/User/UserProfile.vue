@@ -626,7 +626,10 @@ watch(
   () => route.params.userId,
   async () => {
     await fetchUserProfile();
-    await fetchRecentComments();
+    // 用户存在时才获取评论
+    if (profileData.value) {
+      await fetchRecentComments();
+    }
   },
   { immediate: true },
 );

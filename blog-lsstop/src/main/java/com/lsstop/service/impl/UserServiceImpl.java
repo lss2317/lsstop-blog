@@ -1,17 +1,19 @@
 package com.lsstop.service.impl;
 
 import com.lsstop.constant.AuthConst;
+import com.lsstop.constant.CommonConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
 import com.lsstop.domain.entity.UserProfileEntity;
+import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
-import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.enums.FileFolderEnum;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.mapper.CommentMapper;
 import com.lsstop.mapper.LikeMapper;
+import com.lsstop.mapper.LoginLogMapper;
 import com.lsstop.service.CosService;
 import com.lsstop.service.UserService;
 import com.lsstop.utils.RedisUtils;
@@ -37,6 +39,9 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private LikeMapper likeMapper;
+
+    @Resource
+    private LoginLogMapper loginLogMapper;
 
     @Resource
     private RedisUtils redisUtils;
@@ -72,20 +77,26 @@ public class UserServiceImpl implements UserService {
     /**
      * 获取用户公开主页详情（查看他人）
      *
-     * @param userId 用户ID
+     * @param userId 用户 ID
      * @return 用户公开主页详情
      */
     @Override
     public UserPublicProfileVO getUserHomeDetail(String userId) {
         String cacheKey = RedisConst.USER_HOME_PUBLIC + userId;
         // 先从缓存获取
-        UserPublicProfileVO cachedUser = redisUtils.get(cacheKey, UserPublicProfileVO.class);
-        if (cachedUser != null) {
-            return cachedUser;
+        Object cachedValue = redisUtils.get(cacheKey);
+        if (cachedValue != null) {
+            // 如果是空值标识，直接抛异常
+            if (CommonConst.CACHE_NULL_FLAG.equals(cachedValue)) {
+                throw new BusinessException(AuthConst.USER_NOT_FOUND);
+            }
+            return (UserPublicProfileVO) cachedValue;
         }
         // 缓存不存在，查询数据库
         UserPublicProfileVO userPublicProfileVO = authMapper.selectUserPublicHomeDetail(userId);
         if (userPublicProfileVO == null) {
+            // 防止缓存穿透，设置空值标识，过期时间 5 分钟
+            redisUtils.set(cacheKey, CommonConst.CACHE_NULL_FLAG, RedisConst.EXPIRE_FIVE_MINUTES);
             throw new BusinessException(AuthConst.USER_NOT_FOUND);
         }
         // 查询评论数量
@@ -94,7 +105,10 @@ public class UserServiceImpl implements UserService {
         // 查询获赞数量
         Integer likeCount = likeMapper.countLikesByUserId(userId);
         userPublicProfileVO.setLikeCount(likeCount != null ? likeCount : 0);
-        // 写入缓存，过期时间1小时
+        // 查询 IP 归属地
+        String ipRegion = loginLogMapper.selectLatestIpRegionByUserId(userId);
+        userPublicProfileVO.setIpRegion(ipRegion != null ? ipRegion : CommonConst.UNKNOWN_REGION);
+        // 写入缓存，过期时间 1 小时
         redisUtils.set(cacheKey, userPublicProfileVO, RedisConst.EXPIRE_ONE_HOUR);
         return userPublicProfileVO;
     }
@@ -102,25 +116,27 @@ public class UserServiceImpl implements UserService {
     /**
      * 获取当前用户主页详情（查看自己）
      *
-     * @param userId 用户ID
+     * @param userId 用户 ID
      * @return 用户完整主页详情
      */
     @Override
     public UserProfileVO getMyHomeDetail(String userId) {
         String cacheKey = RedisConst.USER_HOME_ME + userId;
         // 先从缓存获取
-        UserProfileVO cachedUser = redisUtils.get(cacheKey, UserProfileVO.class);
-        if (cachedUser != null) {
-            return cachedUser;
+        Object cachedValue = redisUtils.get(cacheKey);
+        if (cachedValue != null) {
+            // 如果是空值标识，直接抛异常
+            if (CommonConst.CACHE_NULL_FLAG.equals(cachedValue)) {
+                throw new BusinessException(AuthConst.USER_NOT_FOUND);
+            }
+            return (UserProfileVO) cachedValue;
         }
         // 缓存不存在，查询数据库
         UserProfileVO userProfileVO = authMapper.selectUserHomeDetail(userId);
         if (userProfileVO == null) {
+            // 防止缓存穿透，设置空值标识，过期时间 5 分钟
+            redisUtils.set(cacheKey, CommonConst.CACHE_NULL_FLAG, RedisConst.EXPIRE_FIVE_MINUTES);
             throw new BusinessException(AuthConst.USER_NOT_FOUND);
-        }
-        // 邮箱脱敏处理
-        if (userProfileVO.getEmail() != null) {
-            userProfileVO.setEmail(StringUtils.maskEmail(userProfileVO.getEmail()));
         }
         // 查询评论数量
         Integer commentCount = commentMapper.countByUserId(userId);
@@ -128,7 +144,14 @@ public class UserServiceImpl implements UserService {
         // 查询获赞数量
         Integer likeCount = likeMapper.countLikesByUserId(userId);
         userProfileVO.setLikeCount(likeCount != null ? likeCount : 0);
-        // 写入缓存，过期时间1小时
+        // 查询 IP 归属地
+        String ipRegion = loginLogMapper.selectLatestIpRegionByUserId(userId);
+        userProfileVO.setIpRegion(ipRegion != null ? ipRegion : CommonConst.UNKNOWN_REGION);
+        // 邮箱脱敏处理（在写入缓存前脱敏，避免敏感信息入缓存）
+        if (userProfileVO.getEmail() != null) {
+            userProfileVO.setEmail(StringUtils.maskEmail(userProfileVO.getEmail()));
+        }
+        // 写入缓存，过期时间 1 小时
         redisUtils.set(cacheKey, userProfileVO, RedisConst.EXPIRE_ONE_HOUR);
         return userProfileVO;
     }

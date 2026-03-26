@@ -52,4 +52,9 @@ public class UserPublicProfileVO {
      * 注册时间
      */
     private LocalDateTime createTime;
+
+    /**
+     * IP所属地
+     */
+    private String ipRegion;
 }

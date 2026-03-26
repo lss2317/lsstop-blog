@@ -39,6 +39,11 @@ public class UserProfileVO {
     private String intro;
 
     /**
+     * IP所属地
+     */
+    private String ipRegion;
+
+    /**
      * 邮箱（脱敏）
      */
     private String email;

@@ -28,4 +28,15 @@
                 #{browser}, #{os}, #{type}, #{state}, #{message}, 0, NOW(), NOW())
     </insert>
 
+    <!-- 查询用户最近一次成功登录的 IP 归属地 -->
+    <select id="selectLatestIpRegionByUserId" resultType="java.lang.String">
+        SELECT ip_region
+        FROM blog_login_log
+        WHERE user_id = #{userId}
+          AND state = 0
+          AND deleted_at = 0
+        ORDER BY login_time DESC
+        LIMIT 1
+    </select>
+
 </mapper>

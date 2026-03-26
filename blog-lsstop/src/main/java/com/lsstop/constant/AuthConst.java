@@ -206,12 +206,12 @@ public class AuthConst {
     /**
      * QQ账号未绑定
      */
-    public static final String QQ_NOT_BINDDED = "该QQ账号未绑定，请先注册并绑定";
+    public static final String QQ_NOT_BINDDED = "该QQ账号未绑定，请先登录或注册账号后绑定";
 
     /**
      * 微博账号未绑定
      */
-    public static final String WEIBO_NOT_BINDDED = "该微博账号未绑定，请先注册并绑定";
+    public static final String WEIBO_NOT_BINDDED = "该微博账号未绑定，请先登录或注册账号后绑定";
 
     /**
      * QQ登录失败

@@ -67,7 +67,12 @@ public enum StatusEnum {
     /**
      * 账号被封禁
      */
-    BLACK_LIST_ERROR(403, "账号被封禁");
+    BLACK_LIST_ERROR(403, "账号被封禁"),
+
+    /**
+     * 资源不存在
+     */
+    NOT_FOUND(404, "用户不存在");
 
 
     /**

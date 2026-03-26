@@ -34,9 +34,9 @@ public class CommonConst {
     public static final String UNKNOWN = "IP未知";
 
     /**
-     * 未知用户
+     * 未知所属地
      */
-    public static final String UNKNOWN_USER = "未知用户";
+    public static final String UNKNOWN_REGION = "未知";
 
     /**
      * 审核状态：正常
@@ -62,4 +62,9 @@ public class CommonConst {
      * 敏感词检测异常消息
      */
     public static final String SENSITIVE_WORD_DETECTED = "内容包含敏感词，请修改后重试";
+
+    /**
+     * 缓存空值标识（用于防止缓存穿透）
+     */
+    public static final String CACHE_NULL_FLAG = "NULL";
 }

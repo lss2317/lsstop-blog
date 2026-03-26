@@ -1189,7 +1189,7 @@ onUnmounted(() => {
 }
 
 .lc-nickname:hover {
-  color: #5cb85c;
+  color: #007aff;
 }
 
 .lc-self-tag {
@@ -1613,7 +1613,7 @@ onUnmounted(() => {
 }
 
 .v-theme--dark .lc-nickname:hover {
-  color: var(--color-success);
+  color: #007aff;
 }
 
 .v-theme--dark .lc-meta-row {
