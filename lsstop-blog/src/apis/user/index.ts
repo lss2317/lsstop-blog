@@ -30,6 +30,8 @@ export interface UserProfileInfo {
   likeCount: number;
   /** 注册时间 */
   createTime: string;
+  /** IP所属地 */
+  ipRegion: string;
 }
 
 /** 获取自己的主页详情 */
@@ -55,11 +57,13 @@ export interface UserPublicProfile {
   likeCount: number;
   /** 注册时间 */
   createTime: string;
+  /** IP所属地 */
+  ipRegion: string;
 }
 
 /** 获取指定用户的公开信息 */
-export const getUserPublicProfile = (userId: string) => {
-  return http.get<UserPublicProfile>(`/user/profile/${userId}`);
+export const getUserPublicProfile = (userId: string, showProgress = true) => {
+  return http.get<UserPublicProfile>(`/user/profile/${userId}`, { showProgress });
 };
 
 /** 更新用户信息参数 */

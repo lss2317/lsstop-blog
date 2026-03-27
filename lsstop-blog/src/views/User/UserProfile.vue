@@ -79,6 +79,10 @@
             <!-- 其他信息 -->
             <div class="user-meta">
               <div class="meta-item">
+                <v-icon size="18">mdi-web</v-icon>
+                <span>{{ profileData.ipRegion }}</span>
+              </div>
+              <div class="meta-item">
                 <v-icon size="18">mdi-calendar-outline</v-icon>
                 <span>{{ dateFormat.date(profileData.createTime) }} 加入</span>
               </div>
@@ -1282,7 +1286,7 @@ const confirmUnbind = async () => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 
 .comment-target {

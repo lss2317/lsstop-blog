@@ -1,6 +1,6 @@
 package com.lsstop.utils;
 
-import java.security.SecureRandom;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 用户ID生成工具类
@@ -12,7 +12,6 @@ public class UserUidUtils {
 
     private static final char[] ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toCharArray();
     private static final int BASE = ALPHABET.length;
-    private static final SecureRandom RANDOM = new SecureRandom();
     private static final int UID_LENGTH = 16;
 
     /**
@@ -42,19 +41,20 @@ public class UserUidUtils {
         // XOR混淆时间戳，打乱规律
         timestamp = obfuscate(timestamp);
 
-        // 生成时间戳部分（8位）
-        char[] timePart = new char[8];
-        for (int i = 7; i >= 0; i--) {
-            timePart[i] = ALPHABET[(int) (timestamp % BASE)];
+        int partLength = UID_LENGTH / 2;
+        // 生成时间戳部分
+        char[] timePart = new char[partLength];
+        for (int i = partLength - 1; i >= 0; i--) {
+            timePart[i] = ALPHABET[Math.floorMod(timestamp, BASE)];
             timestamp /= BASE;
         }
-        // 生成随机部分（8位）
-        char[] randomPart = new char[8];
-        for (int i = 0; i < 8; i++) {
-            randomPart[i] = ALPHABET[RANDOM.nextInt(BASE)];
+        // 生成随机部分
+        char[] randomPart = new char[partLength];
+        for (int i = 0; i < partLength; i++) {
+            randomPart[i] = ALPHABET[ThreadLocalRandom.current().nextInt(BASE)];
         }
         // 交错混合：时间戳和随机字符交替排列
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < partLength; i++) {
             uid[i * 2] = timePart[i];
             uid[i * 2 + 1] = randomPart[i];
         }
@@ -62,8 +62,7 @@ public class UserUidUtils {
     }
 
     /**
-     * 混淆时间戳，打乱规律
-     * 使用乘法散列，保证双射（不同输入对应不同输出）
+     * 对数值进行可逆的位混淆，打乱规律性
      */
     private static long obfuscate(long value) {
         value ^= OBFUSCATE_FACTOR;

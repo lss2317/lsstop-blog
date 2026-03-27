@@ -318,20 +318,26 @@ public class AuthServiceImpl implements AuthService {
      * @return 登录结果
      */
     private LoginVO buildLoginVO(UserAuthEntity userAuth) {
+        String userId = userAuth.getUserId();
+
         // 查询用户资料
-        UserProfileEntity userProfileEntity = authMapper.selectProfileById(userAuth.getUserId());
+        UserProfileEntity userProfileEntity = authMapper.selectProfileById(userId);
         LoginVO loginVO = userProfileEntity.asViewObject(LoginVO.class);
 
         // 生成token
-        JwtUtils.TokenPair tokenPair = jwtUtils.generateFrontTokenPair(userAuth.getUserId());
+        JwtUtils.TokenPair tokenPair = jwtUtils.generateFrontTokenPair(userId);
         loginVO.setAccessToken(tokenPair.getAccessToken());
         loginVO.setRefreshToken(tokenPair.getRefreshToken());
 
         // 存储refreshToken到Redis（设置与JWT相同的过期时间）
-        redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userAuth.getUserId(),
+        redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userId,
                 tokenPair.getRefreshToken(),
                 jwtConfig.getFront().getRefreshTokenExpiration(),
                 TimeUnit.MILLISECONDS);
+
+        // 清除用户主页缓存（因登录后IP归属地可能变化）
+        redisUtils.delete(RedisConst.USER_HOME_ME + userId);
+        redisUtils.delete(RedisConst.USER_HOME_PUBLIC + userId);
 
         return loginVO;
     }
@@ -688,7 +694,7 @@ public class AuthServiceImpl implements AuthService {
             throw e;
         } catch (Exception e) {
             log.error("QQ绑定失败", e);
-            throw new BusinessException(AuthConst.QQ_BIND_FAILED);
+            throw new BusinessException(StatusEnum.FAILURE, AuthConst.QQ_BIND_FAILED);
         }
     }
 
@@ -752,7 +758,7 @@ public class AuthServiceImpl implements AuthService {
             throw e;
         } catch (Exception e) {
             log.error("微博绑定失败", e);
-            throw new BusinessException(AuthConst.WEIBO_BIND_FAILED);
+            throw new BusinessException(StatusEnum.FAILURE, AuthConst.WEIBO_BIND_FAILED);
         }
     }
 
@@ -780,7 +786,7 @@ public class AuthServiceImpl implements AuthService {
             throw e;
         } catch (Exception e) {
             log.error("QQ解绑失败", e);
-            throw new BusinessException(AuthConst.QQ_UNBIND_FAILED);
+            throw new BusinessException(StatusEnum.FAILURE, AuthConst.QQ_UNBIND_FAILED);
         }
     }
 
@@ -808,7 +814,7 @@ public class AuthServiceImpl implements AuthService {
             throw e;
         } catch (Exception e) {
             log.error("微博解绑失败", e);
-            throw new BusinessException(AuthConst.WEIBO_UNBIND_FAILED);
+            throw new BusinessException(StatusEnum.FAILURE, AuthConst.WEIBO_UNBIND_FAILED);
         }
     }
 

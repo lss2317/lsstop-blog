@@ -34,7 +34,7 @@ public class BusinessException extends RuntimeException {
 
     public BusinessException(String message) {
         super(message);
-        this.code = StatusEnum.FAILURE.getCode();
+        this.code = StatusEnum.PARAM_ERROR.getCode();
         this.httpStatus = HttpStatus.BAD_REQUEST;
     }
 

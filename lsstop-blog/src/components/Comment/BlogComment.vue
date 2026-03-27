@@ -86,9 +86,11 @@
     <div class="lc-comment-list" v-else-if="count > 0">
       <div class="lc-comment-item" v-for="item of commentList" :key="item.id">
         <!-- 头像 -->
-        <div class="lc-avatar">
-          <img :src="item.avatar || defaultAvatar" alt="用户头像" />
-        </div>
+        <UserProfileCard :user-id="item.userId">
+          <div class="lc-avatar">
+            <img :src="item.avatar || defaultAvatar" alt="用户头像" />
+          </div>
+        </UserProfileCard>
         <div class="lc-comment-main">
           <!-- 用户信息 -->
           <div class="lc-user-row">
@@ -197,9 +199,11 @@
             <template v-if="item.replyList && item.replyList.length">
               <template v-for="reply of item.replyList ?? []" :key="reply.id">
                 <div class="lc-reply-item">
-                  <div class="lc-avatar small">
-                    <img :src="reply.avatar || defaultAvatar" alt="用户头像" />
-                  </div>
+                  <UserProfileCard :user-id="reply.userId">
+                    <div class="lc-avatar small">
+                      <img :src="reply.avatar || defaultAvatar" alt="用户头像" />
+                    </div>
+                  </UserProfileCard>
                   <div class="lc-reply-main">
                     <div class="lc-user-row">
                       <span class="lc-nickname" @click="goToUserProfile(reply.userId)">{{
@@ -355,6 +359,7 @@ import CommentEmoji from '@/components/Emoji/CommentEmoji.vue';
 import ReplyInput from '@/components/Comment/ReplyInput.vue';
 import ConfirmDialog from '@/components/Dialog/ConfirmDialog.vue';
 import LoadingSpinner from '@/components/Loading/LoadingSpinner.vue';
+import UserProfileCard from '@/components/User/UserProfileCard.vue';
 import { formatTime } from '@/utils/date';
 import { parseEmoji } from '@/utils/emoji';
 import useLikeStore from '@/stores/modules/like';
