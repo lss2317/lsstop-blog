@@ -696,7 +696,7 @@ const handleCroppedAvatar = async (croppedFile: File) => {
   avatarUploading.value = true;
   try {
     const res = await uploadAvatar(croppedFile);
-    snackbar.success('头像上传成功');
+    snackbar.success('头像已更新');
     avatarCropperDialog.value = false;
     avatarFile.value = null;
     preloadedImage.value = null;

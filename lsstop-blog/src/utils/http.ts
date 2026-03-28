@@ -6,6 +6,7 @@ import 'nprogress/nprogress.css';
 import { tokenManager } from '@/utils/token';
 import { clearAuthState } from '@/stores/modules/auth';
 import { ResponseCode, HttpStatus } from '@/constants/http';
+import { useSnackbarStore } from '@/stores/modules/snackbar';
 
 // 统一响应结构
 export interface ApiResponse<T = unknown> {
@@ -146,6 +147,14 @@ instance.interceptors.response.use(
       if (requestCount === 0) {
         NProgress.done();
       }
+    }
+
+    // 限流错误，提示用户
+    if (error.response?.status === HttpStatus.TOO_MANY_REQUESTS) {
+      const snackbar = useSnackbarStore();
+      const msg = error.response.data?.msg || '请求过于频繁，请稍后再试';
+      snackbar.error(msg);
+      return Promise.reject(error);
     }
 
     // 如果是401错误且未重试过，尝试刷新token
