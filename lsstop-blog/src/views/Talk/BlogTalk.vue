@@ -49,7 +49,12 @@
             </v-avatar>
             <div class="user-detail-wrapper">
               <div class="user-nickname" :class="{ deactivated: isUserDeactivated(item) }">
-                {{ getUserNickname(item) }}
+                <span
+                  :class="['nickname-text', { clickable: !isUserDeactivated(item) }]"
+                  @click="!isUserDeactivated(item) && navigateTo(`/user/${item.userId}`)"
+                >
+                  {{ getUserNickname(item) }}
+                </span>
                 <v-icon v-if="!isUserDeactivated(item)" class="user-sign" size="20" color="#ffa51e">
                   mdi-check-decagram
                 </v-icon>
@@ -113,6 +118,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
+import { useNavigate } from '@/composables/useNavigate';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import usePageInfoStore from '@/stores/modules/pageInfo.ts';
@@ -128,6 +134,7 @@ import { previewImages } from '@/utils/photoPreview';
 
 // 获取路由实例
 const router = useRouter();
+const { navigateTo } = useNavigate();
 
 // 获取封面样式
 const pageInfoStore = usePageInfoStore();
@@ -291,6 +298,14 @@ onMounted(() => {
   font-size: 15px;
   font-weight: bold;
   vertical-align: middle;
+}
+
+.nickname-text.clickable {
+  cursor: pointer;
+}
+
+.nickname-text.clickable:hover {
+  color: #007aff;
 }
 
 .user-sign {

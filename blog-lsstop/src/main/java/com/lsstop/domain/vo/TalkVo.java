@@ -21,6 +21,11 @@ public class TalkVO implements BaseData {
     private Integer id;
 
     /**
+     * 用户id
+     */
+    private String userId;
+
+    /**
      * 头像
      */
     private String avatar;

@@ -2,7 +2,7 @@
   <div class="upc-trigger" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
     <slot />
     <Teleport to="body">
-      <Transition name="upc-fade">
+      <Transition :name="cardPosition === 'top' ? 'upc-slide-up' : 'upc-slide-down'">
         <div
           v-if="visible"
           ref="cardRef"
@@ -437,17 +437,32 @@ onUnmounted(() => {
   color: #d9d9d9;
 }
 
-/* 过渡动画 */
-.upc-fade-enter-active,
-.upc-fade-leave-active {
+/* 过渡动画 - 从下方滑入 */
+.upc-slide-down-enter-active,
+.upc-slide-down-leave-active {
   transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
-.upc-fade-enter-from,
-.upc-fade-leave-to {
+.upc-slide-down-enter-from,
+.upc-slide-down-leave-to {
   opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* 过渡动画 - 从上方滑入 */
+.upc-slide-up-enter-active,
+.upc-slide-up-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.upc-slide-up-enter-from,
+.upc-slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
 }
 </style>
 

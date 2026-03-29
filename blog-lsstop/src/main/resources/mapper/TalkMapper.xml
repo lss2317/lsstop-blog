@@ -2,19 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lsstop.mapper.TalkMapper">
 
-    <resultMap id="talkResultMap" type="com.lsstop.domain.entity.TalkEntity">
-        <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
-        <result column="user_id" property="userId" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result column="content" property="content" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result column="is_top" property="isTop" jdbcType="INTEGER" javaType="java.lang.Integer"/>
-        <result column="status" property="status" jdbcType="INTEGER" javaType="java.lang.Integer"/>
-        <result column="deleted_at" property="deletedAt" jdbcType="BIGINT" javaType="java.lang.Long"/>
-        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
-        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
-    </resultMap>
-
     <resultMap id="talkVoResultMap" type="com.lsstop.domain.vo.TalkVO">
         <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="user_id" property="userId" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result column="avatar" property="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result column="nickname" property="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result column="content" property="content" jdbcType="VARCHAR" javaType="java.lang.String"/>
@@ -27,6 +17,7 @@
 
     <select id="listTalk" resultMap="talkVoResultMap">
         select bt.id,
+               bt.user_id,
                bup.avatar,
                bup.nickname,
                bt.content,
@@ -43,6 +34,7 @@
 
     <select id="getTalkById" resultMap="talkVoResultMap">
         select bt.id,
+               bt.user_id,
                bup.avatar,
                bup.nickname,
                bt.content,

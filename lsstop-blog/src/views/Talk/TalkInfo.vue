@@ -41,7 +41,12 @@
             </v-avatar>
             <div class="user-detail-wrapper">
               <div class="user-nickname" :class="{ deactivated: isUserDeactivated(talk) }">
-                {{ getUserNickname(talk) }}
+                <span
+                  :class="['nickname-text', { clickable: !isUserDeactivated(talk) }]"
+                  @click="!isUserDeactivated(talk) && navigateTo(`/user/${talk.userId}`)"
+                >
+                  {{ getUserNickname(talk) }}
+                </span>
                 <v-icon v-if="!isUserDeactivated(talk)" class="user-sign" size="20" color="#ffa51e">
                   mdi-check-decagram
                 </v-icon>
@@ -118,10 +123,12 @@ import { LikeTypeEnum } from '@/constants/likeType';
 import Comment from '@/components/Comment/BlogComment.vue';
 import { CommentTypeEnum } from '@/constants/commentType';
 import { previewImages } from '@/utils/photoPreview';
+import { useNavigate } from '@/composables/useNavigate';
 
 // 获取路由参数
 const route = useRoute();
 const talkId = Number(route.params.talkId);
+const { navigateTo } = useNavigate();
 
 // 获取封面样式
 const pageInfoStore = usePageInfoStore();
@@ -265,6 +272,14 @@ onMounted(() => {
   font-size: 15px;
   font-weight: bold;
   vertical-align: middle;
+}
+
+.nickname-text.clickable {
+  cursor: pointer;
+}
+
+.nickname-text.clickable:hover {
+  color: #007aff;
 }
 
 .user-sign {

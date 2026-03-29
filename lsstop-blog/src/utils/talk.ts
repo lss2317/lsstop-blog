@@ -6,6 +6,7 @@ import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
 // 说说数据接口
 export interface TalkItem {
   id: number;
+  userId: string;
   avatar: string;
   nickname: string;
   createTime: string;
