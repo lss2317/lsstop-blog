@@ -20,12 +20,13 @@ public interface LoginLogService {
     /**
      * 发送登录日志到MQ
      *
-     * @param userId    用户ID
-     * @param loginType 登录方式
-     * @param source    登录来源
-     * @param state     登录结果
-     * @param message   登录信息
+     * @param userId          用户ID
+     * @param loginType       登录方式
+     * @param source          登录来源
+     * @param state           登录结果
+     * @param loginIdentifier 登录标识（邮箱/openId/uid）
+     * @param message         登录信息
      */
-    void sendLoginLog(String userId, Integer loginType, Integer source, Integer state, String message);
+    void sendLoginLog(String userId, Integer loginType, Integer source, Integer state, String loginIdentifier, String message);
 
 }

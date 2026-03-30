@@ -14,6 +14,7 @@
         <result property="os" column="os" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="type" column="type" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result property="state" column="state" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="loginIdentifier" column="login_identifier" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="message" column="message" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="deletedAt" column="deleted_at" jdbcType="BIGINT" javaType="java.lang.Long"/>
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
@@ -23,9 +24,9 @@
     <!-- 插入登录日志 -->
     <insert id="insert" parameterType="com.lsstop.domain.entity.LoginLogEntity">
         INSERT INTO blog_login_log (user_id, login_type, login_time, ip_address, ip_region,
-                                    browser, os, type, state, message, deleted_at, create_time, update_time)
+                                    browser, os, type, state, login_identifier, message, deleted_at, create_time, update_time)
         VALUES (#{userId}, #{loginType}, #{loginTime}, #{ipAddress}, #{ipRegion},
-                #{browser}, #{os}, #{type}, #{state}, #{message}, 0, NOW(), NOW())
+                #{browser}, #{os}, #{type}, #{state}, #{loginIdentifier}, #{message}, 0, NOW(), NOW())
     </insert>
 
     <!-- 查询用户最近一次成功登录的 IP 归属地 -->

@@ -9,6 +9,7 @@ import com.lsstop.utils.IpUtils;
 import com.lsstop.utils.UserAgentUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
  * @author lishusheng
  * @date 2026/01/17
  */
+@Slf4j
 @Service
 public class LoginLogServiceImpl implements LoginLogService {
 
@@ -44,33 +46,39 @@ public class LoginLogServiceImpl implements LoginLogService {
     /**
      * 发送登录日志到MQ
      *
-     * @param userId    用户ID
-     * @param loginType 登录方式
-     * @param source    登录来源
-     * @param state     登录结果
-     * @param message   登录信息
+     * @param userId          用户ID
+     * @param loginType       登录方式
+     * @param source          登录来源
+     * @param state           登录结果
+     * @param loginIdentifier 登录标识（邮箱/openId/uid）
+     * @param message         登录信息
      */
     @Override
-    public void sendLoginLog(String userId, Integer loginType, Integer source, Integer state, String message) {
-        HttpServletRequest request = getRequest();
-        String ipAddress = request != null ? IpUtils.getIpAddress(request) : CommonConst.UNKNOWN;
-        String browser = request != null ? UserAgentUtils.getBrowser(request) : CommonConst.UNKNOWN;
-        String os = request != null ? UserAgentUtils.getOS(request) : CommonConst.UNKNOWN;
+    public void sendLoginLog(String userId, Integer loginType, Integer source, Integer state, String loginIdentifier, String message) {
+        try {
+            HttpServletRequest request = getRequest();
+            String ipAddress = request != null ? IpUtils.getIpAddress(request) : CommonConst.UNKNOWN;
+            String browser = request != null ? UserAgentUtils.getBrowser(request) : CommonConst.UNKNOWN;
+            String os = request != null ? UserAgentUtils.getOS(request) : CommonConst.UNKNOWN;
 
-        LoginLogEntity loginLog = LoginLogEntity.builder()
-                .userId(userId)
-                .loginType(loginType)
-                .loginTime(LocalDateTime.now())
-                .ipAddress(ipAddress)
-                .ipRegion(IpUtils.getIpLocation(ipAddress))
-                .browser(browser)
-                .os(os)
-                .type(source)
-                .state(state)
-                .message(message)
-                .build();
+            LoginLogEntity loginLog = LoginLogEntity.builder()
+                    .userId(userId)
+                    .loginType(loginType)
+                    .loginTime(LocalDateTime.now())
+                    .ipAddress(ipAddress)
+                    .ipRegion(IpUtils.getIpLocation(ipAddress))
+                    .browser(browser)
+                    .os(os)
+                    .type(source)
+                    .state(state)
+                    .loginIdentifier(loginIdentifier)
+                    .message(message)
+                    .build();
 
-        rabbitTemplate.convertAndSend(RabbitMQConst.BLOG_EXCHANGE, RabbitMQConst.LOGIN_LOG_ROUTING_KEY, loginLog);
+            rabbitTemplate.convertAndSend(RabbitMQConst.BLOG_EXCHANGE, RabbitMQConst.LOGIN_LOG_ROUTING_KEY, loginLog);
+        } catch (Exception e) {
+            log.error("发送登录日志到MQ失败, loginIdentifier={}, message={}", loginIdentifier, message, e);
+        }
     }
 
     /**

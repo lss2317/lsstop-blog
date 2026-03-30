@@ -154,7 +154,7 @@ public class OperationLogAspect {
                 }
                 params.append(json).append(" ");
             } catch (Exception e) {
-                params.append(arg.toString()).append(" ");
+                params.append(arg).append(" ");
             }
         }
         String result = params.toString().trim();

@@ -70,6 +70,11 @@ public class LoginLogEntity {
     private Integer state;
 
     /**
+     * 登录标识（邮箱/openId/uid，用于追踪登录尝试）
+     */
+    private String loginIdentifier;
+
+    /**
      * 登录信息
      */
     private String message;
