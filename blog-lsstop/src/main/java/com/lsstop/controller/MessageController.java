@@ -1,12 +1,15 @@
 package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
+import com.lsstop.annotation.OperationLog;
 import com.lsstop.common.Result;
 import com.lsstop.constant.CommonConst;
 import com.lsstop.domain.dto.MessageDTO;
 import com.lsstop.domain.entity.MessageEntity;
 import com.lsstop.domain.vo.AddMessageVO;
 import com.lsstop.domain.vo.MessageVO;
+import com.lsstop.enums.OperationModuleEnum;
+import com.lsstop.enums.OperationTypeEnum;
 import com.lsstop.service.MessageService;
 import com.lsstop.service.WebsiteConfigService;
 import com.lsstop.utils.IpUtils;
@@ -40,6 +43,7 @@ public class MessageController {
      */
     @PostMapping("/front/message/addMessage")
     @AccessLimit(seconds = 60, maxCount = 30)
+    @OperationLog(module = OperationModuleEnum.MESSAGE, type = OperationTypeEnum.ADD, description = "新增留言")
     public Result<AddMessageVO> addMessage(@RequestBody @Validated MessageDTO messageDTO, HttpServletRequest request) {
         MessageEntity message = messageDTO.asViewObject(MessageEntity.class);
         message.setIpAddress(IpUtils.getIpAddress(request));

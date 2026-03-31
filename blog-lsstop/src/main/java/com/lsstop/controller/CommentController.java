@@ -1,6 +1,7 @@
 package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
+import com.lsstop.annotation.OperationLog;
 import com.lsstop.common.Result;
 import com.lsstop.constant.CommentConst;
 import com.lsstop.constant.CommonConst;
@@ -12,6 +13,8 @@ import com.lsstop.domain.vo.CommentPageVO;
 import com.lsstop.domain.vo.CommentReplyVO;
 import com.lsstop.domain.vo.CommentVO;
 import com.lsstop.enums.CommentTypeEnum;
+import com.lsstop.enums.OperationModuleEnum;
+import com.lsstop.enums.OperationTypeEnum;
 import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.service.CommentService;
@@ -48,6 +51,7 @@ public class CommentController {
      */
     @PostMapping("/front/comment/addComment")
     @AccessLimit(seconds = 60, maxCount = 30)
+    @OperationLog(module = OperationModuleEnum.COMMENT, type = OperationTypeEnum.ADD, description = "新增评论")
     public Result<AddCommentVO> addComment(@RequestBody @Validated CommentDTO commentDTO, HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         if (userId == null || userId.isBlank()) {
@@ -146,6 +150,7 @@ public class CommentController {
      */
     @PostMapping("/front/comment/deleteComment")
     @AccessLimit(seconds = 60, maxCount = 30)
+    @OperationLog(module = OperationModuleEnum.COMMENT, type = OperationTypeEnum.DELETE, description = "删除评论")
     public Result<Void> deleteComment(@RequestBody @Validated DeleteCommentDTO deleteCommentDTO,
                                       HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");

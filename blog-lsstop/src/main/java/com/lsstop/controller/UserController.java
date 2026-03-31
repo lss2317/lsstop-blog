@@ -1,6 +1,7 @@
 package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
+import com.lsstop.annotation.OperationLog;
 import com.lsstop.common.Result;
 import com.lsstop.constant.CommentConst;
 import com.lsstop.domain.dto.BindCodeDTO;
@@ -11,6 +12,8 @@ import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.domain.vo.UserRecentCommentVO;
+import com.lsstop.enums.OperationModuleEnum;
+import com.lsstop.enums.OperationTypeEnum;
 import com.lsstop.service.AuthService;
 import com.lsstop.service.CommentService;
 import com.lsstop.service.UserService;
@@ -92,6 +95,7 @@ public class UserController {
      */
     @PostMapping("/front/user/email")
     @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "修改邮箱")
     public Result<Void> changeEmail(HttpServletRequest request, @RequestBody @Validated ChangeEmailDTO dto) {
         String userId = (String) request.getAttribute("userId");
         authService.changeEmail(userId, dto);
@@ -107,6 +111,7 @@ public class UserController {
      */
     @PostMapping("/front/user/avatar")
     @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "修改头像")
     public Result<String> updateAvatar(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
         String userId = (String) request.getAttribute("userId");
         String avatarUrl = userService.updateAvatar(userId, file);
@@ -122,6 +127,7 @@ public class UserController {
      */
     @PostMapping("/front/user/info")
     @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "修改个人信息")
     public Result<Void> updateUserInfo(HttpServletRequest request, @RequestBody @Validated UpdateUserInfoDTO dto) {
         String userId = (String) request.getAttribute("userId");
         userService.updateUserInfo(userId, dto);
@@ -137,6 +143,7 @@ public class UserController {
      */
     @PostMapping("/front/user/password")
     @AccessLimit(seconds = 60, maxCount = 5)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "修改密码")
     public Result<Void> changePassword(HttpServletRequest request, @RequestBody @Validated ChangePasswordDTO dto) {
         String userId = (String) request.getAttribute("userId");
         authService.changePassword(userId, dto);
@@ -165,6 +172,7 @@ public class UserController {
      */
     @PostMapping("/front/user/bind/qq")
     @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "绑定QQ")
     public Result<Void> bindQQ(HttpServletRequest request, @RequestBody @Validated BindCodeDTO dto) {
         String userId = (String) request.getAttribute("userId");
         authService.bindQQ(userId, dto);
@@ -180,6 +188,7 @@ public class UserController {
      */
     @PostMapping("/front/user/bind/weibo")
     @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "绑定微博")
     public Result<Void> bindWeibo(HttpServletRequest request, @RequestBody @Validated BindCodeDTO dto) {
         String userId = (String) request.getAttribute("userId");
         authService.bindWeibo(userId, dto);
@@ -194,6 +203,7 @@ public class UserController {
      */
     @PostMapping("/front/user/unbind/qq")
     @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "解绑QQ")
     public Result<Void> unbindQQ(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         authService.unbindQQ(userId);
@@ -208,6 +218,7 @@ public class UserController {
      */
     @PostMapping("/front/user/unbind/weibo")
     @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "解绑微博")
     public Result<Void> unbindWeibo(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         authService.unbindWeibo(userId);
