@@ -479,6 +479,7 @@ import ConfirmDialog from '@/components/Dialog/ConfirmDialog.vue';
 import AvatarCropper from '@/components/Dialog/AvatarCropper.vue';
 import { useNavigate } from '@/composables/useNavigate';
 import { OAUTH_CONFIG } from '@/constants/oauth';
+import { tokenManager } from '@/utils/token';
 
 const route = useRoute();
 const userInfoStore = useUserInfoStore();
@@ -523,10 +524,36 @@ const fetchUserProfile = async () => {
     return;
   }
 
+  loading.value = true;
+
+  // 如果有 token 但 userInfo 还未加载，等待加载完成后再判断
+  if (tokenManager.hasToken() && !userInfo.value?.userId) {
+    await new Promise<void>((resolve) => {
+      let timer: number | null = null;
+      const unwatch = watch(
+        () => userInfo.value?.userId,
+        (newUserId) => {
+          if (newUserId) {
+            unwatch();
+            if (timer) clearTimeout(timer);
+            resolve();
+          }
+        },
+        { immediate: true },
+      );
+      // 超时保护，避免无限等待
+      timer = window.setTimeout(() => {
+        unwatch();
+        resolve();
+      }, 3000);
+    });
+    // 等待期间路由可能已变化，提前退出避免无用请求
+    if (currentId !== requestId) return;
+  }
+
   // 判断是否是自己的主页
   const isSelf = String(userInfo.value?.userId || '') === String(userId);
 
-  loading.value = true;
   try {
     // 自己调用完整信息接口，他人调用公开信息接口
     const res = isSelf ? await getUserProfile() : await getUserPublicProfile(userId);

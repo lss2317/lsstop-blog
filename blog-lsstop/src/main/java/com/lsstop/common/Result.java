@@ -1,7 +1,6 @@
 package com.lsstop.common;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.alibaba.fastjson2.JSONWriter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.lsstop.enums.StatusEnum;
 import lombok.AllArgsConstructor;
@@ -93,7 +92,7 @@ public class Result<T> {
      * @return {@link String}
      */
     public String asJsonString() {
-        return JSONObject.toJSONString(this, JSONWriter.Feature.WriteNulls);
+        return JSONObject.toJSONString(this);
     }
 
 }
