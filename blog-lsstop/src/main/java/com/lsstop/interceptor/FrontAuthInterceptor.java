@@ -1,6 +1,8 @@
 package com.lsstop.interceptor;
 
+import com.lsstop.common.Result;
 import com.lsstop.constant.AuthConst;
+import com.lsstop.enums.StatusEnum;
 import com.lsstop.utils.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,12 +34,12 @@ public class FrontAuthInterceptor implements HandlerInterceptor {
         String token = extractToken(request);
 
         if (token == null) {
-            unauthorized(response, AuthConst.TOKEN_MISSING);
+            unauthorized(response);
             return false;
         }
 
         if (!jwtUtils.validateAccessToken(token)) {
-            unauthorized(response, AuthConst.TOKEN_INVALID);
+            tokenExpired(response);
             return false;
         }
 
@@ -61,15 +63,21 @@ public class FrontAuthInterceptor implements HandlerInterceptor {
         return null;
     }
 
-    private void unauthorized(HttpServletResponse response, String msg) throws Exception {
+    private void unauthorized(HttpServletResponse response) throws Exception {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"code\":401,\"msg\":\"" + msg + "\"}");
+        response.getWriter().write(Result.failure(StatusEnum.TOKEN_EXPIRED).asJsonString());
+    }
+
+    private void tokenExpired(HttpServletResponse response) throws Exception {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(Result.failure(StatusEnum.TOKEN_EXPIRED).asJsonString());
     }
 
     private void forbidden(HttpServletResponse response) throws Exception {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"code\":403,\"msg\":\"" + AuthConst.FRONT_ACCOUNT_REQUIRED + "\"}");
+        response.getWriter().write(Result.failure(403, AuthConst.FRONT_ACCOUNT_REQUIRED).asJsonString());
     }
 }

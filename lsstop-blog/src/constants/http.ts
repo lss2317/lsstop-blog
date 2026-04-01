@@ -2,6 +2,8 @@
 export enum ResponseCode {
   /** 成功 */
   SUCCESS = 200,
+  /** Token过期，需刷新 */
+  TOKEN_EXPIRED = 40102,
 }
 
 /** HTTP 状态码 */

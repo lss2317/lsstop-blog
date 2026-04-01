@@ -79,6 +79,13 @@ public class Result<T> {
         return new Result<>(StatusEnum.FAILURE.getCode(), StatusEnum.FAILURE.getMsg(), data);
     }
 
+    /**
+     * 失败响应，使用状态枚举
+     */
+    public static <T> Result<T> failure(StatusEnum statusEnum) {
+        return new Result<>(statusEnum.getCode(), statusEnum.getMsg(), null);
+    }
+
 
     /**
      * 转json字符串

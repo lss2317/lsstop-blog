@@ -157,8 +157,11 @@ instance.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // 如果是401错误且未重试过，尝试刷新token
-    if (error.response?.status === HttpStatus.UNAUTHORIZED && !originalRequest._tokenRefreshed) {
+    // 如果是40102错误码且未重试过，尝试刷新token
+    if (
+      error.response?.data?.code === ResponseCode.TOKEN_EXPIRED &&
+      !originalRequest._tokenRefreshed
+    ) {
       // 刷新token的请求不重试
       if (originalRequest.url?.includes('/auth/refresh')) {
         clearAuthState();
