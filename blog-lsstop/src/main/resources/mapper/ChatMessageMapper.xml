@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.ChatMessageMapper">
+
+    <resultMap id="chatMessageVOResultMap" type="com.lsstop.domain.vo.ChatMessageVO">
+        <id column="id" property="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result column="user_id" property="userId" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="nickname" property="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="avatar" property="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="content" property="content" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="images" property="imagesJson" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="ip_region" property="ipRegion" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <!-- 获取聊天消息列表（游标分页） -->
+    <select id="listMessage" resultMap="chatMessageVOResultMap">
+        select cm.id,
+               cm.user_id,
+               bup.nickname,
+               bup.avatar,
+               cm.content,
+               cm.images,
+               cm.ip_region,
+               cm.create_time
+        from blog_chat_message cm
+                 left join blog_user_profile bup on cm.user_id = bup.user_id and bup.deleted_at = 0
+        where cm.deleted_at = 0
+        <if test="lastId != null">
+            and cm.id &lt; #{lastId}
+        </if>
+        order by cm.id desc
+        limit #{size}
+    </select>
+
+    <!-- 新增聊天消息 -->
+    <insert id="insertMessage" parameterType="com.lsstop.domain.entity.ChatMessageEntity" useGeneratedKeys="true" keyProperty="id">
+        insert into blog_chat_message (user_id, content, images, ip_address, ip_region,
+                                       deleted_at, create_time, update_time)
+        values (#{userId}, #{content}, #{images}, #{ipAddress}, #{ipRegion},
+                0, NOW(), NOW())
+    </insert>
+
+</mapper>

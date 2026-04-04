@@ -26,7 +26,8 @@ public enum OperationModuleEnum {
     PHOTO_ALBUM_IMAGE("相册图片"),
     PAGE_INFO("页面"),
     WEBSITE_CONFIG("网站配置"),
-    FILE("文件");
+    FILE("文件"),
+    CHAT_MESSAGE("聊天消息");
 
     /**
      * 描述
