@@ -1,6 +1,7 @@
 package com.lsstop.service.impl;
 
 import com.alibaba.fastjson2.JSON;
+import java.util.Collections;
 import com.lsstop.domain.entity.ChatMessageEntity;
 import com.lsstop.domain.vo.ChatMessageVO;
 import com.lsstop.mapper.ChatMessageMapper;
@@ -37,6 +38,8 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 vo.setImages(JSON.parseArray(vo.getImagesJson(), String.class));
             }
         });
+        // SQL按id desc查询用于游标分页取最近N条，反转为时间正序返回前端
+        Collections.reverse(list);
         return list;
     }
 

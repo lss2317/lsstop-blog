@@ -58,7 +58,7 @@ import type { ChatMessage } from '@/stores/modules/chat';
 import useChatStore from '@/stores/modules/chat';
 import useUserInfoStore from '@/stores/modules/userInfo';
 import { parseEmoji } from '@/utils/emoji';
-import dayjs from 'dayjs';
+import { formatChatTime } from '@/utils/date';
 
 const props = defineProps<{
   messages: ChatMessage[];
@@ -81,32 +81,19 @@ const isSelf = (userId: string) => {
 };
 
 // 解析消息内容（表情 + 换行）
+// parseEmoji 内部已做 escapeHtml，无需重复转义
 const parseContent = (content: string | null) => {
   if (!content) return '';
-  const escaped = content
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\n/g, '<br/>');
-  return parseEmoji(escaped);
+  return parseEmoji(content);
 };
 
 // 时间分隔（间隔超过5分钟显示）
 const showTimeDivider = (index: number) => {
-  if (index === 0) return true;
-  const prev = dayjs(props.messages[index - 1].createTime);
-  const curr = dayjs(props.messages[index].createTime);
-  return curr.diff(prev, 'minute') >= 5;
-};
-
-// 格式化聊天时间
-const formatChatTime = (time: string) => {
-  const date = dayjs(time);
-  const now = dayjs();
-  if (date.isSame(now, 'day')) return date.format('HH:mm');
-  if (date.isSame(now.subtract(1, 'day'), 'day')) return '昨天 ' + date.format('HH:mm');
-  if (date.isSame(now, 'year')) return date.format('MM-DD HH:mm');
-  return date.format('YYYY-MM-DD HH:mm');
+  const prevMsg = props.messages[index - 1];
+  if (!prevMsg) return true;
+  const prev = new Date(prevMsg.createTime).getTime();
+  const curr = new Date(props.messages[index]!.createTime).getTime();
+  return (curr - prev) / 60000 >= 5;
 };
 
 // 滚动到底部
@@ -260,6 +247,8 @@ defineExpose({
 
 /* 气泡内表情 */
 .chat-bubble :deep(img) {
+  width: 20px;
+  height: 20px;
   vertical-align: text-bottom;
   margin: 0 1px;
 }

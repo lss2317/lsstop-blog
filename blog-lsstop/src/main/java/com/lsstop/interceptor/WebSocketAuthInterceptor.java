@@ -1,6 +1,7 @@
 package com.lsstop.interceptor;
 
 import com.lsstop.constant.AuthConst;
+import com.lsstop.utils.IpUtils;
 import com.lsstop.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +51,11 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
         }
         String userId = jwtUtils.getSubject(token);
         attributes.put("userId", userId);
+        // 握手阶段提取真实IP，存入session attributes供handler使用
+        if (request instanceof ServletServerHttpRequest servletRequest) {
+            String ipAddress = IpUtils.getIpAddress(servletRequest.getServletRequest());
+            attributes.put("ipAddress", ipAddress);
+        }
         return true;
     }
 

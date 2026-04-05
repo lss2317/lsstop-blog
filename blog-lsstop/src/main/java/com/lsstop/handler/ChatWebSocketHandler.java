@@ -7,7 +7,9 @@ import com.lsstop.constant.CommonConst;
 import com.lsstop.domain.dto.ChatMessageDTO;
 import com.lsstop.domain.entity.ChatMessageEntity;
 import com.lsstop.domain.vo.ChatMessageVO;
+import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.service.ChatMessageService;
+import com.lsstop.service.UserService;
 import com.lsstop.utils.IpUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final ChatMessageService chatMessageService;
+    private final UserService userService;
 
     /**
      * 在线用户会话池（userId -> 该用户的所有session）
@@ -58,7 +61,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
         try {
-            ChatMessageDTO dto = JSON.parseObject(message.getPayload(), ChatMessageDTO.class);
+            // 处理客户端心跳ping
+            String payload = message.getPayload();
+            if (ChatConst.WS_PING.equalsIgnoreCase(payload)) {
+                synchronized (session) {
+                    session.sendMessage(new TextMessage(ChatConst.WS_PONG));
+                }
+                return;
+            }
+            ChatMessageDTO dto = JSON.parseObject(payload, ChatMessageDTO.class);
             if (dto == null) {
                 sendError(session, ChatConst.INVALID_MESSAGE_FORMAT);
                 return;
@@ -95,10 +106,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                     .build();
             chatMessageService.insertMessage(chatMessage);
 
+            // 查询用户信息
+            UserInfoVO userInfo = userService.getUserProfile(userId);
+
             // 构造广播VO
             ChatMessageVO vo = new ChatMessageVO();
             vo.setId(chatMessage.getId());
             vo.setUserId(userId);
+            vo.setNickname(userInfo.getNickname());
+            vo.setAvatar(userInfo.getAvatar());
             vo.setContent(dto.getContent());
             vo.setImages(hasImages ? dto.getImages() : null);
             vo.setIpRegion(ipRegion);
@@ -211,9 +227,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     }
 
     private String getIpAddress(WebSocketSession session) {
-        if (session.getRemoteAddress() != null) {
-            return session.getRemoteAddress().getAddress().getHostAddress();
-        }
-        return CommonConst.UNKNOWN;
+        String ip = (String) session.getAttributes().get("ipAddress");
+        return ip != null ? ip : CommonConst.UNKNOWN;
     }
 }

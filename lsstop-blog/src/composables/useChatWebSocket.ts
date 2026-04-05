@@ -5,7 +5,6 @@ import useUserInfoStore from '@/stores/modules/userInfo';
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
 import { tokenManager } from '@/utils/token';
-import { parseEmoji } from '@/utils/emoji';
 import { listMessage } from '@/apis/chat';
 import { ResponseCode } from '@/constants/http';
 
@@ -28,7 +27,7 @@ export function useChatWebSocket() {
   let wsInitialized = false;
   let historyLoaded = false;
 
-  // ========== 历史消息（HTTP） ==========
+  // 历史消息
 
   /** 加载历史消息（首次进入时调用） */
   const loadHistory = async () => {
@@ -78,7 +77,7 @@ export function useChatWebSocket() {
     }
   };
 
-  // ========== WebSocket ==========
+  // WebSocket
 
   /** 处理 WS 下行消息 */
   const handleWsMessage = (msg: WsDownMessage) => {
@@ -112,7 +111,7 @@ export function useChatWebSocket() {
     wsInitialized = true;
 
     // 先加载历史消息
-    loadHistory();
+    void loadHistory();
 
     // 把当前用户信息放入 userMap
     const { userId, nickname, avatar } = userInfoStore.userInfo;
@@ -158,9 +157,9 @@ export function useChatWebSocket() {
       return;
     }
 
-    const parsedContent = parseEmoji(content);
     // 上行格式：{ "content": "文本", "images": ["URL"] }
-    wsInstance.send(JSON.stringify({ content: parsedContent }));
+    // 发送原始文本，表情由显示端 parseEmoji 负责解析
+    wsInstance.send(JSON.stringify({ content }));
   };
 
   return {

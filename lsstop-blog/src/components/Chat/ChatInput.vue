@@ -29,7 +29,7 @@
         @keydown.enter.exact="handleEnter"
       />
       <span :class="['chat-send-btn', content.trim() ? 'active' : '']" @click="handleSend">
-        <v-icon size="20">mdi-send</v-icon>
+        <v-icon size="20">mdi-arrow-up-circle</v-icon>
       </span>
     </div>
   </div>

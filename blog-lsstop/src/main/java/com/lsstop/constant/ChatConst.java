@@ -62,4 +62,14 @@ public class ChatConst {
      * 图片数量超出限制
      */
     public static final String TOO_MANY_IMAGES = "图片数量超出限制";
+
+    /**
+     * WebSocket心跳ping
+     */
+    public static final String WS_PING = "ping";
+
+    /**
+     * WebSocket心跳pong
+     */
+    public static final String WS_PONG = "pong";
 }

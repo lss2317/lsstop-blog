@@ -30,6 +30,17 @@ export const getMonth = (value: DateValue): number => {
   return dayjs(value).month() + 1;
 };
 
+/** 格式化聊天时间（今天仅时分、昨天、同年月日、跨年完整日期） */
+export const formatChatTime = (time: DateValue): string => {
+  if (!time) return '';
+  const date = dayjs(time);
+  const now = dayjs();
+  if (date.isSame(now, 'day')) return date.format('HH:mm');
+  if (date.isSame(now.subtract(1, 'day'), 'day')) return '昨天 ' + date.format('HH:mm');
+  if (date.isSame(now, 'year')) return date.format('MM-DD HH:mm');
+  return date.format('YYYY-MM-DD HH:mm');
+};
+
 export const formatTime = (time: DateValue): string => {
   if (!time) return '';
   const date = dayjs(time);
