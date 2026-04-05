@@ -3,6 +3,7 @@ package com.lsstop.handler;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.lsstop.constant.ChatConst;
+import com.lsstop.constant.CommonConst;
 import com.lsstop.domain.dto.ChatMessageDTO;
 import com.lsstop.domain.entity.ChatMessageEntity;
 import com.lsstop.domain.vo.ChatMessageVO;
@@ -11,14 +12,15 @@ import com.lsstop.utils.IpUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -35,40 +37,47 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final ChatMessageService chatMessageService;
 
     /**
-     * 在线用户会话池（userId -> session）
+     * 在线用户会话池（userId -> 该用户的所有session）
      */
-    private static final Map<String, WebSocketSession> SESSION_POOL = new ConcurrentHashMap<>();
+    private static final Map<String, Set<WebSocketSession>> SESSION_POOL = new ConcurrentHashMap<>();
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) {
+    public void afterConnectionEstablished(@NonNull WebSocketSession session) {
         String userId = getUserId(session);
         if (userId != null) {
-            SESSION_POOL.put(userId, session);
+            SESSION_POOL.computeIfAbsent(userId, k -> ConcurrentHashMap.newKeySet()).add(session);
             log.info("用户 {} 连接聊天室，当前在线人数: {}", userId, SESSION_POOL.size());
             broadcastOnlineCount();
         }
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+    protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) {
         String userId = getUserId(session);
         if (userId == null) {
             return;
         }
         try {
             ChatMessageDTO dto = JSON.parseObject(message.getPayload(), ChatMessageDTO.class);
+            if (dto == null) {
+                sendError(session, ChatConst.INVALID_MESSAGE_FORMAT);
+                return;
+            }
             // 校验内容
             boolean hasContent = StringUtils.isNotBlank(dto.getContent());
             boolean hasImages = dto.getImages() != null && !dto.getImages().isEmpty();
             if (!hasContent && !hasImages) {
+                sendError(session, ChatConst.MESSAGE_CONTENT_EMPTY);
                 return;
             }
             // 内容长度校验
             if (hasContent && dto.getContent().length() > ChatConst.MAX_CONTENT_LENGTH) {
+                sendError(session, ChatConst.CONTENT_TOO_LONG);
                 return;
             }
             // 图片数量校验
             if (hasImages && dto.getImages().size() > ChatConst.MAX_IMAGE_COUNT) {
+                sendError(session, ChatConst.TOO_MANY_IMAGES);
                 return;
             }
 
@@ -96,66 +105,104 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             vo.setCreateTime(LocalDateTime.now());
 
             // 广播消息给所有在线用户
-            broadcastMessage(ChatConst.WS_TYPE_MESSAGE, vo);
+            broadcastMessage(vo);
         } catch (Exception e) {
             log.error("处理聊天消息异常, userId: {}", userId, e);
         }
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
         String userId = getUserId(session);
         if (userId != null) {
-            SESSION_POOL.remove(userId);
+            removeSession(userId, session);
             log.info("用户 {} 断开聊天室，当前在线人数: {}", userId, SESSION_POOL.size());
             broadcastOnlineCount();
         }
     }
 
     @Override
-    public void handleTransportError(WebSocketSession session, Throwable exception) {
+    public void handleTransportError(@NonNull WebSocketSession session, @NonNull Throwable exception) {
         String userId = getUserId(session);
         if (userId != null) {
-            SESSION_POOL.remove(userId);
+            removeSession(userId, session);
+            broadcastOnlineCount();
         }
         log.warn("WebSocket传输异常, userId: {}", userId, exception);
     }
 
     /**
-     * 广播在线人数
+     * 广播在线用户数
      */
     private void broadcastOnlineCount() {
         JSONObject data = new JSONObject();
-        data.put("type", ChatConst.WS_TYPE_ONLINE_COUNT);
+        data.put("type", ChatConst.WS_TYPE_ONLINE_USER_COUNT);
         data.put("data", SESSION_POOL.size());
         broadcast(data.toJSONString());
     }
 
     /**
-     * 广播消息
+     * 广播聊天消息
      */
-    private void broadcastMessage(String type, Object data) {
+    private void broadcastMessage(Object data) {
         JSONObject json = new JSONObject();
-        json.put("type", type);
+        json.put("type", ChatConst.WS_TYPE_MESSAGE);
         json.put("data", data);
         broadcast(json.toJSONString());
     }
 
     /**
+     * 向指定session发送错误提示
+     */
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+    private void sendError(WebSocketSession session, String msg) {
+        JSONObject json = new JSONObject();
+        json.put("type", ChatConst.WS_TYPE_ERROR);
+        json.put("data", msg);
+        try {
+            synchronized (session) {
+                session.sendMessage(new TextMessage(json.toJSONString()));
+            }
+        } catch (IOException e) {
+            log.error("发送错误提示失败", e);
+        }
+    }
+
+    /**
      * 向所有在线用户发送消息
      */
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     private void broadcast(String message) {
         TextMessage textMessage = new TextMessage(message);
-        SESSION_POOL.values().forEach(session -> {
-            if (session.isOpen()) {
-                try {
-                    synchronized (session) {
-                        session.sendMessage(textMessage);
+        SESSION_POOL.values().stream()
+                .flatMap(Set::stream)
+                .filter(WebSocketSession::isOpen)
+                .forEach(session -> {
+                    try {
+                        synchronized (session) {
+                            session.sendMessage(textMessage);
+                        }
+                    } catch (IOException e) {
+                        log.error("广播消息失败", e);
+                        String userId = getUserId(session);
+                        if (userId != null) {
+                            removeSession(userId, session);
+                        }
+                        try {
+                            session.close();
+                        } catch (IOException ignored) {
+                        }
                     }
-                } catch (IOException e) {
-                    log.error("广播消息失败", e);
-                }
-            }
+                });
+    }
+
+    /**
+     * 移除用户的某个session，若该用户无session则原子移除整个key
+     */
+    private void removeSession(String userId, WebSocketSession session) {
+        SESSION_POOL.computeIfPresent(userId, (key, sessions) -> {
+            sessions.remove(session);
+            return sessions.isEmpty() ? null : sessions;
         });
     }
 
@@ -167,6 +214,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         if (session.getRemoteAddress() != null) {
             return session.getRemoteAddress().getAddress().getHostAddress();
         }
-        return "unknown";
+        return CommonConst.UNKNOWN;
     }
 }

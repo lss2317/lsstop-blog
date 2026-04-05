@@ -39,7 +39,27 @@ public class ChatConst {
     public static final String WS_TYPE_MESSAGE = "message";
 
     /**
-     * WebSocket消息类型：在线人数
+     * WebSocket消息类型：在线用户数
      */
-    public static final String WS_TYPE_ONLINE_COUNT = "onlineCount";
+    public static final String WS_TYPE_ONLINE_USER_COUNT = "onlineUserCount";
+
+    /**
+     * WebSocket消息类型：错误提示
+     */
+    public static final String WS_TYPE_ERROR = "error";
+
+    /**
+     * 消息格式错误
+     */
+    public static final String INVALID_MESSAGE_FORMAT = "消息格式错误";
+
+    /**
+     * 消息内容过长
+     */
+    public static final String CONTENT_TOO_LONG = "消息内容过长";
+
+    /**
+     * 图片数量超出限制
+     */
+    public static final String TOO_MANY_IMAGES = "图片数量超出限制";
 }

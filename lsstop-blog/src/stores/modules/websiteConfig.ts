@@ -15,6 +15,7 @@ const defaultConfig: WebsiteConfigVo = {
   defaultUserAvatar: '',
   enableChatRoom: 0,
   enableMusicPlayer: 0,
+  websocketUrl: '',
 };
 
 const useWebsiteConfigStore = defineStore('websiteConfig', () => {

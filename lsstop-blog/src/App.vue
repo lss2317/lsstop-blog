@@ -18,6 +18,8 @@
     <AuthDialog></AuthDialog>
     <!-- 弹窗公告 -->
     <AnnouncementPopup />
+    <!-- 聊天室 -->
+    <ChatDrawer />
   </v-app>
 </template>
 
@@ -30,6 +32,7 @@ import BackTop from './components/BackTop/BackTop.vue';
 import SnackbarMessage from './components/Snackbar/SnackbarMessage.vue';
 import AuthDialog from '@/components/Auth/AuthDialog.vue';
 import AnnouncementPopup from './components/Announcement/AnnouncementPopup.vue';
+import ChatDrawer from '@/components/Chat/ChatDrawer.vue';
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
 import usePageInfoStore from '@/stores/modules/pageInfo';
 import useLikeStore from '@/stores/modules/like';
@@ -58,5 +61,4 @@ onMounted(async () => {
     void likeStore.fetchUserLike();
   }
 });
-
 </script>

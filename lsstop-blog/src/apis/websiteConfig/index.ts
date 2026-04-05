@@ -26,6 +26,8 @@ export interface WebsiteConfigVo {
   enableChatRoom: number;
   /** 是否开启音乐播放器(1:是、0:否) */
   enableMusicPlayer: number;
+  /** websocket地址 */
+  websocketUrl: string;
 }
 
 // 获取网站配置信息

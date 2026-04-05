@@ -73,4 +73,9 @@ public class WebsiteConfigVO {
      */
     private Integer enableMusicPlayer;
 
+    /**
+     * websocket地址
+     */
+    private String websocketUrl;
+
 }

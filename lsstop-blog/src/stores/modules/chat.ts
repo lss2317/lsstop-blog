@@ -1,42 +1,45 @@
 import { defineStore } from 'pinia';
-import { shallowRef, computed } from 'vue';
+import { shallowRef } from 'vue';
 
+/** 聊天消息（WS 下行不含 nickname/avatar，HTTP 历史接口含） */
 export interface ChatMessage {
   /** 消息ID */
-  id: string;
+  id: number;
   /** 发送者ID */
   userId: string;
-  /** 发送者昵称 */
-  nickname: string;
-  /** 发送者头像 */
-  avatar: string;
-  /** 消息内容 */
-  content: string;
-  /** 发送时间 */
+  /** 消息文本（可为空，纯图片消息时为 null） */
+  content: string | null;
+  /** 图片列表 */
+  images: string[] | null;
+  /** IP 属地 */
+  ipRegion: string;
+  /** 发送时间 yyyy-MM-ddTHH:mm:ss */
   createTime: string;
+  /** 发送者昵称（仅历史消息接口返回） */
+  nickname?: string;
+  /** 发送者头像（仅历史消息接口返回） */
+  avatar?: string;
 }
 
-export interface OnlineUser {
-  /** 用户ID */
-  userId: string;
-  /** 昵称 */
+/** 用户信息映射（nickname + avatar） */
+export interface ChatUserInfo {
   nickname: string;
-  /** 头像 */
   avatar: string;
 }
 
 const useChatStore = defineStore('chat', () => {
   // 消息列表
   const messages = shallowRef<ChatMessage[]>([]);
-  // 在线用户列表
-  const onlineUsers = shallowRef<OnlineUser[]>([]);
+  // 在线人数（WS 直接推数字）
+  const onlineCount = shallowRef(0);
   // 聊天室是否打开
   const isOpen = shallowRef(false);
   // 未读消息数
   const unreadCount = shallowRef(0);
-
-  // 在线人数
-  const onlineCount = computed(() => onlineUsers.value.length);
+  // 用户信息缓存 userId → {nickname, avatar}
+  const userMap = shallowRef<Map<string, ChatUserInfo>>(new Map());
+  // 是否还有更多历史消息
+  const hasMore = shallowRef(true);
 
   // 打开聊天室
   function open() {
@@ -49,57 +52,73 @@ const useChatStore = defineStore('chat', () => {
     isOpen.value = false;
   }
 
-  // 添加消息
+  // 追加新消息
   function addMessage(message: ChatMessage) {
     messages.value = [...messages.value, message];
-    // 聊天室未打开时增加未读数
     if (!isOpen.value) {
       unreadCount.value++;
     }
   }
 
-  // 设置消息列表（用于初始化历史消息）
+  // 设置消息列表（替换）
   function setMessages(list: ChatMessage[]) {
     messages.value = list;
   }
 
-  // 设置在线用户
-  function setOnlineUsers(users: OnlineUser[]) {
-    onlineUsers.value = users;
+  // 前置历史消息（加载更多时用）
+  function prependMessages(list: ChatMessage[]) {
+    messages.value = [...list, ...messages.value];
   }
 
-  // 添加在线用户
-  function addOnlineUser(user: OnlineUser) {
-    if (!onlineUsers.value.some((u) => u.userId === user.userId)) {
-      onlineUsers.value = [...onlineUsers.value, user];
-    }
+  // 设置在线人数
+  function setOnlineCount(count: number) {
+    onlineCount.value = count;
   }
 
-  // 移除在线用户
-  function removeOnlineUser(userId: string) {
-    onlineUsers.value = onlineUsers.value.filter((u) => u.userId !== userId);
+  // 批量更新用户信息缓存
+  function updateUserMap(entries: Array<{ userId: string; nickname: string; avatar: string }>) {
+    const newMap = new Map(userMap.value);
+    entries.forEach(({ userId, nickname, avatar }) => {
+      newMap.set(userId, { nickname, avatar });
+    });
+    userMap.value = newMap;
+  }
+
+  // 获取用户昵称
+  function getNickname(userId: string): string {
+    return userMap.value.get(userId)?.nickname ?? '未知用户';
+  }
+
+  // 获取用户头像
+  function getAvatar(userId: string): string {
+    return userMap.value.get(userId)?.avatar ?? '';
   }
 
   // 清空状态
   function clear() {
     messages.value = [];
-    onlineUsers.value = [];
+    onlineCount.value = 0;
     unreadCount.value = 0;
+    userMap.value = new Map();
+    hasMore.value = true;
   }
 
   return {
     messages,
-    onlineUsers,
+    onlineCount,
     isOpen,
     unreadCount,
-    onlineCount,
+    userMap,
+    hasMore,
     open,
     close,
     addMessage,
     setMessages,
-    setOnlineUsers,
-    addOnlineUser,
-    removeOnlineUser,
+    prependMessages,
+    setOnlineCount,
+    updateUserMap,
+    getNickname,
+    getAvatar,
     clear,
   };
 });
