@@ -3,6 +3,7 @@ import { logout } from '@/apis/auth';
 import { tokenManager } from '@/utils/token';
 import useUserInfoStore from '@/stores/modules/userInfo';
 import useLikeStore from '@/stores/modules/like';
+import useChatStore from '@/stores/modules/chat';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
 
 /**
@@ -25,6 +26,11 @@ export const useAuthStore = defineStore('auth', () => {
     if (refreshToken) {
       await logout({ refreshToken });
     }
+    // 关闭并清空聊天室
+    const chatStore = useChatStore();
+    chatStore.close();
+    chatStore.clear();
+
     clearAuthState();
     useSnackbarStore().success('退出成功');
   }

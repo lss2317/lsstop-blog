@@ -166,8 +166,17 @@ export function useChatWebSocket() {
     wsInstance.send(JSON.stringify({ content }));
   };
 
+  /** 断开 WebSocket 连接并重置状态 */
+  const disconnectWebSocket = () => {
+    wsInstance?.disconnect();
+    wsInstance = null;
+    wsInitialized = false;
+    historyLoaded = false;
+  };
+
   return {
     initWebSocket,
+    disconnectWebSocket,
     sendMessage,
     loadMoreHistory,
   };
