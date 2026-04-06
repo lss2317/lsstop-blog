@@ -11,10 +11,3 @@ export function listMessage(lastId?: number) {
     showProgress: false,
   });
 }
-
-/**
- * 发送消息（HTTP 持久化，不广播，WS 负责广播）
- */
-export function sendMessage(data: { content?: string; images?: string[] }) {
-  return http.post<void>('/chat/sendMessage', data);
-}

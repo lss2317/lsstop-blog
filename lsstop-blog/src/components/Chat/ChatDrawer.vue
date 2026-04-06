@@ -4,7 +4,7 @@
     <div v-show="chatStore.isOpen" class="chat-container" @click="handlePanelClick">
       <!-- 头部 -->
       <div class="chat-header">
-        <v-icon size="28" color="#49b1f5">mdi-forum</v-icon>
+        <v-icon size="28" color="#49b1f5">mdi-comment-processing</v-icon>
         <div class="chat-header-info">
           <span class="chat-header-title">聊天室</span>
           <span class="chat-header-count">

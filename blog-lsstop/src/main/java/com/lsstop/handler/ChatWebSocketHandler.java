@@ -8,12 +8,11 @@ import com.lsstop.domain.dto.ChatMessageDTO;
 import com.lsstop.domain.entity.ChatMessageEntity;
 import com.lsstop.domain.vo.ChatMessageVO;
 import com.lsstop.domain.vo.UserInfoVO;
+import com.lsstop.exception.BusinessException;
 import com.lsstop.service.ChatMessageService;
 import com.lsstop.service.UserService;
-import com.lsstop.utils.IpUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
@@ -74,37 +73,18 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 sendError(session, ChatConst.INVALID_MESSAGE_FORMAT);
                 return;
             }
-            // 校验内容
-            boolean hasContent = StringUtils.isNotBlank(dto.getContent());
-            boolean hasImages = dto.getImages() != null && !dto.getImages().isEmpty();
-            if (!hasContent && !hasImages) {
-                sendError(session, ChatConst.MESSAGE_CONTENT_EMPTY);
-                return;
-            }
-            // 内容长度校验
-            if (hasContent && dto.getContent().length() > ChatConst.MAX_CONTENT_LENGTH) {
-                sendError(session, ChatConst.CONTENT_TOO_LONG);
-                return;
-            }
-            // 图片数量校验
-            if (hasImages && dto.getImages().size() > ChatConst.MAX_IMAGE_COUNT) {
-                sendError(session, ChatConst.TOO_MANY_IMAGES);
-                return;
-            }
 
             // 获取IP信息
             String ipAddress = getIpAddress(session);
-            String ipRegion = IpUtils.getIpLocation(ipAddress);
 
-            // 持久化消息
-            ChatMessageEntity chatMessage = ChatMessageEntity.builder()
-                    .userId(userId)
-                    .content(dto.getContent())
-                    .images(hasImages ? JSON.toJSONString(dto.getImages()) : null)
-                    .ipAddress(ipAddress)
-                    .ipRegion(ipRegion)
-                    .build();
-            chatMessageService.insertMessage(chatMessage);
+            // 校验 + 构建实体 + 持久化
+            ChatMessageEntity chatMessage;
+            try {
+                chatMessage = chatMessageService.sendMessage(dto, userId, ipAddress);
+            } catch (BusinessException e) {
+                sendError(session, e.getMessage());
+                return;
+            }
 
             // 查询用户信息
             UserInfoVO userInfo = userService.getUserProfile(userId);
@@ -116,8 +96,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             vo.setNickname(userInfo.getNickname());
             vo.setAvatar(userInfo.getAvatar());
             vo.setContent(dto.getContent());
-            vo.setImages(hasImages ? dto.getImages() : null);
-            vo.setIpRegion(ipRegion);
+            vo.setImages(dto.getImages() != null && !dto.getImages().isEmpty() ? dto.getImages() : null);
+            vo.setIpRegion(chatMessage.getIpRegion());
             vo.setCreateTime(LocalDateTime.now());
 
             // 广播消息给所有在线用户

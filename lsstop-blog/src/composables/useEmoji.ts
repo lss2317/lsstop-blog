@@ -57,7 +57,13 @@ export function useEmoji() {
   // 点击外部关闭表情框
   const handleClickOutside = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
-    if (!target.closest('.lc-emoji-panel') && !target.closest('.lc-tool-icon')) {
+    // 兼容评论区（.lc-emoji-panel / .lc-tool-icon）和聊天室（.chat-emoji-box / .chat-action-icon）
+    if (
+      !target.closest('.lc-emoji-panel') &&
+      !target.closest('.lc-tool-icon') &&
+      !target.closest('.chat-emoji-box') &&
+      !target.closest('.chat-action-icon')
+    ) {
       showEmoji.value = false;
     }
   };

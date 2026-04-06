@@ -4,23 +4,13 @@
     <div class="chat-emoji-box" v-show="showEmoji" @mousedown.prevent>
       <CommentEmoji @addEmoji="addEmoji" />
     </div>
-    <div class="chat-emoji-arrow" v-show="showEmoji" />
-    <!-- 工具栏 + 输入 -->
-    <div class="chat-input-row">
-      <span
-        ref="emojiTriggerRef"
-        :class="['chat-tool-icon', showEmoji ? 'active' : '']"
-        title="表情"
-        @mousedown.prevent
-        @click="handleToggleEmoji"
-      >
-        <v-icon size="20">mdi-emoticon-outline</v-icon>
-      </span>
+    <!-- 一体化输入栏 -->
+    <div class="chat-input-bar">
       <textarea
         ref="textareaRef"
         v-model="content"
         class="chat-textarea"
-        placeholder="请输入消息..."
+        placeholder="发送消息"
         rows="1"
         @input="adjustHeight"
         @focus="saveCursor"
@@ -28,9 +18,27 @@
         @mouseup="saveCursor"
         @keydown.enter.exact="handleEnter"
       />
-      <span :class="['chat-send-btn', content.trim() ? 'active' : '']" @click="handleSend">
-        <v-icon size="20">mdi-arrow-up-circle</v-icon>
-      </span>
+      <div class="chat-input-actions">
+        <span
+          ref="emojiTriggerRef"
+          :class="['chat-action-icon', showEmoji ? 'active' : '']"
+          title="表情"
+          @mousedown.prevent
+          @click="handleToggleEmoji"
+        >
+          <v-icon size="20">mdi-emoticon-outline</v-icon>
+        </span>
+        <span class="chat-action-icon disabled" title="图片（暂未开放）">
+          <v-icon size="20">mdi-folder-outline</v-icon>
+        </span>
+        <span
+          :class="['chat-send-icon', content.trim() ? 'active' : '']"
+          title="发送"
+          @click="handleSend"
+        >
+          <v-icon size="16">mdi-arrow-up</v-icon>
+        </span>
+      </div>
     </div>
   </div>
 </template>
@@ -49,14 +57,16 @@ const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const initialHeight = ref(0);
 const savedCursorPos = ref<{ start: number; end: number } | null>(null);
 
-const {
-  showEmoji,
-  emojiTriggerRef,
-  toggleEmoji,
-  closeEmoji,
-  registerClickOutside,
-  unregisterClickOutside,
-} = useEmoji();
+const { showEmoji, emojiTriggerRef, toggleEmoji, closeEmoji } = useEmoji();
+
+// 点击聊天容器内部（表情框和触发按钮以外的区域）关闭表情框
+const handleContainerClick = (event: MouseEvent) => {
+  if (!showEmoji.value) return;
+  const target = event.target as HTMLElement;
+  if (!target.closest('.chat-emoji-box') && !target.closest('.chat-action-icon')) {
+    closeEmoji();
+  }
+};
 
 // 保存光标位置
 const saveCursor = () => {
@@ -141,7 +151,11 @@ const handleEnter = (e: KeyboardEvent) => {
 };
 
 onMounted(() => {
-  registerClickOutside();
+  // 监听聊天容器点击来关闭表情框（因为 chat-container 有 stopPropagation，document 监听无效）
+  const chatContainer = document.querySelector('.chat-container');
+  if (chatContainer) {
+    chatContainer.addEventListener('click', handleContainerClick as EventListener);
+  }
   nextTick(() => {
     if (textareaRef.value) {
       initialHeight.value = textareaRef.value.offsetHeight;
@@ -150,7 +164,10 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  unregisterClickOutside();
+  const chatContainer = document.querySelector('.chat-container');
+  if (chatContainer) {
+    chatContainer.removeEventListener('click', handleContainerClick as EventListener);
+  }
   if (rafId) cancelAnimationFrame(rafId);
 });
 </script>
@@ -163,13 +180,58 @@ onUnmounted(() => {
   border-radius: 0 0 1rem 1rem;
 }
 
-.chat-input-row {
+/* 一体化输入栏 */
+.chat-input-bar {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
+  background: #e8e8e8;
+  border-radius: 22px;
+  padding: 4px 6px 4px 16px;
+  gap: 2px;
+  min-height: 40px;
+  transition: background 0.2s;
 }
 
-.chat-tool-icon {
+.chat-input-bar:focus-within {
+  background: #dcdcdc;
+}
+
+.chat-textarea {
+  flex: 1;
+  padding: 6px 0;
+  border: none;
+  font-size: 13px;
+  line-height: 1.4;
+  outline: none;
+  resize: none;
+  overflow-y: hidden;
+  min-height: 30px;
+  max-height: 80px;
+  background: transparent;
+  font-family: inherit;
+  box-sizing: border-box;
+  word-break: break-all;
+  scrollbar-width: none;
+  color: #262626;
+}
+
+.chat-textarea::-webkit-scrollbar {
+  display: none;
+}
+
+.chat-textarea::placeholder {
+  color: #999;
+}
+
+/* 右侧操作按钮组 */
+.chat-input-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.chat-action-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -178,89 +240,59 @@ onUnmounted(() => {
   border-radius: 50%;
   cursor: pointer;
   color: #8c8c8c;
-  flex-shrink: 0;
   transition: all 0.2s;
 }
 
-.chat-tool-icon:hover,
-.chat-tool-icon.active {
+.chat-action-icon:hover,
+.chat-action-icon.active {
   color: #49b1f5;
-  background: rgba(73, 177, 245, 0.1);
 }
 
-.chat-textarea {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #e5e5e5;
-  border-radius: 18px;
-  font-size: 13px;
-  line-height: 1.4;
-  outline: none;
-  resize: none;
-  overflow-y: hidden;
-  min-height: 34px;
-  max-height: 80px;
-  background: #fff;
-  font-family: inherit;
-  box-sizing: border-box;
-  word-break: break-all;
-  transition: border-color 0.2s;
+.chat-action-icon.disabled {
+  color: #bfbfbf;
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
-.chat-textarea::placeholder {
+.chat-action-icon.disabled:hover {
   color: #bfbfbf;
 }
 
-.chat-textarea:focus {
-  border-color: #49b1f5;
-}
-
-.chat-send-btn {
+/* 发送按钮 */
+.chat-send-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   cursor: pointer;
-  color: #bfbfbf;
-  flex-shrink: 0;
+  color: #fff;
+  background: #ccc;
   transition: all 0.2s;
+  margin-bottom: 2px;
 }
 
-.chat-send-btn.active {
-  color: #49b1f5;
+.chat-send-icon.active {
+  background: #007aff;
 }
 
-.chat-send-btn.active:hover {
-  background: rgba(73, 177, 245, 0.1);
+.chat-send-icon.active:hover {
+  background: #0066d6;
 }
 
+/* 表情弹出框 */
 .chat-emoji-box {
   position: absolute;
   bottom: 56px;
-  left: 16px;
+  right: 16px;
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 6px 6px 2px;
   box-shadow:
-    0 8px 16px rgba(50, 50, 93, 0.08),
-    0 4px 12px rgba(0, 0, 0, 0.07);
+    0 8px 24px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.08);
   z-index: 10;
-}
-
-.chat-emoji-arrow::before {
-  display: block;
-  height: 0;
-  width: 0;
-  content: '';
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 8px solid #fff;
-  position: absolute;
-  bottom: 48px;
-  left: 26px;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.04));
 }
 </style>
 
@@ -270,9 +302,15 @@ onUnmounted(() => {
   background: #1e1e1e;
 }
 
+.v-theme--dark .chat-input-bar {
+  background: #2d2d2d;
+}
+
+.v-theme--dark .chat-input-bar:focus-within {
+  background: #333;
+}
+
 .v-theme--dark .chat-textarea {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -280,15 +318,7 @@ onUnmounted(() => {
   color: rgba(255, 255, 255, 0.4);
 }
 
-.v-theme--dark .chat-textarea:focus {
-  border-color: #49b1f5;
-}
-
 .v-theme--dark .chat-emoji-box {
   background: #2d2d2d;
-}
-
-.v-theme--dark .chat-emoji-arrow::before {
-  border-top-color: #2d2d2d;
 }
 </style>

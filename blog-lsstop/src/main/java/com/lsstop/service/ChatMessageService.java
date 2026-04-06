@@ -1,5 +1,6 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.dto.ChatMessageDTO;
 import com.lsstop.domain.entity.ChatMessageEntity;
 import com.lsstop.domain.vo.ChatMessageVO;
 
@@ -23,10 +24,12 @@ public interface ChatMessageService {
     List<ChatMessageVO> listMessage(Integer lastId, Integer size);
 
     /**
-     * 新增聊天消息
+     * 发送聊天消息（含参数校验、构建实体、持久化）
      *
-     * @param chatMessage 聊天消息实体
+     * @param dto       聊天消息请求参数
+     * @param userId    用户id
+     * @param ipAddress 用户IP地址
      * @return 新增的消息实体（含id）
      */
-    ChatMessageEntity insertMessage(ChatMessageEntity chatMessage);
+    ChatMessageEntity sendMessage(ChatMessageDTO dto, String userId, String ipAddress);
 }

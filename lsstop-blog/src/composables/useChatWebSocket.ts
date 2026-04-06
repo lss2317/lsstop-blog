@@ -1,4 +1,3 @@
-import { watch } from 'vue';
 import { useWebSocket } from '@/composables/useWebSocket';
 import useChatStore, { type ChatMessage } from '@/stores/modules/chat';
 import useUserInfoStore from '@/stores/modules/userInfo';
@@ -17,6 +16,9 @@ interface WsDownMessage {
 /**
  * 聊天室 WebSocket 连接管理 + 历史消息加载
  */
+/** 每页消息条数 */
+const PAGE_SIZE = 50;
+
 export function useChatWebSocket() {
   const chatStore = useChatStore();
   const userInfoStore = useUserInfoStore();
@@ -40,8 +42,8 @@ export function useChatWebSocket() {
         chatStore.setMessages(list);
         // 从历史消息中提取用户信息缓存
         cacheUsersFromMessages(list);
-        // 不足50条说明没有更多了
-        chatStore.hasMore = list.length < 50;
+        // 满页说明可能还有更多
+        chatStore.hasMore = list.length >= PAGE_SIZE;
       }
     } catch {
       // 静默失败
@@ -60,7 +62,7 @@ export function useChatWebSocket() {
         const list = res.data;
         chatStore.prependMessages(list);
         cacheUsersFromMessages(list);
-        chatStore.hasMore = list.length >= 50;
+        chatStore.hasMore = list.length >= PAGE_SIZE;
       }
     } catch {
       // 静默失败
@@ -119,25 +121,22 @@ export function useChatWebSocket() {
       chatStore.updateUserMap([{ userId, nickname: nickname ?? '', avatar: avatar ?? '' }]);
     }
 
-    const token = tokenManager.getAccessToken();
     const baseUrl = websiteConfigStore.config.websocketUrl;
     const wsBase =
       baseUrl.startsWith('ws://') || baseUrl.startsWith('wss://') ? baseUrl : `ws://${baseUrl}`;
-    const wsUrl = `${wsBase}/ws/chat?token=${token}`;
 
-    wsInstance = useWebSocket(wsUrl, {
+    const buildWsUrl = () => {
+      const token = tokenManager.getAccessToken();
+      return `${wsBase}/ws/chat?token=${token}`;
+    };
+
+    wsInstance = useWebSocket(buildWsUrl, {
       autoReconnect: true,
       maxReconnectAttempts: 10,
       reconnectInterval: 3000,
       heartbeatInterval: 30000,
       heartbeatMessage: 'ping',
-    });
-
-    // 监听 WS 消息
-    watch(
-      () => wsInstance!.data.value,
-      (raw) => {
-        if (!raw) return;
+      onMessage: (raw) => {
         try {
           const msg = JSON.parse(raw) as WsDownMessage;
           handleWsMessage(msg);
@@ -145,7 +144,10 @@ export function useChatWebSocket() {
           // 忽略解析失败
         }
       },
-    );
+      onBeforeReconnect: async () => {
+        await tokenManager.refreshAccessToken();
+      },
+    });
 
     wsInstance.connect();
   };
@@ -153,7 +155,9 @@ export function useChatWebSocket() {
   /** 发送消息（WS 上行） */
   const sendMessage = (content: string) => {
     if (!wsInstance || wsInstance.status.value !== 'OPEN') {
-      snackbarStore.error('连接已断开，请稍后重试');
+      // 尝试重连，而非只报错
+      snackbarStore.warning('连接已断开，正在重连...');
+      wsInstance?.reconnect();
       return;
     }
 

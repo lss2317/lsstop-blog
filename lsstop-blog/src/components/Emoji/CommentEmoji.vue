@@ -46,6 +46,25 @@ function addEmoji(key: string): void {
   width: 275px;
   height: 200px;
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #49b1f5 transparent;
+}
+
+.emoji-wrapper::-webkit-scrollbar {
+  width: 4px;
+}
+
+.emoji-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.emoji-wrapper::-webkit-scrollbar-thumb {
+  background: #49b1f5;
+  border-radius: 4px;
+}
+
+.emoji-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #3aa0e0;
 }
 
 @media (max-width: 640px) {

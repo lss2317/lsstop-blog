@@ -11,23 +11,34 @@ export interface WebSocketOptions {
   heartbeatInterval?: number;
   /** 心跳消息 */
   heartbeatMessage?: string;
+  /** 消息回调（每条消息都会触发，不受去重影响） */
+  onMessage?: (data: string) => void;
+  /** 重连前的异步钩子（可用于刷新 token 等），在自动重连和手动 reconnect 时触发 */
+  onBeforeReconnect?: () => void | Promise<void>;
 }
 
 export type WebSocketStatus = 'CONNECTING' | 'OPEN' | 'CLOSING' | 'CLOSED';
 
 /**
  * WebSocket 连接管理
- * @param url WebSocket 地址
+ * @param urlOrFactory WebSocket 地址，或返回地址的工厂函数（每次连接/重连时调用）
  * @param options 配置选项
  */
-export function useWebSocket(url: string, options: WebSocketOptions = {}) {
+export function useWebSocket(
+  urlOrFactory: string | (() => string),
+  options: WebSocketOptions = {},
+) {
   const {
     autoReconnect = true,
     maxReconnectAttempts = 5,
     reconnectInterval = 3000,
     heartbeatInterval = 30000,
     heartbeatMessage = 'ping',
+    onMessage,
+    onBeforeReconnect,
   } = options;
+
+  const resolveUrl = typeof urlOrFactory === 'function' ? urlOrFactory : () => urlOrFactory;
 
   const ws = shallowRef<WebSocket | null>(null);
   const status = ref<WebSocketStatus>('CLOSED');
@@ -66,7 +77,7 @@ export function useWebSocket(url: string, options: WebSocketOptions = {}) {
     clearTimers();
     status.value = 'CONNECTING';
 
-    const socket = new WebSocket(url);
+    const socket = new WebSocket(resolveUrl());
 
     socket.onopen = () => {
       status.value = 'OPEN';
@@ -78,6 +89,8 @@ export function useWebSocket(url: string, options: WebSocketOptions = {}) {
       // 忽略心跳响应
       if (event.data === 'pong') return;
       data.value = event.data;
+      // 回调方式确保每条消息都能被处理
+      onMessage?.(event.data);
     };
 
     socket.onclose = () => {
@@ -87,7 +100,14 @@ export function useWebSocket(url: string, options: WebSocketOptions = {}) {
       // 自动重连
       if (autoReconnect && reconnectAttempts < maxReconnectAttempts) {
         reconnectAttempts++;
-        reconnectTimer = setTimeout(connect, reconnectInterval);
+        reconnectTimer = setTimeout(async () => {
+          try {
+            await onBeforeReconnect?.();
+          } catch {
+            // 钩子失败不阻断重连
+          }
+          connect();
+        }, reconnectInterval);
       }
     };
 
@@ -109,6 +129,21 @@ export function useWebSocket(url: string, options: WebSocketOptions = {}) {
     }
   };
 
+  // 重置重连计数并重新连接
+  const reconnect = async () => {
+    reconnectAttempts = 0;
+    if (ws.value) {
+      ws.value.close();
+      ws.value = null;
+    }
+    try {
+      await onBeforeReconnect?.();
+    } catch {
+      // 钩子失败不阻断重连
+    }
+    connect();
+  };
+
   // 发送消息
   const send = (message: string | object) => {
     if (ws.value?.readyState !== WebSocket.OPEN) return false;
@@ -128,6 +163,7 @@ export function useWebSocket(url: string, options: WebSocketOptions = {}) {
     data,
     connect,
     disconnect,
+    reconnect,
     send,
   };
 }

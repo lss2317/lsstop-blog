@@ -1,14 +1,20 @@
 package com.lsstop.service.impl;
 
 import com.alibaba.fastjson2.JSON;
-import java.util.Collections;
+import com.lsstop.constant.ChatConst;
+import com.lsstop.domain.dto.ChatMessageDTO;
 import com.lsstop.domain.entity.ChatMessageEntity;
 import com.lsstop.domain.vo.ChatMessageVO;
+import com.lsstop.enums.StatusEnum;
+import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.ChatMessageMapper;
 import com.lsstop.service.ChatMessageService;
+import com.lsstop.utils.IpUtils;
 import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,14 +50,43 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     }
 
     /**
-     * 新增聊天消息
+     * 发送聊天消息（含参数校验、构建实体、持久化）
      *
-     * @param chatMessage 聊天消息实体
+     * @param dto       聊天消息请求参数
+     * @param userId    用户id
+     * @param ipAddress 用户IP地址
      * @return 新增的消息实体（含id）
      */
     @Override
-    public ChatMessageEntity insertMessage(ChatMessageEntity chatMessage) {
+    public ChatMessageEntity sendMessage(ChatMessageDTO dto, String userId, String ipAddress) {
+        // 内容和图片不能同时为空
+        boolean hasContent = StringUtils.isNotBlank(dto.getContent());
+        boolean hasImages = isHasImages(dto, hasContent);
+
+        ChatMessageEntity chatMessage = ChatMessageEntity.builder()
+                .userId(userId)
+                .content(dto.getContent())
+                .images(hasImages ? JSON.toJSONString(dto.getImages()) : null)
+                .ipAddress(ipAddress)
+                .ipRegion(IpUtils.getIpLocation(ipAddress))
+                .build();
         chatMessageMapper.insertMessage(chatMessage);
         return chatMessage;
+    }
+
+    private static boolean isHasImages(ChatMessageDTO dto, boolean hasContent) {
+        boolean hasImages = dto.getImages() != null && !dto.getImages().isEmpty();
+        if (!hasContent && !hasImages) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), ChatConst.MESSAGE_CONTENT_EMPTY);
+        }
+        // 内容长度校验
+        if (hasContent && dto.getContent().length() > ChatConst.MAX_CONTENT_LENGTH) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), ChatConst.CONTENT_TOO_LONG);
+        }
+        // 图片数量校验
+        if (hasImages && dto.getImages().size() > ChatConst.MAX_IMAGE_COUNT) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), ChatConst.TOO_MANY_IMAGES);
+        }
+        return hasImages;
     }
 }

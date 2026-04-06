@@ -22,13 +22,21 @@
         <span>{{ formatChatTime(msg.createTime) }}</span>
       </div>
 
-      <!-- 消息气泡 -->
+      <!-- 消息项 -->
       <div :class="['chat-msg-row', isSelf(msg.userId) ? 'self' : 'other']">
         <img class="chat-avatar" :src="msg.avatar || chatStore.getAvatar(msg.userId)" alt="" />
         <div class="chat-msg-body">
-          <span v-if="!isSelf(msg.userId)" class="chat-nickname">
-            {{ msg.nickname || chatStore.getNickname(msg.userId) }}
-          </span>
+          <div class="chat-msg-header">
+            <span v-if="msg.ipRegion && isSelf(msg.userId)" class="chat-ip-tag">{{
+              msg.ipRegion
+            }}</span>
+            <span class="chat-nickname">
+              {{ msg.nickname || chatStore.getNickname(msg.userId) }}
+            </span>
+            <span v-if="msg.ipRegion && !isSelf(msg.userId)" class="chat-ip-tag">{{
+              msg.ipRegion
+            }}</span>
+          </div>
           <!-- 文本内容 -->
           <div
             v-if="msg.content"
@@ -141,6 +149,25 @@ defineExpose({
   overflow-y: auto;
   overflow-x: hidden;
   padding: 16px 16px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+
+.chat-message-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-message-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-message-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.chat-message-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
 }
 
 .chat-empty {
@@ -175,7 +202,7 @@ defineExpose({
 /* 消息行 */
 .chat-msg-row {
   display: flex;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   align-items: flex-start;
 }
 
@@ -202,22 +229,41 @@ defineExpose({
 
 /* 消息体 */
 .chat-msg-body {
-  max-width: calc(100% - 56px);
+  max-width: calc(100% - 46px);
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .chat-msg-row.self .chat-msg-body {
   align-items: flex-end;
 }
 
-.chat-nickname {
-  font-size: 11px;
-  color: #8c8c8c;
+/* 昵称 + IP 属地 行 */
+.chat-msg-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-bottom: 4px;
+}
+
+.chat-nickname {
+  font-size: 13px;
+  color: #595959;
+  font-weight: 500;
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-ip-tag {
+  font-size: 11px;
+  color: #8c8c8c;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 0 6px;
+  border-radius: 4px;
+  line-height: 18px;
   white-space: nowrap;
 }
 
@@ -231,18 +277,17 @@ defineExpose({
   white-space: pre-line;
   width: fit-content;
   max-width: 100%;
+  border-radius: 14px;
 }
 
 .chat-bubble.other {
   background: #fff;
   color: #4c4948;
-  border-radius: 4px 18px 18px 18px;
 }
 
 .chat-bubble.self {
   background: #12b7f5;
   color: #fff;
-  border-radius: 18px 4px 18px 18px;
 }
 
 /* 气泡内表情 */
@@ -297,13 +342,34 @@ defineExpose({
   color: rgba(255, 255, 255, 0.4);
 }
 
+.v-theme--dark .chat-message-list {
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.v-theme--dark .chat-message-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.v-theme--dark .chat-message-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
 .v-theme--dark .chat-bubble.other {
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.9);
 }
 
+.v-theme--dark .chat-bubble.self {
+  background: #0e8bbf;
+}
+
 .v-theme--dark .chat-nickname {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.v-theme--dark .chat-ip-tag {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .v-theme--dark .chat-empty {
