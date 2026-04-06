@@ -24,7 +24,12 @@
 
       <!-- 消息项 -->
       <div :class="['chat-msg-row', isSelf(msg.userId) ? 'self' : 'other']">
-        <img class="chat-avatar" :src="msg.avatar || chatStore.getAvatar(msg.userId)" alt="" />
+        <img
+          class="chat-avatar"
+          :src="msg.avatar || chatStore.getAvatar(msg.userId)"
+          alt=""
+          @click="goToUserProfile(msg.userId)"
+        />
         <div class="chat-msg-body">
           <div class="chat-msg-header">
             <span v-if="msg.ipRegion && isSelf(msg.userId)" class="chat-ip-tag">{{
@@ -40,6 +45,7 @@
           <!-- 文本内容 -->
           <div
             v-if="msg.content"
+            v-fit-bubble
             :class="['chat-bubble', isSelf(msg.userId) ? 'self' : 'other']"
             v-html="parseContent(msg.content)"
           />
@@ -61,12 +67,45 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted } from 'vue';
-import type { ChatMessage } from '@/stores/modules/chat';
-import useChatStore from '@/stores/modules/chat';
-import useUserInfoStore from '@/stores/modules/userInfo';
-import { parseEmoji } from '@/utils/emoji';
-import { formatChatTime } from '@/utils/date';
+import { nextTick, onMounted, ref, watch } from 'vue'
+import type { ChatMessage } from '@/stores/modules/chat'
+import useChatStore from '@/stores/modules/chat'
+import useUserInfoStore from '@/stores/modules/userInfo'
+import { parseEmoji } from '@/utils/emoji'
+import { formatChatTime } from '@/utils/date'
+import { useNavigate } from '@/composables/useNavigate'
+
+// 含表情图片的气泡：二分搜索收缩右侧空白，下限为原宽度的 70%
+const fitBubbleWidth = (el: HTMLElement) => {
+  if (!el.querySelector('img')) return;
+  el.style.width = '';
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const initialHeight = el.scrollHeight;
+      if (initialHeight <= 0) return;
+
+      const originalWidth = el.offsetWidth;
+      let lo = Math.floor(originalWidth * 0.7);
+      let hi = originalWidth;
+      if (hi - lo < 4) return;
+
+      while (hi - lo > 2) {
+        const mid = Math.floor((lo + hi) / 2);
+        el.style.width = mid + 'px';
+        if (el.scrollHeight > initialHeight) {
+          lo = mid + 1;
+        } else {
+          hi = mid;
+        }
+      }
+      el.style.width = hi + 'px';
+    });
+  });
+};
+
+const vFitBubble = {
+  mounted: (el: HTMLElement) => fitBubbleWidth(el),
+};
 
 const props = defineProps<{
   messages: ChatMessage[];
@@ -79,9 +118,32 @@ defineEmits<{
 const chatStore = useChatStore();
 const userInfoStore = useUserInfoStore();
 const messageContainer = ref<HTMLElement | null>(null);
+const { navigateTo } = useNavigate();
+
+// 点击头像跳转用户主页
+const goToUserProfile = (userId: string) => {
+  chatStore.close();
+  navigateTo(`/user/${userId}`);
+};
 
 // 是否在底部附近（用于判断是否自动滚底）
 const isNearBottom = ref(true);
+
+// 加载更多时保持滚动位置
+let savedScrollHeight = 0;
+
+const saveScrollPosition = () => {
+  if (!messageContainer.value) return;
+  savedScrollHeight = messageContainer.value.scrollHeight;
+};
+
+const restoreScrollPosition = () => {
+  nextTick(() => {
+    if (!messageContainer.value) return;
+    const newScrollHeight = messageContainer.value.scrollHeight;
+    messageContainer.value.scrollTop = newScrollHeight - savedScrollHeight;
+  });
+};
 
 // 判断是否是自己
 const isSelf = (userId: string) => {
@@ -140,6 +202,8 @@ onMounted(() => {
 // 暴露方法
 defineExpose({
   scrollToBottom,
+  saveScrollPosition,
+  restoreScrollPosition,
 });
 </script>
 
@@ -217,6 +281,7 @@ defineExpose({
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .chat-msg-row.other .chat-avatar {
@@ -272,8 +337,7 @@ defineExpose({
   padding: 8px 14px;
   font-size: 13px;
   line-height: 1.5;
-  word-wrap: break-word;
-  word-break: break-all;
+  overflow-wrap: break-word;
   white-space: pre-line;
   width: fit-content;
   max-width: 100%;
@@ -286,7 +350,7 @@ defineExpose({
 }
 
 .chat-bubble.self {
-  background: #12b7f5;
+  background: #007AFF;
   color: #fff;
 }
 
@@ -360,7 +424,7 @@ defineExpose({
 }
 
 .v-theme--dark .chat-bubble.self {
-  background: #0e8bbf;
+  background: #0066d6;
 }
 
 .v-theme--dark .chat-nickname {

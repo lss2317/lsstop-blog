@@ -47,6 +47,7 @@ export function useWebSocket(
   let reconnectAttempts = 0;
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  let isReconnecting = false;
 
   // 清除定时器
   const clearTimers = () => {
@@ -57,6 +58,18 @@ export function useWebSocket(
     if (heartbeatTimer) {
       clearInterval(heartbeatTimer);
       heartbeatTimer = null;
+    }
+  };
+
+  // 摘除旧 socket 事件并关闭，防止 onclose 异步触发污染状态
+  const destroySocket = () => {
+    if (ws.value) {
+      ws.value.onopen = null;
+      ws.value.onmessage = null;
+      ws.value.onclose = null;
+      ws.value.onerror = null;
+      ws.value.close();
+      ws.value = null;
     }
   };
 
@@ -74,6 +87,8 @@ export function useWebSocket(
   const connect = () => {
     if (ws.value?.readyState === WebSocket.OPEN) return;
 
+    // 清理旧连接（防止旧 socket 事件污染）
+    destroySocket();
     clearTimers();
     status.value = 'CONNECTING';
 
@@ -122,26 +137,26 @@ export function useWebSocket(
   const disconnect = () => {
     reconnectAttempts = maxReconnectAttempts; // 阻止自动重连
     clearTimers();
-    if (ws.value) {
-      status.value = 'CLOSING';
-      ws.value.close();
-      ws.value = null;
-    }
+    destroySocket();
+    status.value = 'CLOSED';
   };
 
   // 重置重连计数并重新连接
   const reconnect = async () => {
-    reconnectAttempts = 0;
-    if (ws.value) {
-      ws.value.close();
-      ws.value = null;
-    }
+    if (isReconnecting) return;
+    isReconnecting = true;
     try {
+      reconnectAttempts = 0;
+      destroySocket();
+      clearTimers();
       await onBeforeReconnect?.();
+      connect();
     } catch {
       // 钩子失败不阻断重连
+      connect();
+    } finally {
+      isReconnecting = false;
     }
-    connect();
   };
 
   // 发送消息

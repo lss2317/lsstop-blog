@@ -95,7 +95,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             vo.setUserId(userId);
             vo.setNickname(userInfo.getNickname());
             vo.setAvatar(userInfo.getAvatar());
-            vo.setContent(dto.getContent());
+            vo.setContent(chatMessage.getContent());
             vo.setImages(dto.getImages() != null && !dto.getImages().isEmpty() ? dto.getImages() : null);
             vo.setIpRegion(chatMessage.getIpRegion());
             vo.setCreateTime(LocalDateTime.now());

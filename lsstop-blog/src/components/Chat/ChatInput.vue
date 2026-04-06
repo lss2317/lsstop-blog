@@ -26,10 +26,10 @@
           @mousedown.prevent
           @click="handleToggleEmoji"
         >
-          <v-icon size="20">mdi-emoticon-outline</v-icon>
+          <v-icon size="28">mdi-emoticon-outline</v-icon>
         </span>
         <span class="chat-action-icon disabled" title="图片（暂未开放）">
-          <v-icon size="20">mdi-folder-outline</v-icon>
+          <v-icon size="28">mdi-camera-outline</v-icon>
         </span>
         <span
           :class="['chat-send-icon', content.trim() ? 'active' : '']"
@@ -211,12 +211,22 @@ onUnmounted(() => {
   font-family: inherit;
   box-sizing: border-box;
   word-break: break-all;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
   color: #262626;
 }
 
 .chat-textarea::-webkit-scrollbar {
-  display: none;
+  width: 3px;
+}
+
+.chat-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-textarea::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
 }
 
 .chat-textarea::placeholder {

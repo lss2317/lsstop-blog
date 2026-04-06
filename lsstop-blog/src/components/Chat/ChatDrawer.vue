@@ -19,7 +19,7 @@
       <ChatMessageList
         ref="messageListRef"
         :messages="chatStore.messages"
-        @load-more="loadMoreHistory"
+        @load-more="handleLoadMore"
       />
 
       <!-- 输入区 -->
@@ -48,6 +48,13 @@ const chatStore = useChatStore();
 const userInfoStore = useUserInfoStore();
 const { initWebSocket, sendMessage, loadMoreHistory } = useChatWebSocket();
 const messageListRef = ref<InstanceType<typeof ChatMessageList> | null>(null);
+
+// 加载更多历史消息（保持滚动位置）
+const handleLoadMore = async () => {
+  messageListRef.value?.saveScrollPosition();
+  await loadMoreHistory();
+  messageListRef.value?.restoreScrollPosition();
+};
 
 // 打开聊天室（必须登录）
 const handleOpen = () => {

@@ -10,6 +10,7 @@ import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.ChatMessageMapper;
 import com.lsstop.service.ChatMessageService;
 import com.lsstop.utils.IpUtils;
+import com.lsstop.utils.SensitiveWordUtils;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -63,9 +64,12 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         boolean hasContent = StringUtils.isNotBlank(dto.getContent());
         boolean hasImages = isHasImages(dto, hasContent);
 
+        // 敏感词替换
+        String content = hasContent ? SensitiveWordUtils.replace(dto.getContent()) : dto.getContent();
+
         ChatMessageEntity chatMessage = ChatMessageEntity.builder()
                 .userId(userId)
-                .content(dto.getContent())
+                .content(content)
                 .images(hasImages ? JSON.toJSONString(dto.getImages()) : null)
                 .ipAddress(ipAddress)
                 .ipRegion(IpUtils.getIpLocation(ipAddress))
