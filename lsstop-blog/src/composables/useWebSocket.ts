@@ -119,7 +119,8 @@ export function useWebSocket(
           try {
             await onBeforeReconnect?.();
           } catch {
-            // 钩子失败不阻断重连
+            // 钩子失败（如 token 刷新失败），中止本次重连
+            return;
           }
           connect();
         }, reconnectInterval);

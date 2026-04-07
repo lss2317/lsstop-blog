@@ -58,6 +58,7 @@
               :src="imgUrl"
               alt=""
               loading="lazy"
+              @click="previewImages(msg.images!, imgIdx)"
             />
           </div>
         </div>
@@ -67,27 +68,36 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from 'vue'
-import type { ChatMessage } from '@/stores/modules/chat'
-import useChatStore from '@/stores/modules/chat'
-import useUserInfoStore from '@/stores/modules/userInfo'
-import { parseEmoji } from '@/utils/emoji'
-import { formatChatTime } from '@/utils/date'
-import { useNavigate } from '@/composables/useNavigate'
+import { nextTick, onMounted, ref, watch } from 'vue';
+import type { ChatMessage } from '@/stores/modules/chat';
+import useChatStore from '@/stores/modules/chat';
+import useUserInfoStore from '@/stores/modules/userInfo';
+import { parseEmoji } from '@/utils/emoji';
+import { formatChatTime } from '@/utils/date';
+import { useNavigate } from '@/composables/useNavigate';
+import { previewImages } from '@/utils/photoPreview';
 
 // 含表情图片的气泡：二分搜索收缩右侧空白，下限为原宽度的 70%
+// 挂载时先隐藏气泡，算完宽度再显示，避免中间态抖动
 const fitBubbleWidth = (el: HTMLElement) => {
   if (!el.querySelector('img')) return;
+  el.style.opacity = '0';
   el.style.width = '';
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       const initialHeight = el.scrollHeight;
-      if (initialHeight <= 0) return;
+      if (initialHeight <= 0) {
+        el.style.opacity = '';
+        return;
+      }
 
       const originalWidth = el.offsetWidth;
       let lo = Math.floor(originalWidth * 0.7);
       let hi = originalWidth;
-      if (hi - lo < 4) return;
+      if (hi - lo < 4) {
+        el.style.opacity = '';
+        return;
+      }
 
       while (hi - lo > 2) {
         const mid = Math.floor((lo + hi) / 2);
@@ -99,6 +109,7 @@ const fitBubbleWidth = (el: HTMLElement) => {
         }
       }
       el.style.width = hi + 'px';
+      el.style.opacity = '';
     });
   });
 };
@@ -337,7 +348,7 @@ defineExpose({
   padding: 8px 14px;
   font-size: 13px;
   line-height: 1.5;
-  overflow-wrap: break-word;
+  word-break: break-all;
   white-space: pre-line;
   width: fit-content;
   max-width: 100%;
@@ -350,7 +361,7 @@ defineExpose({
 }
 
 .chat-bubble.self {
-  background: #007AFF;
+  background: #007aff;
   color: #fff;
 }
 

@@ -145,7 +145,11 @@ export function useChatWebSocket() {
         }
       },
       onBeforeReconnect: async () => {
-        await tokenManager.refreshAccessToken();
+        const newToken = await tokenManager.refreshAccessToken();
+        if (!newToken) {
+          // token 刷新失败，抛出异常以中止重连
+          throw new Error('Token refresh failed, abort reconnect');
+        }
       },
     });
 

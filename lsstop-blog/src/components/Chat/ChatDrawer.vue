@@ -48,6 +48,7 @@ const chatStore = useChatStore();
 const userInfoStore = useUserInfoStore();
 const { initWebSocket, disconnectWebSocket, sendMessage, loadMoreHistory } = useChatWebSocket();
 const messageListRef = ref<InstanceType<typeof ChatMessageList> | null>(null);
+const loadingMore = ref(false);
 
 // 监听聊天室关闭，断开 WebSocket（退出登录等场景）
 watch(
@@ -59,11 +60,17 @@ watch(
   },
 );
 
-// 加载更多历史消息（保持滚动位置）
+// 加载更多历史消息（保持滚动位置，防重复点击）
 const handleLoadMore = async () => {
-  messageListRef.value?.saveScrollPosition();
-  await loadMoreHistory();
-  messageListRef.value?.restoreScrollPosition();
+  if (loadingMore.value) return;
+  loadingMore.value = true;
+  try {
+    messageListRef.value?.saveScrollPosition();
+    await loadMoreHistory();
+    messageListRef.value?.restoreScrollPosition();
+  } finally {
+    loadingMore.value = false;
+  }
 };
 
 // 打开聊天室（必须登录）
