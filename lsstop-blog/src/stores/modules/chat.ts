@@ -40,6 +40,8 @@ const useChatStore = defineStore('chat', () => {
   const userMap = shallowRef<Map<string, ChatUserInfo>>(new Map());
   // 是否还有更多历史消息
   const hasMore = shallowRef(true);
+  // WebSocket 断连回调（由 composable 注册）
+  let _disconnectFn: (() => void) | null = null;
 
   // 打开聊天室
   function open() {
@@ -103,6 +105,17 @@ const useChatStore = defineStore('chat', () => {
     hasMore.value = true;
   }
 
+  // 注册 WebSocket 断连函数（由 composable 调用）
+  function registerDisconnect(fn: () => void) {
+    _disconnectFn = fn;
+  }
+
+  // 触发 WebSocket 断连（退出登录等场景）
+  function disconnect() {
+    _disconnectFn?.();
+    _disconnectFn = null;
+  }
+
   return {
     messages,
     onlineCount,
@@ -120,6 +133,8 @@ const useChatStore = defineStore('chat', () => {
     getNickname,
     getAvatar,
     clear,
+    registerDisconnect,
+    disconnect,
   };
 });
 

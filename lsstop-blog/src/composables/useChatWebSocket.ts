@@ -154,6 +154,9 @@ export function useChatWebSocket() {
     });
 
     wsInstance.connect();
+
+    // 注册断连函数到 store，供退出登录等场景调用
+    chatStore.registerDisconnect(disconnectWebSocket);
   };
 
   /** 发送消息（WS 上行） */

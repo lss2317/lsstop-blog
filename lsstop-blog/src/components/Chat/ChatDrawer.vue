@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, watch } from 'vue';
+import { ref, nextTick, onUnmounted } from 'vue';
 import ChatMessageList from './ChatMessageList.vue';
 import ChatInput from './ChatInput.vue';
 import useChatStore from '@/stores/modules/chat';
@@ -50,15 +50,10 @@ const { initWebSocket, disconnectWebSocket, sendMessage, loadMoreHistory } = use
 const messageListRef = ref<InstanceType<typeof ChatMessageList> | null>(null);
 const loadingMore = ref(false);
 
-// 监听聊天室关闭，断开 WebSocket（退出登录等场景）
-watch(
-  () => chatStore.isOpen,
-  (open) => {
-    if (!open) {
-      disconnectWebSocket();
-    }
-  },
-);
+// 组件卸载时断开 WebSocket
+onUnmounted(() => {
+  disconnectWebSocket();
+});
 
 // 加载更多历史消息（保持滚动位置，防重复点击）
 const handleLoadMore = async () => {

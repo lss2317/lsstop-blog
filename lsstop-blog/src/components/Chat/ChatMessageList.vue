@@ -77,41 +77,67 @@ import { formatChatTime } from '@/utils/date';
 import { useNavigate } from '@/composables/useNavigate';
 import { previewImages } from '@/utils/photoPreview';
 
-// 含表情图片的气泡：二分搜索收缩右侧空白，下限为原宽度的 70%
-// 挂载时先隐藏气泡，算完宽度再显示，避免中间态抖动
+// 含表情图片的气泡：二分搜索收缩右侧空白，下限为原宽度的 95%
+// 等所有图片加载完成后再计算，避免因图片尺寸未知导致错误换行
 const fitBubbleWidth = (el: HTMLElement) => {
-  if (!el.querySelector('img')) return;
-  el.style.opacity = '0';
-  el.style.width = '';
-  requestAnimationFrame(() => {
+  const imgs = el.querySelectorAll('img');
+  if (!imgs.length) return;
+
+  const run = () => {
+    el.style.opacity = '0';
+    el.style.width = '';
     requestAnimationFrame(() => {
-      const initialHeight = el.scrollHeight;
-      if (initialHeight <= 0) {
-        el.style.opacity = '';
-        return;
-      }
-
-      const originalWidth = el.offsetWidth;
-      let lo = Math.floor(originalWidth * 0.7);
-      let hi = originalWidth;
-      if (hi - lo < 4) {
-        el.style.opacity = '';
-        return;
-      }
-
-      while (hi - lo > 2) {
-        const mid = Math.floor((lo + hi) / 2);
-        el.style.width = mid + 'px';
-        if (el.scrollHeight > initialHeight) {
-          lo = mid + 1;
-        } else {
-          hi = mid;
+      requestAnimationFrame(() => {
+        const initialHeight = el.scrollHeight;
+        if (initialHeight <= 0) {
+          el.style.opacity = '';
+          return;
         }
-      }
-      el.style.width = hi + 'px';
-      el.style.opacity = '';
+
+        const originalWidth = el.offsetWidth;
+        let lo = Math.floor(originalWidth * 0.95);
+        let hi = originalWidth;
+        if (hi - lo < 4) {
+          el.style.opacity = '';
+          return;
+        }
+
+        while (hi - lo > 2) {
+          const mid = Math.floor((lo + hi) / 2);
+          el.style.width = mid + 'px';
+          if (el.scrollHeight > initialHeight) {
+            lo = mid + 1;
+          } else {
+            hi = mid;
+          }
+        }
+        el.style.width = hi + 1 + 'px';
+        el.style.opacity = '';
+      });
     });
-  });
+  };
+
+  // 检查是否所有图片已加载完成
+  const allLoaded = () => Array.from(imgs).every((img) => img.complete && img.naturalWidth > 0);
+
+  if (allLoaded()) {
+    run();
+  } else {
+    el.style.opacity = '0';
+    let loaded = 0;
+    const total = imgs.length;
+    const onLoad = () => {
+      if (++loaded >= total) run();
+    };
+    imgs.forEach((img) => {
+      if (img.complete && img.naturalWidth > 0) {
+        onLoad();
+      } else {
+        img.addEventListener('load', onLoad, { once: true });
+        img.addEventListener('error', onLoad, { once: true });
+      }
+    });
+  }
 };
 
 const vFitBubble = {
@@ -367,9 +393,9 @@ defineExpose({
 
 /* 气泡内表情 */
 .chat-bubble :deep(img) {
-  width: 20px;
-  height: 20px;
-  vertical-align: text-bottom;
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
   margin: 0 1px;
 }
 

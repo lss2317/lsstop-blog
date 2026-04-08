@@ -26,8 +26,9 @@ export const useAuthStore = defineStore('auth', () => {
     if (refreshToken) {
       await logout({ refreshToken });
     }
-    // 关闭并清空聊天室
+    // 断开 WebSocket 连接，关闭并清空聊天室
     const chatStore = useChatStore();
+    chatStore.disconnect();
     chatStore.close();
     chatStore.clear();
 
