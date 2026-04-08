@@ -66,4 +66,17 @@ public class FileController {
         String url = cosService.uploadImage(file, FileFolderEnum.TALK.getFolder());
         return Result.success(url);
     }
+
+    /**
+     * 上传聊天室图片
+     *
+     * @param file 图片文件
+     * @return 图片访问URL
+     */
+    @PostMapping("/front/chat/image")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    public Result<String> uploadChatImage(@RequestParam("file") MultipartFile file) {
+        String url = cosService.uploadImage(file, FileFolderEnum.CHAT.getFolder());
+        return Result.success(url);
+    }
 }

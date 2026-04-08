@@ -207,9 +207,20 @@ const showTimeDivider = (index: number) => {
 const scrollToBottom = (smooth = true) => {
   nextTick(() => {
     if (!messageContainer.value) return;
-    messageContainer.value.scrollTo({
-      top: messageContainer.value.scrollHeight,
-      behavior: smooth ? 'smooth' : 'auto',
+    const container = messageContainer.value;
+    const doScroll = () => {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto',
+      });
+    };
+    doScroll();
+    // 处理懒加载图片：图片加载后 scrollHeight 会变化，需要再次滚底
+    const imgs = container.querySelectorAll<HTMLImageElement>('img.chat-msg-image');
+    imgs.forEach((img) => {
+      if (!img.complete) {
+        img.addEventListener('load', doScroll, { once: true });
+      }
     });
   });
 };
@@ -402,16 +413,18 @@ defineExpose({
 /* 图片消息 */
 .chat-images {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
   margin-top: 4px;
 }
 
+.chat-msg-row.self .chat-images {
+  justify-content: flex-end;
+}
+
 .chat-msg-image {
   max-width: 180px;
-  max-height: 180px;
   border-radius: 8px;
-  object-fit: cover;
   cursor: pointer;
 }
 

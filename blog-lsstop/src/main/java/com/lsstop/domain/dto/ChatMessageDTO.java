@@ -24,6 +24,6 @@ public class ChatMessageDTO implements BaseData {
     /**
      * 图片URL列表
      */
-    @Size(max = 9, message = "图片数量不能超过9张")
+    @Size(max = 3, message = "图片数量不能超过3张")
     private List<String> images;
 }

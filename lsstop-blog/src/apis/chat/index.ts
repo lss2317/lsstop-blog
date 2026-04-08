@@ -11,3 +11,14 @@ export function listMessage(lastId?: number) {
     showProgress: false,
   });
 }
+
+/**
+ * 上传聊天图片
+ * @param file 图片文件
+ * @returns 图片 URL
+ */
+export function uploadChatImage(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return http.post<string>('/chat/image', formData, { showProgress: false });
+}

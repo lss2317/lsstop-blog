@@ -23,7 +23,7 @@
       />
 
       <!-- 输入区 -->
-      <ChatInput @send="sendMessage" />
+      <ChatInput @send="handleSend" />
     </div>
   </Transition>
 
@@ -55,6 +55,11 @@ onUnmounted(() => {
   disconnectWebSocket();
 });
 
+// 发送消息（支持文本 + 图片）
+const handleSend = (content: string, images?: string[]) => {
+  sendMessage(content, images);
+};
+
 // 加载更多历史消息（保持滚动位置，防重复点击）
 const handleLoadMore = async () => {
   if (loadingMore.value) return;
@@ -69,11 +74,14 @@ const handleLoadMore = async () => {
 };
 
 // 打开聊天室（必须登录）
-const handleOpen = () => {
+const handleOpen = async () => {
   if (!userInfoStore.checkLogin('进入聊天室')) return;
-  initWebSocket();
+  await initWebSocket();
   chatStore.open();
-  nextTick(() => messageListRef.value?.scrollToBottom(false));
+  await nextTick();
+  requestAnimationFrame(() => {
+    messageListRef.value?.scrollToBottom(false);
+  });
 };
 
 // 点击面板内部（阻止冒泡，防止误关闭）

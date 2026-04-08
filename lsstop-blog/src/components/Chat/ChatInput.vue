@@ -4,6 +4,22 @@
     <div class="chat-emoji-box" v-show="showEmoji" @mousedown.prevent>
       <CommentEmoji @addEmoji="addEmoji" />
     </div>
+    <!-- 图片预览区 -->
+    <div v-if="imageFiles.length > 0" class="chat-image-preview-bar">
+      <div v-for="(img, idx) in imagePreviews" :key="idx" class="chat-image-preview-item">
+        <img :src="img" alt="" @click="previewImages(imagePreviews, idx)" />
+        <span class="chat-image-remove" @click="removeImage(idx)">
+          <v-icon size="14">mdi-close</v-icon>
+        </span>
+      </div>
+      <div
+        v-if="imageFiles.length < maxImageCount"
+        class="chat-image-add-btn"
+        @click="triggerImageSelect"
+      >
+        <v-icon size="22" color="#8c8c8c">mdi-plus</v-icon>
+      </div>
+    </div>
     <!-- 一体化输入栏 -->
     <div class="chat-input-bar">
       <textarea
@@ -28,36 +44,64 @@
         >
           <v-icon size="28">mdi-emoticon-outline</v-icon>
         </span>
-        <span class="chat-action-icon disabled" title="图片（暂未开放）">
+        <span class="chat-action-icon" title="图片" @click="triggerImageSelect">
           <v-icon size="28">mdi-camera-outline</v-icon>
         </span>
-        <span
-          :class="['chat-send-icon', content.trim() ? 'active' : '']"
-          title="发送"
-          @click="handleSend"
-        >
+        <span :class="['chat-send-icon', canSend ? 'active' : '']" title="发送" @click="handleSend">
           <v-icon size="16">mdi-arrow-up</v-icon>
         </span>
       </div>
+    </div>
+    <!-- 隐藏的文件选择 -->
+    <input
+      ref="fileInputRef"
+      type="file"
+      accept="image/*"
+      multiple
+      style="display: none"
+      @change="handleFileChange"
+    />
+    <!-- 上传中遮罩 -->
+    <div v-if="uploading" class="chat-upload-overlay">
+      <v-progress-circular indeterminate size="24" width="2" color="#49b1f5" />
+      <span>上传中...</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
 import CommentEmoji from '@/components/Emoji/CommentEmoji.vue';
 import { useEmoji } from '@/composables/useEmoji';
+import { uploadChatImage } from '@/apis/chat';
+import { validateImageFile } from '@/utils/validate';
+import { useSnackbarStore } from '@/stores/modules/snackbar';
+import { ResponseCode } from '@/constants/http';
+import { getErrorMessage } from '@/utils/error';
+import { previewImages } from '@/utils/photoPreview';
 
 const emit = defineEmits<{
-  send: [content: string];
+  send: [content: string, images?: string[]];
 }>();
 
+const snackbar = useSnackbarStore();
 const content = ref('');
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
+const fileInputRef = ref<HTMLInputElement | null>(null);
 const initialHeight = ref(0);
 const savedCursorPos = ref<{ start: number; end: number } | null>(null);
 
+// 图片相关
+const maxImageCount = 3;
+const maxImageSizeMB = 5;
+const imageFiles = ref<File[]>([]);
+const imagePreviews = ref<string[]>([]);
+const uploading = ref(false);
+
 const { showEmoji, emojiTriggerRef, toggleEmoji, closeEmoji } = useEmoji();
+
+// 是否可以发送（有文本或有图片）
+const canSend = computed(() => content.value.trim() || imageFiles.value.length > 0);
 
 // 点击聊天容器内部（表情框和触发按钮以外的区域）关闭表情框
 const handleContainerClick = (event: MouseEvent) => {
@@ -130,11 +174,137 @@ const addEmoji = (key: string) => {
   });
 };
 
+// 触发图片选择
+const triggerImageSelect = () => {
+  fileInputRef.value?.click();
+};
+
+// Canvas 压缩图片（超过阈值才压缩）
+const compressThreshold = 500 * 1024; // 500KB
+const compressMaxWidth = 1920;
+const compressQuality = 0.85;
+
+const compressImage = (file: File): Promise<File> => {
+  // 小于阈值或非可压缩格式，直接返回
+  if (file.size <= compressThreshold || !file.type.startsWith('image/')) {
+    return Promise.resolve(file);
+  }
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      // 计算缩放尺寸
+      let { width, height } = img;
+      if (width > compressMaxWidth) {
+        height = Math.round(height * (compressMaxWidth / width));
+        width = compressMaxWidth;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (blob && blob.size < file.size) {
+            resolve(new File([blob], file.name, { type: blob.type }));
+          } else {
+            // 压缩后反而更大，返回原文件
+            resolve(file);
+          }
+        },
+        'image/jpeg',
+        compressQuality,
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+};
+
+// 处理文件选择
+const handleFileChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const files = input.files;
+  if (!files) return;
+
+  const remaining = maxImageCount - imageFiles.value.length;
+  const filesToAdd = Array.from(files).slice(0, remaining);
+
+  for (const file of filesToAdd) {
+    const validation = validateImageFile(file, maxImageSizeMB);
+    if (!validation.valid) {
+      snackbar.error(validation.error!);
+      continue;
+    }
+    const compressed = await compressImage(file);
+    // 压缩后仍超限则跳过
+    if (compressed.size > maxImageSizeMB * 1024 * 1024) {
+      snackbar.error(`图片压缩后仍超过 ${maxImageSizeMB}MB，请更换图片`);
+      continue;
+    }
+    imageFiles.value.push(compressed);
+    imagePreviews.value.push(URL.createObjectURL(compressed));
+  }
+
+  if (files.length > remaining) {
+    snackbar.warning(`最多只能发送 ${maxImageCount} 张图片`);
+  }
+
+  // 清空 input，允许重复选择
+  input.value = '';
+};
+
+// 移除图片
+const removeImage = (index: number) => {
+  URL.revokeObjectURL(imagePreviews.value[index]!);
+  imageFiles.value.splice(index, 1);
+  imagePreviews.value.splice(index, 1);
+};
+
+// 清空图片
+const clearImages = () => {
+  imagePreviews.value.forEach((url) => URL.revokeObjectURL(url));
+  imageFiles.value = [];
+  imagePreviews.value = [];
+};
+
+// 并行上传所有图片，返回 URL 列表
+const uploadImages = async (): Promise<string[]> => {
+  const results = await Promise.all(imageFiles.value.map((file) => uploadChatImage(file)));
+  return results.map((res) => {
+    if (res.code === ResponseCode.SUCCESS && res.data) return res.data;
+    throw new Error(res.msg || '图片上传失败');
+  });
+};
+
 // 发送消息
-const handleSend = () => {
-  if (!content.value.trim()) return;
-  emit('send', content.value);
+const handleSend = async () => {
+  if (!canSend.value || uploading.value) return;
+
+  let imageUrls: string[] | undefined;
+
+  // 如果有图片，先上传
+  if (imageFiles.value.length > 0) {
+    uploading.value = true;
+    try {
+      imageUrls = await uploadImages();
+    } catch (error) {
+      snackbar.error(getErrorMessage(error));
+      uploading.value = false;
+      return;
+    }
+    uploading.value = false;
+  }
+
+  const text = content.value;
+  emit('send', text, imageUrls);
   content.value = '';
+  clearImages();
   closeEmoji();
   nextTick(() => {
     if (textareaRef.value) {
@@ -169,6 +339,7 @@ onUnmounted(() => {
     chatContainer.removeEventListener('click', handleContainerClick as EventListener);
   }
   if (rafId) cancelAnimationFrame(rafId);
+  clearImages();
 });
 </script>
 
@@ -304,6 +475,86 @@ onUnmounted(() => {
     0 4px 12px rgba(0, 0, 0, 0.08);
   z-index: 10;
 }
+
+/* 图片预览区 */
+.chat-image-preview-bar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.chat-image-preview-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.chat-image-preview-item {
+  position: relative;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chat-image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-image-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.chat-image-remove:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.chat-image-add-btn {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  border: 1.5px dashed #d0d0d0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.chat-image-add-btn:hover {
+  border-color: #49b1f5;
+}
+
+/* 上传中遮罩 */
+.chat-upload-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #49b1f5;
+  border-radius: 0 0 1rem 1rem;
+  z-index: 20;
+}
 </style>
 
 <!-- 夜间模式 -->
@@ -330,5 +581,21 @@ onUnmounted(() => {
 
 .v-theme--dark .chat-emoji-box {
   background: #2d2d2d;
+}
+
+.v-theme--dark .chat-image-preview-item {
+  border-color: #444;
+}
+
+.v-theme--dark .chat-image-add-btn {
+  border-color: #444;
+}
+
+.v-theme--dark .chat-image-add-btn:hover {
+  border-color: #49b1f5;
+}
+
+.v-theme--dark .chat-upload-overlay {
+  background: rgba(30, 30, 30, 0.85);
 }
 </style>

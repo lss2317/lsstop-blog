@@ -16,7 +16,8 @@ public enum FileFolderEnum {
     AVATAR("avatar", "头像"),
     ARTICLE("article", "文章图片"),
     ALBUM("album", "相册"),
-    TALK("talk", "说说");
+    TALK("talk", "说说"),
+    CHAT("chat", "聊天室");
 
     /**
      * 文件夹名称

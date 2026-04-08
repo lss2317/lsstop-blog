@@ -62,7 +62,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     public ChatMessageEntity sendMessage(ChatMessageDTO dto, String userId, String ipAddress) {
         // 内容和图片不能同时为空
         boolean hasContent = StringUtils.isNotBlank(dto.getContent());
-        boolean hasImages = isHasImages(dto, hasContent);
+        boolean hasImages = validateMessage(dto, hasContent);
 
         // 敏感词替换
         String content = hasContent ? SensitiveWordUtils.replace(dto.getContent()) : dto.getContent();
@@ -78,7 +78,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         return chatMessage;
     }
 
-    private static boolean isHasImages(ChatMessageDTO dto, boolean hasContent) {
+    private static boolean validateMessage(ChatMessageDTO dto, boolean hasContent) {
         boolean hasImages = dto.getImages() != null && !dto.getImages().isEmpty();
         if (!hasContent && !hasImages) {
             throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), ChatConst.MESSAGE_CONTENT_EMPTY);

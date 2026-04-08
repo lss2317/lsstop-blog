@@ -21,7 +21,7 @@ public class ChatConst {
     /**
      * 最大图片数量
      */
-    public static final int MAX_IMAGE_COUNT = 9;
+    public static final int MAX_IMAGE_COUNT = 3;
 
     /**
      * 消息内容不能为空

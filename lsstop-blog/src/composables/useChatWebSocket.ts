@@ -107,13 +107,13 @@ export function useChatWebSocket() {
     }
   };
 
-  /** 初始化 WebSocket 连接 */
+  /** 初始化 WebSocket 连接，返回历史消息加载 Promise */
   const initWebSocket = () => {
-    if (wsInitialized) return;
+    if (wsInitialized) return Promise.resolve();
     wsInitialized = true;
 
     // 先加载历史消息
-    void loadHistory();
+    const historyReady = loadHistory();
 
     // 把当前用户信息放入 userMap
     const { userId, nickname, avatar } = userInfoStore.userInfo;
@@ -157,10 +157,12 @@ export function useChatWebSocket() {
 
     // 注册断连函数到 store，供退出登录等场景调用
     chatStore.registerDisconnect(disconnectWebSocket);
+
+    return historyReady;
   };
 
   /** 发送消息（WS 上行） */
-  const sendMessage = (content: string) => {
+  const sendMessage = (content: string, images?: string[]) => {
     if (!wsInstance || wsInstance.status.value !== 'OPEN') {
       // 尝试重连，而非只报错
       snackbarStore.warning('连接已断开，正在重连...');
@@ -170,7 +172,10 @@ export function useChatWebSocket() {
 
     // 上行格式：{ "content": "文本", "images": ["URL"] }
     // 发送原始文本，表情由显示端 parseEmoji 负责解析
-    wsInstance.send(JSON.stringify({ content }));
+    const payload: Record<string, unknown> = {};
+    if (content) payload.content = content;
+    if (images && images.length > 0) payload.images = images;
+    wsInstance.send(JSON.stringify(payload));
   };
 
   /** 断开 WebSocket 连接并重置状态 */
