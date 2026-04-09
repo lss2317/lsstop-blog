@@ -22,10 +22,6 @@ export interface WebsiteConfigVo {
   giteeUrl: string;
   /** 用户默认头像 */
   defaultUserAvatar: string;
-  /** 是否开启聊天室(1:是、0:否) */
-  enableChatRoom: number;
-  /** 是否开启音乐播放器(1:是、0:否) */
-  enableMusicPlayer: number;
   /** websocket地址 */
   websocketUrl: string;
 }

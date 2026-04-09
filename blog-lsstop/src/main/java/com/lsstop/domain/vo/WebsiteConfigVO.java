@@ -64,16 +64,6 @@ public class WebsiteConfigVO {
     private String defaultUserAvatar;
 
     /**
-     * 是否开启聊天室(1:是、0:否)
-     */
-    private Integer enableChatRoom;
-
-    /**
-     * 是否开启音乐播放器(1:是、0:否)
-     */
-    private Integer enableMusicPlayer;
-
-    /**
      * websocket地址
      */
     private String websocketUrl;

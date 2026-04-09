@@ -16,8 +16,6 @@
         <result column="default_user_avatar" property="defaultUserAvatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result column="enable_comment_review" property="enableCommentReview" jdbcType="TINYINT" javaType="java.lang.Integer"/>
         <result column="enable_message_review" property="enableMessageReview" jdbcType="TINYINT" javaType="java.lang.Integer"/>
-        <result column="enable_chat_room" property="enableChatRoom" jdbcType="TINYINT" javaType="java.lang.Integer"/>
-        <result column="enable_music_player" property="enableMusicPlayer" jdbcType="TINYINT" javaType="java.lang.Integer"/>
         <result column="websocket_url" property="websocketUrl" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result column="enable_comment_email_notice" property="enableCommentEmailNotice" jdbcType="TINYINT" javaType="java.lang.Integer"/>
         <result column="enable_comment_review_notice" property="enableCommentReviewNotice" jdbcType="TINYINT" javaType="java.lang.Integer"/>
@@ -42,8 +40,6 @@
                default_user_avatar,
                enable_comment_review,
                enable_message_review,
-               enable_chat_room,
-               enable_music_player,
                websocket_url,
                enable_comment_email_notice,
                enable_comment_review_notice,

@@ -13,8 +13,6 @@ const defaultConfig: WebsiteConfigVo = {
   githubUrl: '',
   giteeUrl: '',
   defaultUserAvatar: '',
-  enableChatRoom: 0,
-  enableMusicPlayer: 0,
   websocketUrl: '',
 };
 
