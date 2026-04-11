@@ -1,30 +1,31 @@
 <template>
   <v-app id="app">
     <!-- 导航栏 -->
-    <TopNavBar></TopNavBar>
+    <TopNavBar v-if="!isHideLayout"></TopNavBar>
     <!-- 侧边导航栏 -->
-    <SideNavBar></SideNavBar>
+    <SideNavBar v-if="!isHideLayout"></SideNavBar>
     <!-- 内容 -->
     <v-main>
       <router-view :key="$route.fullPath"></router-view>
     </v-main>
     <!-- 页脚 -->
-    <BlogFooter style="z-index: 1"></BlogFooter>
+    <BlogFooter v-if="!isHideLayout && !hideFooter" style="z-index: 1"></BlogFooter>
     <!-- 返回顶部 -->
-    <BackTop></BackTop>
+    <BackTop v-if="!isHideLayout"></BackTop>
     <!-- 全局消息提示 -->
     <SnackbarMessage></SnackbarMessage>
     <!-- 登录相关弹窗 -->
     <AuthDialog></AuthDialog>
     <!-- 弹窗公告 -->
-    <AnnouncementPopup />
+    <AnnouncementPopup v-if="!isHideLayout" />
     <!-- 聊天室 -->
-    <ChatDrawer />
+    <ChatDrawer v-if="!isHideLayout"></ChatDrawer>
   </v-app>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import TopNavBar from '@/components/layout/TopNavBar.vue';
 import SideNavBar from '@/components/layout/SideNavBar.vue';
 import BlogFooter from './components/layout/BlogFooter.vue';
@@ -40,6 +41,10 @@ import useUserInfoStore from '@/stores/modules/userInfo';
 import useAnnouncementStore from '@/stores/modules/announcement';
 import { tokenManager } from '@/utils/token';
 import { useScrollRestore } from '@/composables/useScrollRestore';
+
+const route = useRoute();
+const isHideLayout = computed(() => !!route.meta.hideLayout);
+const hideFooter = computed(() => !!route.meta.hideFooter);
 
 const websiteConfigStore = useWebsiteConfigStore();
 const pageInfoStore = usePageInfoStore();

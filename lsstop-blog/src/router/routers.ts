@@ -122,6 +122,7 @@ export const constantRouter = [
     meta: {
       title: '留言板',
       pageLabel: 'message',
+      hideFooter: true,
     },
   },
   {
@@ -131,6 +132,7 @@ export const constantRouter = [
     meta: {
       title: '个人中心',
       pageLabel: 'user',
+      hideFooter: true,
     },
   },
   // OAuth回调路由
@@ -152,10 +154,14 @@ export const constantRouter = [
       oauthType: 'weibo',
     },
   },
-  // 访问其他任何不存在的路由，重定向到首页
-  // {
-  //   path: '/:pathMatch(.*)*',
-  //   redirect: '/',
-  //   name: 'any',
-  // }
+  // 404页面
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound/NotFound.vue'),
+    meta: {
+      title: '页面未找到',
+      hideLayout: true,
+    },
+  },
 ];

@@ -1,11 +1,5 @@
 <template>
-  <v-footer
-    app
-    padless
-    absolute
-    style="background: rgba(0, 0, 0, 0); padding: 0"
-    v-if="!hideFooter"
-  >
+  <v-footer app padless absolute style="background: rgba(0, 0, 0, 0); padding: 0">
     <div class="footer-wrap">
       <div>
         ©{{ dateFormat.year(websiteCreateTime) }} - {{ new Date().getFullYear() }} By
@@ -33,23 +27,16 @@
 </template>
 
 <script setup lang="ts">
-import { dateFormat } from '@/utils/date';
 import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { dateFormat } from '@/utils/date';
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
 import { storeToRefs } from 'pinia';
 
-const route = useRoute();
 const websiteConfigStore = useWebsiteConfigStore();
 const { config } = storeToRefs(websiteConfigStore);
 
 const websiteCreateTime = computed(() => config.value.siteStartTime);
 const websiteAuthor = computed(() => config.value.siteAuthor);
-
-// 隐藏 footer 的页面
-const hideFooter = computed(() => {
-  return route.path === '/message' || route.name === 'UserProfile';
-});
 </script>
 
 <style scoped>
