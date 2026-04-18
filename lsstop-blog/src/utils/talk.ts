@@ -2,20 +2,9 @@ import { ref } from 'vue';
 import QRCode from 'qrcode';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
+import type { TalkItem } from '@/apis/talk/types';
 
-// 说说数据接口
-export interface TalkItem {
-  id: number;
-  userId: string;
-  avatar: string;
-  nickname: string;
-  createTime: string;
-  isTop: number;
-  content: string;
-  imgList: string[] | null;
-  likeCount: number | null;
-  commentCount: number | null;
-}
+export type { TalkItem };
 
 // 已注销用户默认昵称
 const DEACTIVATED_NICKNAME = '该用户已注销';

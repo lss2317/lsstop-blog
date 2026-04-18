@@ -1,5 +1,7 @@
 import http from '@/utils/http';
-import type { ChatMessage } from '@/stores/modules/chat';
+import type { ChatMessage } from './types';
+
+export * from './types';
 
 /**
  * 获取历史消息（分页，每页50条）

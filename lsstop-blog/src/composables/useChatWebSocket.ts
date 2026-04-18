@@ -1,5 +1,6 @@
 import { useWebSocket } from '@/composables/useWebSocket';
-import useChatStore, { type ChatMessage } from '@/stores/modules/chat';
+import useChatStore from '@/stores/modules/chat';
+import type { ChatMessage } from '@/apis/chat/types';
 import useUserInfoStore from '@/stores/modules/userInfo';
 import useWebsiteConfigStore from '@/stores/modules/websiteConfig';
 import { useSnackbarStore } from '@/stores/modules/snackbar';

@@ -69,7 +69,7 @@
 
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from 'vue';
-import type { ChatMessage } from '@/stores/modules/chat';
+import type { ChatMessage } from '@/apis/chat/types';
 import useChatStore from '@/stores/modules/chat';
 import useUserInfoStore from '@/stores/modules/userInfo';
 import { parseEmoji } from '@/utils/emoji';

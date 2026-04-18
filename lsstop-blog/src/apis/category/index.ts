@@ -1,14 +1,7 @@
 import http from '@/utils/http.ts';
+import type { Category } from './types';
 
-/** 分类信息 */
-export interface Category {
-  /** 分类ID */
-  id: number;
-  /** 分类名称 */
-  categoryName: string;
-  /** 文章数量 */
-  articleCount: number;
-}
+export * from './types';
 
 /** 获取分类列表 */
 export function listCategory() {

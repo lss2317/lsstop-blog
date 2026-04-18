@@ -1,5 +1,7 @@
 import http from '@/utils/http.ts';
-import type { TalkItem } from '@/utils/talk';
+import type { TalkItem } from './types';
+
+export * from './types';
 
 // 获取说说列表
 export function listTalk() {

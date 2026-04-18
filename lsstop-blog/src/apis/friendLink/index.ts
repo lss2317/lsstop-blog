@@ -1,18 +1,7 @@
 import http from '@/utils/http.ts';
+import type { FriendLink } from './types';
 
-/** 友链信息 */
-export interface FriendLink {
-  /** 友链ID */
-  id: number;
-  /** 友链名称 */
-  linkName: string;
-  /** 友链头像 */
-  linkAvatar: string;
-  /** 友链地址 */
-  linkAddress: string;
-  /** 友链介绍 */
-  linkIntro: string;
-}
+export * from './types';
 
 // 获取友链列表
 export function listFriendLink() {

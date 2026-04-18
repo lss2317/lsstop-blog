@@ -1,0 +1,115 @@
+/** 简单标签信息 */
+export interface TagSimple {
+  /** 标签ID */
+  id: number;
+  /** 标签名称 */
+  tagName: string;
+}
+
+/** 文章列表项 */
+export interface ArticleList {
+  /** 文章ID */
+  id: number;
+  /** 文章封面图URL */
+  articleCover: string;
+  /** 文章标题 */
+  articleTitle: string;
+  /** 分类ID */
+  categoryId: number;
+  /** 分类名称 */
+  categoryName: string;
+  /** 标签列表 */
+  tags: TagSimple[];
+  /** 发表时间 */
+  createTime: string;
+}
+
+/** 简化文章（用于上一篇/下一篇/最新/推荐文章） */
+export interface ArticleSimple {
+  /** 文章ID */
+  id: number;
+  /** 文章封面图URL */
+  articleCover: string;
+  /** 文章标题 */
+  articleTitle: string;
+  /** 创建时间 */
+  createTime: string;
+}
+
+/** 文章详情 */
+export interface Article {
+  /** 文章ID */
+  id: number;
+  /** 文章封面图URL */
+  articleCover: string;
+  /** 文章标题 */
+  articleTitle: string;
+  /** 文章内容 */
+  articleContent: string;
+  /** 分类ID */
+  categoryId: number;
+  /** 分类名称 */
+  categoryName: string;
+  /** 标签列表 */
+  tags: TagSimple[];
+  /** 浏览量 */
+  viewCount: number;
+  /** 点赞数 */
+  likeCount: number;
+  /** 创建时间 */
+  createTime: string;
+  /** 更新时间 */
+  updateTime: string;
+  /** 上一篇文章 */
+  preArticle: ArticleSimple | null;
+  /** 下一篇文章 */
+  nextArticle: ArticleSimple | null;
+  /** 最新文章列表 */
+  newestArticles: ArticleSimple[];
+  /** 推荐文章列表 */
+  recommendArticles: ArticleSimple[];
+}
+
+/** 主页文章列表项 */
+export interface ArticleHome {
+  /** 文章ID */
+  id: number;
+  /** 文章封面图URL */
+  articleCover: string;
+  /** 文章标题 */
+  articleTitle: string;
+  /** 文章正文内容 */
+  articleContent: string;
+  /** 分类ID */
+  categoryId: number;
+  /** 分类名称 */
+  categoryName: string;
+  /** 标签列表 */
+  tags: TagSimple[];
+  /** 是否置顶：0否 1是 */
+  isTop: number;
+  /** 发表时间 */
+  createTime: string;
+}
+
+/** 主页文章分页结果 */
+export interface ArticleHomePage {
+  /** 文章列表 */
+  list: ArticleHome[];
+  /** 文章总数 */
+  total: number;
+}
+
+/** 文章搜索结果项 */
+export interface ArticleSearchItem {
+  /** 文章ID */
+  id: number;
+  /** 文章标题 */
+  articleTitle: string;
+  /** 分类名称 */
+  categoryName: string;
+  /** 浏览量 */
+  viewCount: number;
+  /** 文章内容（内容搜索时返回） */
+  articleContent?: string;
+}
