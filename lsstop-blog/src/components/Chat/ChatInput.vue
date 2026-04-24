@@ -356,8 +356,8 @@ onUnmounted(() => {
   display: flex;
   align-items: flex-end;
   background: #e8e8e8;
-  border-radius: 22px;
-  padding: 4px 6px 4px 16px;
+  border-radius: 16px;
+  padding: 4px 10px 4px 16px;
   gap: 2px;
   min-height: 40px;
   transition: background 0.2s;
@@ -408,7 +408,7 @@ onUnmounted(() => {
 .chat-input-actions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
