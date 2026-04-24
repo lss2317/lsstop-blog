@@ -68,23 +68,25 @@
             </div>
             <div class="article-info">
               <!-- 是否置顶 -->
-              <span v-if="item.isTop === 1">
-                <span style="color: #ff7242"> <i class="iconfont iconzhiding" /> 置顶 </span>
-                <span class="separator">|</span>
+              <span v-if="item.isTop === 1" class="info-item sticky-tag">
+                <i class="iconfont iconzhiding" /> 置顶
               </span>
               <!-- 发表时间 -->
-              <v-icon size="14">mdi-calendar-month-outline</v-icon>
-              {{ dateFormat.date(item.createTime) }}
-              <span class="separator">|</span>
+              <span class="info-item">
+                <v-icon size="14">mdi-calendar-month-outline</v-icon>
+                {{ dateFormat.date(item.createTime) }}
+              </span>
               <!-- 文章分类 -->
-              <a class="category-link" @click="navigateTo('/category/' + item.categoryId)">
+              <a
+                class="info-item category-link"
+                @click="navigateTo('/category/' + item.categoryId)"
+              >
                 <v-icon size="14">mdi-inbox-full</v-icon>
                 <span class="category-name">{{ item.categoryName }}</span>
               </a>
-              <span class="separator">|</span>
               <!-- 文章标签 -->
               <a
-                class="tag-link"
+                class="info-item tag-link"
                 @click="navigateTo('/tag/' + tag.id)"
                 v-for="tag of item.tags?.slice(0, 3)"
                 :key="tag.id"
@@ -589,8 +591,34 @@ onUnmounted(() => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  gap: 0.4rem;
   max-height: calc(2em * 2);
   overflow: hidden;
+}
+
+/* 信息项统一包裹，前加圆点分隔 */
+.info-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.info-item ~ .info-item ~ .info-item::before {
+  content: '·';
+  margin-right: 0.4rem;
+  color: #ccc;
+}
+
+/* 置顶标签 badge */
+.sticky-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 114, 66, 0.1);
+  color: #ff7242 !important;
+  padding: 0 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
 }
 
 .article-info a {
@@ -607,6 +635,7 @@ onUnmounted(() => {
 .tag-link {
   display: inline-flex;
   align-items: center;
+  gap: 2px;
   max-width: 120px;
 }
 
@@ -631,10 +660,6 @@ onUnmounted(() => {
   color: #5a5a5a;
   letter-spacing: 0.3px;
   font-size: 0.95rem;
-}
-
-.separator {
-  margin: 0 0.25rem;
 }
 
 /* 文章分页样式 */
@@ -695,6 +720,10 @@ onUnmounted(() => {
 /* 夜间模式 */
 .v-theme--dark .article-info {
   color: rgba(255, 255, 255, 0.6);
+}
+
+.v-theme--dark .sticky-tag {
+  background: rgba(255, 114, 66, 0.18);
 }
 
 .v-theme--dark .article-info a {
