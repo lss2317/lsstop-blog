@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.lsstop</groupId>
-    <artifactId>blog-lsstop</artifactId>
+    <artifactId>lsstop-server</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>blog-lsstop</name>
-    <description>blog-lsstop</description>
+    <name>lsstop-server</name>
+    <description>lsstop-server</description>
     <properties>
         <java.version>17</java.version>
         <!-- 修复安全漏洞 -->

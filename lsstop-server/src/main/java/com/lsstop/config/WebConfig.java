@@ -25,9 +25,10 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 后台拦截器 - 拦截 /admin/** 路径，必须登录且使用admin token
+        // 后台拦截器 - 拦截 /admin/** 路径，必须登录且使用admin token（排除认证相关接口）
         registry.addInterceptor(adminAuthInterceptor)
-                .addPathPatterns("/admin/**");
+                .addPathPatterns("/admin/**")
+                .excludePathPatterns("/admin/auth/**");
 
         // 前台拦截器 - 拦截需要登录的 /front/** 路径
         registry.addInterceptor(frontAuthInterceptor)

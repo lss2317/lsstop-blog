@@ -8,10 +8,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @MapperScan("com.lsstop.mapper")
 @EnableScheduling
-public class BlogLsstopApplication {
+public class LsstopServerApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(BlogLsstopApplication.class, args);
+        SpringApplication.run(LsstopServerApplication.class, args);
     }
 
 }

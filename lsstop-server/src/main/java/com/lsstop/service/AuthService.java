@@ -12,6 +12,7 @@ import com.lsstop.domain.dto.SendCodeDTO;
 import com.lsstop.domain.dto.WeiboLoginDTO;
 import com.lsstop.domain.vo.LoginVO;
 import com.lsstop.domain.vo.TokenVO;
+import com.lsstop.enums.LoginSourceEnum;
 
 /**
  * 认证服务
@@ -24,50 +25,56 @@ public interface AuthService {
     /**
      * 邮箱密码登录
      *
-     * @param dto 邮箱登录参数
+     * @param dto    邮箱登录参数
+     * @param source 登录来源（前台/后台）
      * @return 用户信息
      */
-    LoginVO emailLogin(EmailLoginDTO dto);
+    LoginVO emailLogin(EmailLoginDTO dto, LoginSourceEnum source);
 
     /**
      * 邮箱验证码登录
      *
-     * @param dto 验证码登录参数
+     * @param dto    验证码登录参数
+     * @param source 登录来源（前台/后台）
      * @return 用户信息
      */
-    LoginVO emailCodeLogin(EmailCodeLoginDTO dto);
+    LoginVO emailCodeLogin(EmailCodeLoginDTO dto, LoginSourceEnum source);
 
     /**
      * QQ登录
      *
-     * @param dto QQ登录参数
+     * @param dto    QQ登录参数
+     * @param source 登录来源（前台/后台）
      * @return 用户信息
      */
-    LoginVO qqLogin(QQLoginDTO dto);
+    LoginVO qqLogin(QQLoginDTO dto, LoginSourceEnum source);
 
     /**
      * 微博登录
      *
-     * @param dto 微博登录参数
+     * @param dto    微博登录参数
+     * @param source 登录来源（前台/后台）
      * @return 用户信息
      */
-    LoginVO weiboLogin(WeiboLoginDTO dto);
+    LoginVO weiboLogin(WeiboLoginDTO dto, LoginSourceEnum source);
 
     /**
      * 用户登出
      * <p>根据refreshToken解析用户ID，清除Redis中的令牌</p>
      *
      * @param refreshToken 刷新令牌
+     * @param source       登录来源（前台/后台）
      */
-    void logout(String refreshToken);
+    void logout(String refreshToken, LoginSourceEnum source);
 
     /**
      * 刷新token
      *
      * @param refreshToken 刷新token
+     * @param source       登录来源（前台/后台）
      * @return 新的token信息
      */
-    TokenVO refreshToken(String refreshToken);
+    TokenVO refreshToken(String refreshToken, LoginSourceEnum source);
 
     /**
      * 发送邮箱验证码

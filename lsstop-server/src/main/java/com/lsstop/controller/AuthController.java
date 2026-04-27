@@ -12,6 +12,7 @@ import com.lsstop.domain.dto.SendCodeDTO;
 import com.lsstop.domain.dto.WeiboLoginDTO;
 import com.lsstop.domain.vo.LoginVO;
 import com.lsstop.domain.vo.TokenVO;
+import com.lsstop.enums.LoginSourceEnum;
 import com.lsstop.service.AuthService;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -40,7 +41,7 @@ public class AuthController {
     @PostMapping("/front/auth/login/email")
     @AccessLimit(seconds = 60, maxCount = 10)
     public Result<LoginVO> emailLogin(@RequestBody @Validated EmailLoginDTO dto) {
-        return Result.success(authService.emailLogin(dto));
+        return Result.success(authService.emailLogin(dto, LoginSourceEnum.FRONT));
     }
 
     /**
@@ -52,7 +53,7 @@ public class AuthController {
     @PostMapping("/front/auth/login/email-code")
     @AccessLimit(seconds = 60, maxCount = 10)
     public Result<LoginVO> emailCodeLogin(@RequestBody @Validated EmailCodeLoginDTO dto) {
-        return Result.success(authService.emailCodeLogin(dto));
+        return Result.success(authService.emailCodeLogin(dto, LoginSourceEnum.FRONT));
     }
 
     /**
@@ -64,7 +65,7 @@ public class AuthController {
     @PostMapping("/front/auth/login/qq")
     @AccessLimit(seconds = 60, maxCount = 10)
     public Result<LoginVO> qqLogin(@RequestBody @Validated QQLoginDTO dto) {
-        return Result.success(authService.qqLogin(dto));
+        return Result.success(authService.qqLogin(dto, LoginSourceEnum.FRONT));
     }
 
     /**
@@ -76,7 +77,7 @@ public class AuthController {
     @PostMapping("/front/auth/login/weibo")
     @AccessLimit(seconds = 60, maxCount = 10)
     public Result<LoginVO> weiboLogin(@RequestBody @Validated WeiboLoginDTO dto) {
-        return Result.success(authService.weiboLogin(dto));
+        return Result.success(authService.weiboLogin(dto, LoginSourceEnum.FRONT));
     }
 
     /**
@@ -88,7 +89,7 @@ public class AuthController {
     @PostMapping("/front/auth/refresh")
     @AccessLimit(seconds = 60, maxCount = 10)
     public Result<TokenVO> refreshToken(@RequestBody @Validated RefreshTokenDTO dto) {
-        return Result.success(authService.refreshToken(dto.getRefreshToken()));
+        return Result.success(authService.refreshToken(dto.getRefreshToken(), LoginSourceEnum.FRONT));
     }
 
     /**
@@ -100,7 +101,7 @@ public class AuthController {
     @PostMapping("/front/auth/logout")
     @AccessLimit(seconds = 60, maxCount = 10)
     public Result<Void> logout(@RequestBody @Validated RefreshTokenDTO dto) {
-        authService.logout(dto.getRefreshToken());
+        authService.logout(dto.getRefreshToken(), LoginSourceEnum.FRONT);
         return Result.success();
     }
 
@@ -140,6 +141,79 @@ public class AuthController {
     @AccessLimit(seconds = 60, maxCount = 5)
     public Result<LoginVO> register(@RequestBody @Validated RegisterDTO dto) {
         return Result.success(authService.register(dto));
+    }
+
+    /**
+     * 后台邮箱密码登录
+     *
+     * @param dto 邮箱登录参数
+     * @return 登录结果
+     */
+    @PostMapping("/admin/auth/login/email")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    public Result<LoginVO> adminEmailLogin(@RequestBody @Validated EmailLoginDTO dto) {
+        return Result.success(authService.emailLogin(dto, LoginSourceEnum.ADMIN));
+    }
+
+    /**
+     * 后台邮箱验证码登录
+     *
+     * @param dto 验证码登录参数
+     * @return 登录结果
+     */
+    @PostMapping("/admin/auth/login/email-code")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    public Result<LoginVO> adminEmailCodeLogin(@RequestBody @Validated EmailCodeLoginDTO dto) {
+        return Result.success(authService.emailCodeLogin(dto, LoginSourceEnum.ADMIN));
+    }
+
+    /**
+     * 后台QQ登录
+     *
+     * @param dto QQ登录参数
+     * @return 登录结果
+     */
+    @PostMapping("/admin/auth/login/qq")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    public Result<LoginVO> adminQQLogin(@RequestBody @Validated QQLoginDTO dto) {
+        return Result.success(authService.qqLogin(dto, LoginSourceEnum.ADMIN));
+    }
+
+    /**
+     * 后台微博登录
+     *
+     * @param dto 微博登录参数
+     * @return 登录结果
+     */
+    @PostMapping("/admin/auth/login/weibo")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    public Result<LoginVO> adminWeiboLogin(@RequestBody @Validated WeiboLoginDTO dto) {
+        return Result.success(authService.weiboLogin(dto, LoginSourceEnum.ADMIN));
+    }
+
+    /**
+     * 后台刷新token
+     *
+     * @param dto 刷新token请求参数
+     * @return 新的token信息
+     */
+    @PostMapping("/admin/auth/refresh")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    public Result<TokenVO> adminRefreshToken(@RequestBody @Validated RefreshTokenDTO dto) {
+        return Result.success(authService.refreshToken(dto.getRefreshToken(), LoginSourceEnum.ADMIN));
+    }
+
+    /**
+     * 后台退出登录
+     *
+     * @param dto 包含refreshToken的请求参数
+     * @return 操作结果
+     */
+    @PostMapping("/admin/auth/logout")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    public Result<Void> adminLogout(@RequestBody @Validated RefreshTokenDTO dto) {
+        authService.logout(dto.getRefreshToken(), LoginSourceEnum.ADMIN);
+        return Result.success();
     }
 
 }

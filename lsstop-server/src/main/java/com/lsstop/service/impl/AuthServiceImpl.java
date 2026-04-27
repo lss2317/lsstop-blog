@@ -83,11 +83,12 @@ public class AuthServiceImpl implements AuthService {
     /**
      * 邮箱密码登录
      *
-     * @param dto 邮箱登录参数
+     * @param dto    邮箱登录参数
+     * @param source 登录来源（前台/后台）
      * @return 用户信息
      */
     @Override
-    public LoginVO emailLogin(EmailLoginDTO dto) {
+    public LoginVO emailLogin(EmailLoginDTO dto, LoginSourceEnum source) {
         String email = dto.getEmail().trim().toLowerCase(Locale.ROOT);
         String password = dto.getPassword();
         String userId = null;
@@ -115,12 +116,12 @@ public class AuthServiceImpl implements AuthService {
             authMapper.updateLastLoginTime(userId);
 
             // 发送登录成功日志到MQ
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), email, AuthConst.LOGIN_SUCCESS);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), email, AuthConst.LOGIN_SUCCESS);
 
-            return buildLoginVO(userAuth);
+            return buildLoginVO(userAuth, source);
         } catch (BusinessException e) {
             // 发送登录失败日志到MQ
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), email, e.getMessage());
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), email, e.getMessage());
             throw e;
         }
     }
@@ -128,11 +129,12 @@ public class AuthServiceImpl implements AuthService {
     /**
      * 邮箱验证码登录
      *
-     * @param dto 验证码登录参数
+     * @param dto    验证码登录参数
+     * @param source 登录来源（前台/后台）
      * @return 用户信息
      */
     @Override
-    public LoginVO emailCodeLogin(EmailCodeLoginDTO dto) {
+    public LoginVO emailCodeLogin(EmailCodeLoginDTO dto, LoginSourceEnum source) {
         String email = dto.getEmail().trim().toLowerCase(Locale.ROOT);
         String code = dto.getCode().trim();
         String codeKey = RedisConst.EMAIL_CODE + CodePurposeEnum.LOGIN.getKey() + ":" + email;
@@ -165,12 +167,12 @@ public class AuthServiceImpl implements AuthService {
             redisUtils.delete(codeKey);
 
             // 发送登录成功日志到MQ
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), email, AuthConst.LOGIN_SUCCESS);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), email, AuthConst.LOGIN_SUCCESS);
 
-            return buildLoginVO(userAuth);
+            return buildLoginVO(userAuth, source);
         } catch (BusinessException e) {
             // 发送登录失败日志到MQ
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), email, e.getMessage());
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), email, e.getMessage());
             throw e;
         }
     }
@@ -178,11 +180,12 @@ public class AuthServiceImpl implements AuthService {
     /**
      * QQ登录
      *
-     * @param dto QQ登录参数
+     * @param dto    QQ登录参数
+     * @param source 登录来源（前台/后台）
      * @return 用户信息
      */
     @Override
-    public LoginVO qqLogin(QQLoginDTO dto) {
+    public LoginVO qqLogin(QQLoginDTO dto, LoginSourceEnum source) {
         String userId = null;
         String openId = null;
 
@@ -233,15 +236,15 @@ public class AuthServiceImpl implements AuthService {
             authMapper.updateLastLoginTime(userId);
 
             // 发送登录成功日志
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), openId, AuthConst.LOGIN_SUCCESS);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), openId, AuthConst.LOGIN_SUCCESS);
 
-            return buildLoginVO(userAuth);
+            return buildLoginVO(userAuth, source);
         } catch (BusinessException e) {
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), openId, e.getMessage());
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), openId, e.getMessage());
             throw e;
         } catch (Exception e) {
             log.error("QQ登录失败", e);
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), openId, AuthConst.QQ_LOGIN_FAILED);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), openId, AuthConst.QQ_LOGIN_FAILED);
             throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.QQ_LOGIN_FAILED);
         }
     }
@@ -249,11 +252,12 @@ public class AuthServiceImpl implements AuthService {
     /**
      * 微博登录
      *
-     * @param dto 微博登录参数
+     * @param dto    微博登录参数
+     * @param source 登录来源（前台/后台）
      * @return 用户信息
      */
     @Override
-    public LoginVO weiboLogin(WeiboLoginDTO dto) {
+    public LoginVO weiboLogin(WeiboLoginDTO dto, LoginSourceEnum source) {
         String userId = null;
         String uid = null;
 
@@ -300,15 +304,15 @@ public class AuthServiceImpl implements AuthService {
             authMapper.updateLastLoginTime(userId);
 
             // 发送登录成功日志
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), uid, AuthConst.LOGIN_SUCCESS);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), uid, AuthConst.LOGIN_SUCCESS);
 
-            return buildLoginVO(userAuth);
+            return buildLoginVO(userAuth, source);
         } catch (BusinessException e) {
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), uid, e.getMessage());
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), uid, e.getMessage());
             throw e;
         } catch (Exception e) {
             log.error("微博登录失败", e);
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.FAIL.getCode(), uid, AuthConst.WEIBO_LOGIN_FAILED);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), uid, AuthConst.WEIBO_LOGIN_FAILED);
             throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.WEIBO_LOGIN_FAILED);
         }
     }
@@ -317,25 +321,36 @@ public class AuthServiceImpl implements AuthService {
      * 构建登录返回结果
      *
      * @param userAuth 用户认证信息
+     * @param source   登录来源（决定生成前台或后台token）
      * @return 登录结果
      */
-    private LoginVO buildLoginVO(UserAuthEntity userAuth) {
+    private LoginVO buildLoginVO(UserAuthEntity userAuth, LoginSourceEnum source) {
         String userId = userAuth.getUserId();
 
         // 查询用户资料
         UserProfileEntity userProfileEntity = authMapper.selectProfileById(userId);
         LoginVO loginVO = userProfileEntity.asViewObject(LoginVO.class);
 
-        // 生成token
-        JwtUtils.TokenPair tokenPair = jwtUtils.generateFrontTokenPair(userId);
+        // 根据来源生成不同有效期的Token
+        JwtUtils.TokenPair tokenPair;
+        String redisKey;
+        Long refreshTokenExpiration;
+
+        if (source == LoginSourceEnum.ADMIN) {
+            tokenPair = jwtUtils.generateAdminTokenPair(userId);
+            redisKey = RedisConst.ADMIN_REFRESH_TOKEN + userId;
+            refreshTokenExpiration = jwtConfig.getAdmin().getRefreshTokenExpiration();
+        } else {
+            tokenPair = jwtUtils.generateFrontTokenPair(userId);
+            redisKey = RedisConst.FRONT_REFRESH_TOKEN + userId;
+            refreshTokenExpiration = jwtConfig.getFront().getRefreshTokenExpiration();
+        }
+
         loginVO.setAccessToken(tokenPair.getAccessToken());
         loginVO.setRefreshToken(tokenPair.getRefreshToken());
 
         // 存储refreshToken到Redis（设置与JWT相同的过期时间）
-        redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userId,
-                tokenPair.getRefreshToken(),
-                jwtConfig.getFront().getRefreshTokenExpiration(),
-                TimeUnit.MILLISECONDS);
+        redisUtils.set(redisKey, tokenPair.getRefreshToken(), refreshTokenExpiration, TimeUnit.MILLISECONDS);
 
         // 清除用户主页缓存（因登录后IP归属地可能变化）
         redisUtils.delete(RedisConst.USER_HOME_ME + userId);
@@ -350,16 +365,20 @@ public class AuthServiceImpl implements AuthService {
      * <p>宽松处理：即使token过期或无效，也不报错，确保用户能正常退出</p>
      *
      * @param refreshToken 刷新令牌
+     * @param source       登录来源（前台/后台）
      */
     @Override
-    public void logout(String refreshToken) {
+    public void logout(String refreshToken, LoginSourceEnum source) {
         try {
             String userId = jwtUtils.getSubjectIgnoreExpiration(refreshToken);
             if (userId != null) {
+                String redisKey = (source == LoginSourceEnum.ADMIN)
+                        ? RedisConst.ADMIN_REFRESH_TOKEN + userId
+                        : RedisConst.FRONT_REFRESH_TOKEN + userId;
                 // 校验传入的token与Redis中存储的是否一致，防止旧token踢下线
-                String storedToken = redisUtils.get(RedisConst.FRONT_REFRESH_TOKEN + userId, String.class);
+                String storedToken = redisUtils.get(redisKey, String.class);
                 if (storedToken != null && storedToken.equals(refreshToken)) {
-                    redisUtils.delete(RedisConst.FRONT_REFRESH_TOKEN + userId);
+                    redisUtils.delete(redisKey);
                 }
             }
         } catch (Exception e) {
@@ -372,28 +391,38 @@ public class AuthServiceImpl implements AuthService {
      * <p>验证refreshToken有效性，生成新的accessToken和refreshToken</p>
      *
      * @param refreshToken 刷新token
+     * @param source       登录来源（前台/后台）
      * @return 新的token信息
      */
     @Override
-    public TokenVO refreshToken(String refreshToken) {
+    public TokenVO refreshToken(String refreshToken, LoginSourceEnum source) {
         // 验证refreshToken
         if (!jwtUtils.validateRefreshToken(refreshToken)) {
             throw new BusinessException(StatusEnum.NOT_LOGIN, AuthConst.REFRESH_TOKEN_INVALID);
         }
         // 获取用户ID
         String userId = jwtUtils.getSubject(refreshToken);
+        // 根据来源选择Redis Key
+        String redisKey = (source == LoginSourceEnum.ADMIN)
+                ? RedisConst.ADMIN_REFRESH_TOKEN + userId
+                : RedisConst.FRONT_REFRESH_TOKEN + userId;
         // 检查Redis中的refreshToken是否一致
-        String storedToken = redisUtils.get(RedisConst.FRONT_REFRESH_TOKEN + userId, String.class);
+        String storedToken = redisUtils.get(redisKey, String.class);
         if (storedToken == null || !storedToken.equals(refreshToken)) {
             throw new BusinessException(StatusEnum.NOT_LOGIN, AuthConst.REFRESH_TOKEN_EXPIRED);
         }
-        // 生成新token
-        JwtUtils.TokenPair tokenPair = jwtUtils.generateFrontTokenPair(userId);
+        // 根据来源生成新Token
+        JwtUtils.TokenPair tokenPair;
+        Long refreshTokenExpiration;
+        if (source == LoginSourceEnum.ADMIN) {
+            tokenPair = jwtUtils.generateAdminTokenPair(userId);
+            refreshTokenExpiration = jwtConfig.getAdmin().getRefreshTokenExpiration();
+        } else {
+            tokenPair = jwtUtils.generateFrontTokenPair(userId);
+            refreshTokenExpiration = jwtConfig.getFront().getRefreshTokenExpiration();
+        }
         // 更新Redis中的refreshToken（设置与JWT相同的过期时间）
-        redisUtils.set(RedisConst.FRONT_REFRESH_TOKEN + userId,
-                tokenPair.getRefreshToken(),
-                jwtConfig.getFront().getRefreshTokenExpiration(),
-                TimeUnit.MILLISECONDS);
+        redisUtils.set(redisKey, tokenPair.getRefreshToken(), refreshTokenExpiration, TimeUnit.MILLISECONDS);
         // 返回新token
         return TokenVO.builder()
                 .accessToken(tokenPair.getAccessToken())
@@ -552,8 +581,8 @@ public class AuthServiceImpl implements AuthService {
         // 发送登录成功日志到MQ
         loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), email, AuthConst.LOGIN_SUCCESS);
 
-        // 自动登录，返回登录结果
-        return buildLoginVO(userAuth);
+        // 自动登录，返回登录结果（注册只在前台）
+        return buildLoginVO(userAuth, LoginSourceEnum.FRONT);
     }
 
     /**
