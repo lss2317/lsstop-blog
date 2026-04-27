@@ -331,18 +331,21 @@ public class AuthServiceImpl implements AuthService {
         UserProfileEntity userProfileEntity = authMapper.selectProfileById(userId);
         LoginVO loginVO = userProfileEntity.asViewObject(LoginVO.class);
 
-        // 根据来源生成不同有效期的Token
+        // 根据来源生成不同有效期的Token（内部自动生成sessionId）
         JwtUtils.TokenPair tokenPair;
+        String sessionId;
         String redisKey;
         Long refreshTokenExpiration;
 
         if (source == LoginSourceEnum.ADMIN) {
             tokenPair = jwtUtils.generateAdminTokenPair(userId);
-            redisKey = RedisConst.ADMIN_REFRESH_TOKEN + userId;
+            sessionId = jwtUtils.getSessionId(tokenPair.getRefreshToken());
+            redisKey = RedisConst.ADMIN_REFRESH_TOKEN + userId + ":" + sessionId;
             refreshTokenExpiration = jwtConfig.getAdmin().getRefreshTokenExpiration();
         } else {
             tokenPair = jwtUtils.generateFrontTokenPair(userId);
-            redisKey = RedisConst.FRONT_REFRESH_TOKEN + userId;
+            sessionId = jwtUtils.getSessionId(tokenPair.getRefreshToken());
+            redisKey = RedisConst.FRONT_REFRESH_TOKEN + userId + ":" + sessionId;
             refreshTokenExpiration = jwtConfig.getFront().getRefreshTokenExpiration();
         }
 
@@ -371,10 +374,11 @@ public class AuthServiceImpl implements AuthService {
     public void logout(String refreshToken, LoginSourceEnum source) {
         try {
             String userId = jwtUtils.getSubjectIgnoreExpiration(refreshToken);
-            if (userId != null) {
+            String sessionId = jwtUtils.getSessionIdIgnoreExpiration(refreshToken);
+            if (userId != null && sessionId != null) {
                 String redisKey = (source == LoginSourceEnum.ADMIN)
-                        ? RedisConst.ADMIN_REFRESH_TOKEN + userId
-                        : RedisConst.FRONT_REFRESH_TOKEN + userId;
+                        ? RedisConst.ADMIN_REFRESH_TOKEN + userId + ":" + sessionId
+                        : RedisConst.FRONT_REFRESH_TOKEN + userId + ":" + sessionId;
                 // 校验传入的token与Redis中存储的是否一致，防止旧token踢下线
                 String storedToken = redisUtils.get(redisKey, String.class);
                 if (storedToken != null && storedToken.equals(refreshToken)) {
@@ -400,25 +404,26 @@ public class AuthServiceImpl implements AuthService {
         if (!jwtUtils.validateRefreshToken(refreshToken)) {
             throw new BusinessException(StatusEnum.NOT_LOGIN, AuthConst.REFRESH_TOKEN_INVALID);
         }
-        // 获取用户ID
+        // 获取用户ID和会话ID
         String userId = jwtUtils.getSubject(refreshToken);
+        String sessionId = jwtUtils.getSessionId(refreshToken);
         // 根据来源选择Redis Key
         String redisKey = (source == LoginSourceEnum.ADMIN)
-                ? RedisConst.ADMIN_REFRESH_TOKEN + userId
-                : RedisConst.FRONT_REFRESH_TOKEN + userId;
+                ? RedisConst.ADMIN_REFRESH_TOKEN + userId + ":" + sessionId
+                : RedisConst.FRONT_REFRESH_TOKEN + userId + ":" + sessionId;
         // 检查Redis中的refreshToken是否一致
         String storedToken = redisUtils.get(redisKey, String.class);
         if (storedToken == null || !storedToken.equals(refreshToken)) {
             throw new BusinessException(StatusEnum.NOT_LOGIN, AuthConst.REFRESH_TOKEN_EXPIRED);
         }
-        // 根据来源生成新Token
+        // 根据来源生成新Token（复用同一sessionId，保持会话连续性）
         JwtUtils.TokenPair tokenPair;
         Long refreshTokenExpiration;
         if (source == LoginSourceEnum.ADMIN) {
-            tokenPair = jwtUtils.generateAdminTokenPair(userId);
+            tokenPair = jwtUtils.generateAdminTokenPair(userId, sessionId);
             refreshTokenExpiration = jwtConfig.getAdmin().getRefreshTokenExpiration();
         } else {
-            tokenPair = jwtUtils.generateFrontTokenPair(userId);
+            tokenPair = jwtUtils.generateFrontTokenPair(userId, sessionId);
             refreshTokenExpiration = jwtConfig.getFront().getRefreshTokenExpiration();
         }
         // 更新Redis中的refreshToken（设置与JWT相同的过期时间）
@@ -515,6 +520,10 @@ public class AuthServiceImpl implements AuthService {
 
         // 删除验证码
         redisUtils.delete(codeKey);
+
+        // 清除该用户所有会话（重置密码后强制所有设备重新登录）
+        redisUtils.deleteByPrefix(RedisConst.FRONT_REFRESH_TOKEN + userAuth.getUserId() + ":");
+        redisUtils.deleteByPrefix(RedisConst.ADMIN_REFRESH_TOKEN + userAuth.getUserId() + ":");
     }
 
     /**
@@ -658,6 +667,10 @@ public class AuthServiceImpl implements AuthService {
         // 加密新密码并更新
         String encryptedPassword = PasswordUtils.encrypt(newPassword);
         authMapper.updateCredentialByUserId(userId, encryptedPassword);
+
+        // 清除该用户所有会话（改密后强制所有设备重新登录）
+        redisUtils.deleteByPrefix(RedisConst.FRONT_REFRESH_TOKEN + userId + ":");
+        redisUtils.deleteByPrefix(RedisConst.ADMIN_REFRESH_TOKEN + userId + ":");
     }
 
     /**

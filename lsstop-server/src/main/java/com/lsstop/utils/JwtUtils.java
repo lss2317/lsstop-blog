@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * JWT工具类（双Token机制）
@@ -45,6 +46,11 @@ public class JwtUtils {
      */
     private static final String SOURCE_KEY = "source";
 
+    /**
+     * 会话标识Key（支持多设备登录）
+     */
+    private static final String SESSION_ID_KEY = "sid";
+
     private static final String ACCESS_TOKEN_TYPE = "access";
     private static final String REFRESH_TOKEN_TYPE = "refresh";
 
@@ -63,32 +69,62 @@ public class JwtUtils {
     }
 
     /**
-     * 生成前台Token对
+     * 生成前台Token对（自动生成sessionId，用于登录场景）
      *
      * @param subject 主题（用户ID）
      * @return TokenPair
      */
     public TokenPair generateFrontTokenPair(String subject) {
+        String sessionId = generateSessionId();
         JwtConfig.TokenConfig config = jwtConfig.getFront();
-        String accessToken = buildToken(subject, ACCESS_TOKEN_TYPE, AuthConst.SOURCE_FRONT, config.getAccessTokenExpiration());
-        String refreshToken = buildToken(subject, REFRESH_TOKEN_TYPE, AuthConst.SOURCE_FRONT, config.getRefreshTokenExpiration());
+        String accessToken = buildToken(subject, ACCESS_TOKEN_TYPE, AuthConst.SOURCE_FRONT, sessionId, config.getAccessTokenExpiration());
+        String refreshToken = buildToken(subject, REFRESH_TOKEN_TYPE, AuthConst.SOURCE_FRONT, sessionId, config.getRefreshTokenExpiration());
         return new TokenPair(accessToken, refreshToken);
     }
 
     /**
-     * 生成后台Token对
+     * 生成后台Token对（自动生成sessionId，用于登录场景）
      *
      * @param subject 主题（用户ID）
      * @return TokenPair
      */
     public TokenPair generateAdminTokenPair(String subject) {
+        String sessionId = generateSessionId();
         JwtConfig.TokenConfig config = jwtConfig.getAdmin();
-        String accessToken = buildToken(subject, ACCESS_TOKEN_TYPE, AuthConst.SOURCE_ADMIN, config.getAccessTokenExpiration());
-        String refreshToken = buildToken(subject, REFRESH_TOKEN_TYPE, AuthConst.SOURCE_ADMIN, config.getRefreshTokenExpiration());
+        String accessToken = buildToken(subject, ACCESS_TOKEN_TYPE, AuthConst.SOURCE_ADMIN, sessionId, config.getAccessTokenExpiration());
+        String refreshToken = buildToken(subject, REFRESH_TOKEN_TYPE, AuthConst.SOURCE_ADMIN, sessionId, config.getRefreshTokenExpiration());
         return new TokenPair(accessToken, refreshToken);
     }
 
-    private String buildToken(String subject, String tokenType, String source, long expiration) {
+    /**
+     * 生成前台Token对（复用sessionId，用于刷新token场景）
+     *
+     * @param subject   主题（用户ID）
+     * @param sessionId 会话标识
+     * @return TokenPair
+     */
+    public TokenPair generateFrontTokenPair(String subject, String sessionId) {
+        JwtConfig.TokenConfig config = jwtConfig.getFront();
+        String accessToken = buildToken(subject, ACCESS_TOKEN_TYPE, AuthConst.SOURCE_FRONT, sessionId, config.getAccessTokenExpiration());
+        String refreshToken = buildToken(subject, REFRESH_TOKEN_TYPE, AuthConst.SOURCE_FRONT, sessionId, config.getRefreshTokenExpiration());
+        return new TokenPair(accessToken, refreshToken);
+    }
+
+    /**
+     * 生成后台Token对（复用sessionId，用于刷新token场景）
+     *
+     * @param subject   主题（用户ID）
+     * @param sessionId 会话标识
+     * @return TokenPair
+     */
+    public TokenPair generateAdminTokenPair(String subject, String sessionId) {
+        JwtConfig.TokenConfig config = jwtConfig.getAdmin();
+        String accessToken = buildToken(subject, ACCESS_TOKEN_TYPE, AuthConst.SOURCE_ADMIN, sessionId, config.getAccessTokenExpiration());
+        String refreshToken = buildToken(subject, REFRESH_TOKEN_TYPE, AuthConst.SOURCE_ADMIN, sessionId, config.getRefreshTokenExpiration());
+        return new TokenPair(accessToken, refreshToken);
+    }
+
+    private String buildToken(String subject, String tokenType, String source, String sessionId, long expiration) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(subject)
@@ -97,6 +133,7 @@ public class JwtUtils {
                 .expiration(new Date(now.getTime() + expiration))
                 .claim(TOKEN_TYPE_KEY, tokenType)
                 .claim(SOURCE_KEY, source)
+                .claim(SESSION_ID_KEY, sessionId)
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -149,6 +186,32 @@ public class JwtUtils {
     }
 
     /**
+     * 获取Token中的会话标识
+     *
+     * @param token Token字符串
+     * @return 会话标识
+     */
+    public String getSessionId(String token) {
+        return parseToken(token).get(SESSION_ID_KEY, String.class);
+    }
+
+    /**
+     * 获取Token中的会话标识（忽略过期校验）
+     *
+     * @param token Token字符串
+     * @return 会话标识，解析失败返回null
+     */
+    public String getSessionIdIgnoreExpiration(String token) {
+        try {
+            return parseToken(token).get(SESSION_ID_KEY, String.class);
+        } catch (ExpiredJwtException e) {
+            return e.getClaims().get(SESSION_ID_KEY, String.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
      * 验证AccessToken是否有效（签名、过期时间、Token类型）
      *
      * @param token Token字符串
@@ -183,30 +246,11 @@ public class JwtUtils {
     }
 
     /**
-     * 使用RefreshToken刷新前台AccessToken
+     * 生成会话标识
      *
-     * @param refreshToken RefreshToken
-     * @return 新的AccessToken，无效则返回null
+     * @return 16位会话ID
      */
-    public String refreshFrontAccessToken(String refreshToken) {
-        if (validateRefreshToken(refreshToken)) {
-            String subject = getSubject(refreshToken);
-            return buildToken(subject, ACCESS_TOKEN_TYPE, AuthConst.SOURCE_FRONT, jwtConfig.getFront().getAccessTokenExpiration());
-        }
-        return null;
-    }
-
-    /**
-     * 使用RefreshToken刷新后台AccessToken
-     *
-     * @param refreshToken RefreshToken
-     * @return 新的AccessToken，无效则返回null
-     */
-    public String refreshAdminAccessToken(String refreshToken) {
-        if (validateRefreshToken(refreshToken)) {
-            String subject = getSubject(refreshToken);
-            return buildToken(subject, ACCESS_TOKEN_TYPE, AuthConst.SOURCE_ADMIN, jwtConfig.getAdmin().getAccessTokenExpiration());
-        }
-        return null;
+    private String generateSessionId() {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 16);
     }
 }
