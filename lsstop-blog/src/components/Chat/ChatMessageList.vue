@@ -32,15 +32,10 @@
         />
         <div class="chat-msg-body">
           <div class="chat-msg-header">
-            <span v-if="msg.ipRegion && isSelf(msg.userId)" class="chat-ip-tag">{{
-              msg.ipRegion
-            }}</span>
             <span class="chat-nickname">
               {{ msg.nickname || chatStore.getNickname(msg.userId) }}
             </span>
-            <span v-if="msg.ipRegion && !isSelf(msg.userId)" class="chat-ip-tag">{{
-              msg.ipRegion
-            }}</span>
+            <span v-if="msg.ipRegion" class="chat-ip-tag">{{ msg.ipRegion }}</span>
           </div>
           <!-- 文本内容 -->
           <div

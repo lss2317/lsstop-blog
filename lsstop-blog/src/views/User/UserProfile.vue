@@ -917,8 +917,11 @@ const savePassword = async () => {
   passwordLoading.value = true;
   try {
     await updatePassword({ oldPassword, newPassword });
-    snackbar.success('密码修改成功');
+    snackbar.success('密码修改成功，请重新登录');
     passwordDialog.value = false;
+    // 清除登录状态，要求重新登录
+    tokenManager.clearTokens();
+    userInfoStore.clearUserInfo();
   } catch (error) {
     snackbar.error(getErrorMessage(error));
   } finally {
