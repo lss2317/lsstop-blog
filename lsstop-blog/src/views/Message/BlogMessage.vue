@@ -8,16 +8,23 @@
         <div
           ref="inputWrapperRef"
           class="animate__animated animate__fadeInUp message-input-wrapper"
+          :class="{ 'is-active': isActive }"
         >
-          <input v-model="messageContent" @focus="show = true" placeholder="说点什么吧" />
-          <transition
-            enter-active-class="animate__animated animate__bounceInLeft"
-            leave-active-class="animate__animated animate__bounceOutRight"
+          <input
+            v-model="messageContent"
+            @focus="onFocus"
+            @keyup.enter="addBlogMessage"
+            placeholder="说点什么吧"
+          />
+          <button
+            class="send-btn"
+            :class="{ 'is-visible': isActive }"
+            :disabled="submitting"
+            :tabindex="isActive ? 0 : -1"
+            @click="addBlogMessage"
           >
-            <button class="ml-3" :disabled="submitting" @click="addBlogMessage" v-show="show">
-              {{ submitting ? '发送中...' : '发送' }}
-            </button>
-          </transition>
+            <span class="send-btn-text">{{ submitting ? '发送中...' : '发送' }}</span>
+          </button>
         </div>
       </div>
       <!-- 弹幕列表 -->
@@ -53,7 +60,7 @@
 
 <script setup lang="ts">
 import VueDanmaku from 'vue3-danmaku';
-import { nextTick, onMounted, onUnmounted, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { listMessage, addMessage, type Message, type AddMessageParams } from '@/apis/message';
 import { ReviewStatusEnum } from '@/constants/reviewStatus';
@@ -67,13 +74,20 @@ const pageInfoStore = usePageInfoStore();
 const { currentCoverStyle: cover } = storeToRefs(pageInfoStore);
 
 // 状态
-const show = ref(false);
+const focused = ref(false);
 const submitting = ref(false);
 const messageContent = ref('');
 const inputWrapperRef = ref<HTMLElement | null>(null);
 const danmakuRef = ref<InstanceType<typeof VueDanmaku> | null>(null);
 const isReady = ref(false);
 const barrageList = ref<Message[]>([]);
+
+// 输入框聚焦或有内容时，保持激活状态（按钮始终显示）
+const isActive = computed(() => focused.value || messageContent.value.trim() !== '');
+
+function onFocus() {
+  focused.value = true;
+}
 
 // 发送留言
 function addBlogMessage() {
@@ -107,7 +121,7 @@ function addBlogMessage() {
       }
       // 清空输入框
       messageContent.value = '';
-      show.value = false;
+      focused.value = false;
     })
     .catch((error) => {
       const msg = error.response?.data?.msg || '留言失败，请稍后重试';
@@ -133,10 +147,10 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
 });
 
-// 点击外部隐藏发送按钮
+// 点击外部收起按钮
 function handleClickOutside(event: MouseEvent) {
   if (inputWrapperRef.value && !inputWrapperRef.value.contains(event.target as Node)) {
-    show.value = false;
+    focused.value = false;
   }
 }
 </script>
@@ -183,8 +197,10 @@ function handleClickOutside(event: MouseEvent) {
 .message-input-wrapper {
   display: flex;
   justify-content: center;
+  align-items: center;
   height: 2.5rem;
   margin-top: 2rem;
+  gap: 0.75rem;
 }
 
 .message-input-wrapper input {
@@ -194,26 +210,86 @@ function handleClickOutside(event: MouseEvent) {
   height: 100%;
   padding: 0 1.25rem;
   color: #eee;
-  border: #fff 1px solid;
+  background: transparent;
+  border: rgba(255, 255, 255, 0.6) 1px solid;
+  transition:
+    width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
-.message-input-wrapper input::-webkit-input-placeholder {
-  color: #eeee;
+/* 激活态：输入框展开 + 发光边框 */
+.message-input-wrapper.is-active input {
+  width: 100%;
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
 }
 
-.message-input-wrapper button {
+.message-input-wrapper input::placeholder {
+  color: rgba(238, 238, 238, 0.7);
+  transition: opacity 0.3s ease;
+}
+
+.message-input-wrapper.is-active input::placeholder {
+  opacity: 0.5;
+}
+
+/* 发送按钮 - 纯CSS折叠动画 */
+.send-btn {
   outline: none;
   border-radius: 20px;
   height: 100%;
-  padding: 0 1.25rem;
-  border: #fff 1px solid;
+  max-width: 0;
+  padding: 0;
+  border: 1px solid transparent;
   flex-shrink: 0;
   cursor: pointer;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.85);
+  pointer-events: none;
+  transition:
+    max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease 0.05s,
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
-.message-input-wrapper button:disabled {
+.send-btn.is-visible {
+  max-width: 100px;
+  padding: 0 1.25rem;
+  opacity: 1;
+  transform: scale(1);
+  border-color: rgba(255, 255, 255, 0.8);
+  pointer-events: auto;
+}
+
+.send-btn-text {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.send-btn.is-visible:hover {
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+  transform: scale(1.04);
+}
+
+.send-btn.is-visible:active {
+  transform: scale(0.96);
+}
+
+.send-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: scale(1);
 }
 
 .barrage-container {
