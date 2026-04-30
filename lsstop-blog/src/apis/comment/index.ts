@@ -13,8 +13,8 @@ export * from './types';
 /**
  * 获取评论列表
  */
-export function getComments(params: CommentQueryParams) {
-  return http.get<CommentPageVO>('/comment/listComment', { params });
+export function getComments(params: CommentQueryParams, showProgress = true) {
+  return http.get<CommentPageVO>('/comment/listComment', { params, showProgress });
 }
 
 /**

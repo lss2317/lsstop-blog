@@ -79,11 +79,11 @@
       </div>
     </div>
 
-    <!-- 加载状态 -->
+    <!-- 加载状态（仅首次加载显示） -->
     <LoadingSpinner v-if="loading" />
 
     <!-- 评论列表 -->
-    <div class="lc-comment-list" v-else-if="count > 0">
+    <div class="lc-comment-list" v-else-if="count > 0" :class="{ 'lc-switching': switching }">
       <div class="lc-comment-item" v-for="item of commentList" :key="item.id">
         <!-- 头像 -->
         <UserProfileCard :user-id="item.userId">
@@ -426,6 +426,7 @@ const sortType = ref<'hot' | 'new'>('hot');
 const showSortMenu = ref(false);
 const current = ref(1);
 const loading = ref(false);
+const switching = ref(false);
 const submitting = ref(false);
 const sortBarRef = ref<HTMLElement | null>(null);
 //每页默认最大条数
@@ -908,7 +909,7 @@ const toggleExpandReply = (id: number) => {
 };
 
 // 加载评论列表
-const listComments = async () => {
+const listComments = async (isSwitch = false) => {
   // 对于需要typeId的类型，如果typeId为空或不是数字，则不发起请求
   if (requiresTypeId(props.type) && (!props.typeId || isNaN(Number(props.typeId)))) {
     commentList.value = [];
@@ -916,21 +917,31 @@ const listComments = async () => {
     return;
   }
 
-  if (loading.value) return;
-  loading.value = true;
+  if (loading.value || switching.value) return;
+
+  // 切换排序/翻页时保留旧列表，仅用 switching 标记
+  if (isSwitch) {
+    switching.value = true;
+  } else {
+    loading.value = true;
+  }
   // 重置展开状态
   resetRepliesState();
   try {
-    const res = await getComments({
-      type: props.type,
-      typeId: props.typeId ? Number(props.typeId) : undefined,
-      current: current.value,
-      sortType: sortType.value,
-    });
+    const res = await getComments(
+      {
+        type: props.type,
+        typeId: props.typeId ? Number(props.typeId) : undefined,
+        current: current.value,
+        sortType: sortType.value,
+      },
+      !isSwitch,
+    );
     commentList.value = res.data.list;
     count.value = res.data.total;
   } finally {
     loading.value = false;
+    switching.value = false;
   }
 };
 
@@ -940,7 +951,7 @@ const handlePageChange = () => {
   if (sortBarRef.value) {
     sortBarRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  listComments();
+  listComments(true);
 };
 
 // 选择排序方式
@@ -952,7 +963,7 @@ const selectSort = (type: 'hot' | 'new') => {
   sortType.value = type;
   showSortMenu.value = false;
   current.value = 1;
-  listComments();
+  listComments(true);
 };
 
 // 点击外部关闭下拉菜单
@@ -1135,6 +1146,12 @@ onUnmounted(() => {
 /* 评论列表 */
 .lc-comment-list {
   padding-top: 8px;
+  transition: opacity 0.15s;
+}
+
+.lc-comment-list.lc-switching {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .lc-comment-item {
