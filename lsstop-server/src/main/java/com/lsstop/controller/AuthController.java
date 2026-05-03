@@ -168,30 +168,6 @@ public class AuthController {
     }
 
     /**
-     * 后台QQ登录
-     *
-     * @param dto QQ登录参数
-     * @return 登录结果
-     */
-    @PostMapping("/admin/auth/login/qq")
-    @AccessLimit(seconds = 60, maxCount = 10)
-    public Result<LoginVO> adminQQLogin(@RequestBody @Validated QQLoginDTO dto) {
-        return Result.success(authService.qqLogin(dto, LoginSourceEnum.ADMIN));
-    }
-
-    /**
-     * 后台微博登录
-     *
-     * @param dto 微博登录参数
-     * @return 登录结果
-     */
-    @PostMapping("/admin/auth/login/weibo")
-    @AccessLimit(seconds = 60, maxCount = 10)
-    public Result<LoginVO> adminWeiboLogin(@RequestBody @Validated WeiboLoginDTO dto) {
-        return Result.success(authService.weiboLogin(dto, LoginSourceEnum.ADMIN));
-    }
-
-    /**
      * 后台刷新token
      *
      * @param dto 刷新token请求参数
@@ -214,6 +190,30 @@ public class AuthController {
     public Result<Void> adminLogout(@RequestBody @Validated RefreshTokenDTO dto) {
         authService.logout(dto.getRefreshToken(), LoginSourceEnum.ADMIN);
         return Result.success();
+    }
+
+    /**
+     * 后台QQ登录
+     *
+     * @param dto QQ登录参数
+     * @return 登录结果
+     */
+    @PostMapping("/admin/auth/login/qq")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    public Result<LoginVO> adminQQLogin(@RequestBody @Validated QQLoginDTO dto) {
+        return Result.success(authService.qqLogin(dto, LoginSourceEnum.ADMIN));
+    }
+
+    /**
+     * 后台微博登录
+     *
+     * @param dto 微博登录参数
+     * @return 登录结果
+     */
+    @PostMapping("/admin/auth/login/weibo")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    public Result<LoginVO> adminWeiboLogin(@RequestBody @Validated WeiboLoginDTO dto) {
+        return Result.success(authService.weiboLogin(dto, LoginSourceEnum.ADMIN));
     }
 
 }

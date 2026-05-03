@@ -5,6 +5,7 @@ import com.lsstop.constant.CommonConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
 import com.lsstop.domain.entity.UserProfileEntity;
+import com.lsstop.domain.vo.AdminUserInfoVO;
 import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
@@ -210,6 +211,26 @@ public class UserServiceImpl implements UserService {
         }
         // 清除用户相关缓存
         clearUserCache(userId);
+    }
+
+    /**
+     * 获取后台当前登录用户信息
+     *
+     * @param userId 用户ID
+     * @return 后台用户信息
+     */
+    @Override
+    public AdminUserInfoVO getAdminUserInfo(String userId) {
+        // 查询用户资料
+        UserProfileEntity userProfile = authMapper.selectProfileById(userId);
+        if (userProfile == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
+        }
+        AdminUserInfoVO vo = userProfile.asViewObject(AdminUserInfoVO.class);
+        // 查询用户邮箱
+        String email = authMapper.selectEmailByUserId(userId);
+        vo.setEmail(email);
+        return vo;
     }
 
     /**

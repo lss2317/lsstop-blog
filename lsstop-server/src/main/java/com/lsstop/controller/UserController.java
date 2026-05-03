@@ -8,6 +8,7 @@ import com.lsstop.domain.dto.BindCodeDTO;
 import com.lsstop.domain.dto.ChangeEmailDTO;
 import com.lsstop.domain.dto.ChangePasswordDTO;
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
+import com.lsstop.domain.vo.AdminUserInfoVO;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.domain.vo.UserInfoVO;
@@ -223,6 +224,19 @@ public class UserController {
         String userId = (String) request.getAttribute("userId");
         authService.unbindWeibo(userId);
         return Result.success();
+    }
+
+    /**
+     * 获取后台当前登录用户信息
+     *
+     * @param request 请求对象（拦截器已验证token并存入userId）
+     * @return 后台用户信息
+     */
+    @GetMapping("/admin/user/info")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<AdminUserInfoVO> getAdminUserInfo(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        return Result.success(userService.getAdminUserInfo(userId));
     }
 
 }
