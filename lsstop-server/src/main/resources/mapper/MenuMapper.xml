@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.MenuMapper">
+
+    <resultMap id="menuVoResult" type="com.lsstop.domain.vo.MenuVO">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="parentId" column="parent_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="menuType" column="menu_type" jdbcType="TINYINT" javaType="java.lang.Integer"/>
+        <result property="name" column="name" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="path" column="path" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="component" column="component" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="redirect" column="redirect" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="title" column="title" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="icon" column="icon" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="sort" column="sort" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="isHide" column="is_hide" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="isHideTab" column="is_hide_tab" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="keepAlive" column="keep_alive" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="isFullPage" column="is_full_page" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="isFirstLevel" column="is_first_level" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="fixedTab" column="fixed_tab" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="link" column="link" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="isIframe" column="is_iframe" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="activePath" column="active_path" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="authMark" column="auth_mark" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    </resultMap>
+
+    <select id="selectMenusByUserId" resultMap="menuVoResult">
+        select m.id, m.parent_id, m.menu_type, m.name, m.path, m.component,
+               m.redirect, m.title, m.icon, m.sort,
+               m.is_hide, m.is_hide_tab, m.keep_alive, m.is_full_page,
+               m.is_first_level, m.fixed_tab, m.link, m.is_iframe,
+               m.active_path, m.auth_mark
+        from blog_menu m
+        where m.deleted_at = 0
+          and m.is_enabled = 1
+          and (
+                -- 角色关联的菜单
+                m.id in (
+                    select rm.menu_id
+                    from blog_role_menu rm
+                             inner join blog_user_role ur on rm.role_id = ur.role_id
+                        and ur.deleted_at = 0
+                             inner join blog_role r on rm.role_id = r.id
+                        and r.deleted_at = 0
+                        and r.is_enabled = 1
+                    where rm.deleted_at = 0
+                      and ur.user_id = #{userId}
+                )
+                -- 额外授予的菜单
+                or m.id in (
+                    select um.menu_id
+                    from blog_user_menu um
+                    where um.deleted_at = 0
+                      and um.user_id = #{userId}
+                      and um.type = 1
+                )
+          )
+          -- 排除额外移除的菜单
+          and m.id not in (
+              select um.menu_id
+              from blog_user_menu um
+              where um.deleted_at = 0
+                and um.user_id = #{userId}
+                and um.type = 2
+          )
+        order by m.sort, m.id
+    </select>
+
+</mapper>
