@@ -1,6 +1,7 @@
 package com.lsstop.config;
 
 import com.lsstop.interceptor.AdminAuthInterceptor;
+import com.lsstop.interceptor.AdminPermissionInterceptor;
 import com.lsstop.interceptor.FrontAuthInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -21,14 +22,22 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     private final AdminAuthInterceptor adminAuthInterceptor;
+    private final AdminPermissionInterceptor adminPermissionInterceptor;
     private final FrontAuthInterceptor frontAuthInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 后台拦截器 - 拦截 /admin/** 路径，必须登录且使用admin token（排除认证相关接口）
+        // 后台身份认证拦截器 - 拦截 /admin/** 路径，必须登录且使用admin token
         registry.addInterceptor(adminAuthInterceptor)
                 .addPathPatterns("/admin/**")
-                .excludePathPatterns("/admin/auth/**");
+                .excludePathPatterns("/admin/auth/**")
+                .order(1);
+
+        // 后台接口权限拦截器 - 在身份认证之后执行，动态URL权限校验
+        registry.addInterceptor(adminPermissionInterceptor)
+                .addPathPatterns("/admin/**")
+                .excludePathPatterns("/admin/auth/**")
+                .order(2);
 
         // 前台拦截器 - 拦截需要登录的 /front/** 路径
         registry.addInterceptor(frontAuthInterceptor)

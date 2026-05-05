@@ -139,6 +139,21 @@ public class RedisConst {
     public static final String ADMIN_REFRESH_TOKEN = PREFIX + "admin:refresh:token:";
 
     /**
+     * 用户菜单树缓存
+     */
+    public static final String USER_MENU_TREE = PREFIX + "user:menu:tree:";
+
+    /**
+     * 用户API权限模式缓存（Set<String>，格式：METHOD:/uri/pattern）
+     */
+    public static final String USER_API_PERMISSIONS = PREFIX + "user:api:permissions:";
+
+    /**
+     * 全局按钮权限规则缓存（系统所有 menuType=3 的 path）
+     */
+    public static final String ALL_API_PERMISSIONS = PREFIX + "all:api:permissions";
+
+    /**
      * 页面信息列表缓存
      */
     public static final String PAGE_INFO_LIST = PREFIX + "page:info:list";

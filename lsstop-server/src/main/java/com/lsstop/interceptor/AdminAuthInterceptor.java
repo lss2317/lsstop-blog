@@ -12,7 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * 后台认证拦截器
+ * 后台身份认证拦截器
+ * <p>责任：验证 Token 有效性、校验 admin 来源
  *
  * @author lishusheng
  * @date 2026/01/03
@@ -78,6 +79,6 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
     private void forbidden(HttpServletResponse response) throws Exception {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(Result.failure(403, AuthConst.NO_ADMIN_ACCESS).asJsonString());
+        response.getWriter().write(Result.failure(StatusEnum.NO_PERMISSION).asJsonString());
     }
 }

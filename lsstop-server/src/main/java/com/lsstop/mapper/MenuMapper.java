@@ -23,4 +23,12 @@ public interface MenuMapper {
      */
     List<MenuVO> selectMenusByUserId(@Param("userId") String userId);
 
+    /**
+     * 查询系统所有启用的按钮权限的 path（menuType=3）
+     * <p>用于拦截器判断接口是否受权限管控
+     *
+     * @return 所有按钮权限的 path 列表（格式：METHOD:/uri/pattern）
+     */
+    List<String> selectAllButtonPaths();
+
 }
