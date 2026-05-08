@@ -6,6 +6,7 @@
         <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result property="viewDate" column="view_date" jdbcType="DATE" javaType="java.time.LocalDate"/>
         <result property="viewsCount" column="views_count" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="uniqueVisitorCount" column="unique_visitor_count" jdbcType="INTEGER" javaType="java.lang.Integer"/>
     </resultMap>
 
     <select id="getTotalViewsCount" resultType="java.lang.Integer">
@@ -14,19 +15,20 @@
     </select>
 
     <select id="getByViewDate" resultMap="uniqueViewResult">
-        select id, view_date, views_count
+        select id, view_date, views_count, unique_visitor_count
         from blog_unique_view
         where view_date = #{viewDate}
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into blog_unique_view (view_date, views_count)
-        values (#{viewDate}, #{viewsCount})
+        insert into blog_unique_view (view_date, views_count, unique_visitor_count)
+        values (#{viewDate}, #{viewsCount}, #{uniqueVisitorCount})
     </insert>
 
     <update id="updateViewsCount">
         update blog_unique_view
-        set views_count = #{viewsCount}
+        set views_count = #{viewsCount},
+            unique_visitor_count = #{uniqueVisitorCount}
         where view_date = #{viewDate}
     </update>
 

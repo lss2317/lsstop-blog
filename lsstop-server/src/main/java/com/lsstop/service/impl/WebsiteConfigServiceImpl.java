@@ -76,6 +76,14 @@ public class WebsiteConfigServiceImpl implements WebsiteConfigService {
             }
         }
 
+        // 记录今日独立访客（每个IP每天只计一次）
+        String uvSetKey = RedisConst.TODAY_UV_SET + today;
+        Long uvAdded = redisUtils.sAdd(uvSetKey, ipAddress);
+        if (uvAdded != null && uvAdded > 0) {
+            // 设置过期时间（幂等操作，重复设置无副作用）
+            redisUtils.expire(uvSetKey, RedisConst.EXPIRE_ONE_DAY + 2 * 3600);
+        }
+
         // 获取历史总访问量，优先从Redis取
         Integer historyCount = redisUtils.get(RedisConst.HISTORY_VIEW_COUNT, Integer.class);
         if (historyCount == null) {
@@ -92,8 +100,13 @@ public class WebsiteConfigServiceImpl implements WebsiteConfigService {
             todayCount = 0;
         }
 
+        // 获取今日独立访客数
+        Long todayUvCount = redisUtils.sSize(RedisConst.TODAY_UV_SET + today);
+        Integer todayUv = (todayUvCount != null) ? todayUvCount.intValue() : 0;
+
         return VisitStatsVO.builder()
                 .viewsCount(historyCount + todayCount)
+                .todayUniqueVisitorCount(todayUv)
                 .build();
     }
 

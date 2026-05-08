@@ -41,22 +41,22 @@ public class MenuEntity implements BaseData {
     private String name;
 
     /**
-     * 路由path
+     * 路由path（相对路径，如 console；前端会自动拼接父路径为绝对路径）
      */
     private String path;
 
     /**
-     * 组件路径（如 system/user/index）
+     * 组件路径（menuType=2时必填，如 /home/console；menuType=1时必须为NULL）
      */
     private String component;
 
     /**
-     * 重定向路径
+     * 重定向路径（目录类型可留NULL，前端会自动推导首个子路由）
      */
     private String redirect;
 
     /**
-     * 菜单标题
+     * 菜单标题（对应前端 meta.title）
      */
     private String title;
 
@@ -71,42 +71,42 @@ public class MenuEntity implements BaseData {
     private Integer sort;
 
     /**
-     * 是否在菜单中隐藏
+     * 是否在菜单中隐藏：0-显示 1-隐藏
      */
     private Integer isHide;
 
     /**
-     * 是否在标签页中隐藏
+     * 是否在标签页中隐藏：0-显示 1-隐藏
      */
     private Integer isHideTab;
 
     /**
-     * 是否缓存页面
+     * 是否缓存页面（KeepAlive）：0-不缓存 1-缓存
      */
     private Integer keepAlive;
 
     /**
-     * 是否全屏页面
+     * 是否全屏页面（不显示侧边栏和顶栏）：0-否 1-是
      */
     private Integer isFullPage;
 
     /**
-     * 是否一级菜单
+     * 是否一级菜单（无父目录，直接显示在顶部导航，不展开侧边栏）：0-否 1-是
      */
     private Integer isFirstLevel;
 
     /**
-     * 是否固定标签页
+     * 是否固定标签页（不可被用户关闭）：0-否 1-是
      */
     private Integer fixedTab;
 
     /**
-     * 外部链接URL
+     * 外部链接URL（配合isIframe：isIframe=0新窗口打开，isIframe=1页面内嵌入）
      */
     private String link;
 
     /**
-     * 是否iframe嵌入
+     * 是否iframe嵌入：0-新窗口打开外链 1-iframe内嵌展示
      */
     private Integer isIframe;
 

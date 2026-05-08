@@ -21,4 +21,9 @@ public class VisitStatsVO {
      * 总访问量
      */
     private Integer viewsCount;
+
+    /**
+     * 今日独立访客数
+     */
+    private Integer todayUniqueVisitorCount;
 }

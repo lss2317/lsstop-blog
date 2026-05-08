@@ -41,6 +41,7 @@ public class UniqueViewTask {
             LocalDate yesterday = LocalDate.now().minusDays(1);
             String yesterdayStr = yesterday.format(DateTimeFormatter.BASIC_ISO_DATE);
             String countKey = RedisConst.TODAY_VIEW_COUNT + yesterdayStr;
+            String uvSetKey = RedisConst.TODAY_UV_SET + yesterdayStr;
 
             // 获取昨日访问量
             Integer viewsCount = redisUtils.get(countKey, Integer.class);
@@ -48,24 +49,30 @@ public class UniqueViewTask {
                 viewsCount = 0;
             }
 
+            // 获取昨日独立访客数
+            Long uvCount = redisUtils.sSize(uvSetKey);
+            Integer uniqueVisitorCount = (uvCount != null) ? uvCount.intValue() : 0;
+
             // 检查是否已存在记录
             UniqueViewEntity existing = uniqueViewMapper.getByViewDate(yesterday);
             if (existing != null) {
                 // 更新记录
-                uniqueViewMapper.updateViewsCount(yesterday, viewsCount);
-                log.info("更新昨日访问量记录: {}, 访问量: {}", yesterday, viewsCount);
+                uniqueViewMapper.updateViewsCount(yesterday, viewsCount, uniqueVisitorCount);
+                log.info("更新昨日访问量记录: {}, 访问量: {}, 独立访客: {}", yesterday, viewsCount, uniqueVisitorCount);
             } else {
                 // 新增记录
                 UniqueViewEntity entity = UniqueViewEntity.builder()
                         .viewDate(yesterday)
                         .viewsCount(viewsCount)
+                        .uniqueVisitorCount(uniqueVisitorCount)
                         .build();
                 uniqueViewMapper.insert(entity);
-                log.info("新增昨日访问量记录: {}, 访问量: {}", yesterday, viewsCount);
+                log.info("新增昨日访问量记录: {}, 访问量: {}, 独立访客: {}", yesterday, viewsCount, uniqueVisitorCount);
             }
 
             // 删除已同步的Redis数据
             redisUtils.delete(countKey);
+            redisUtils.delete(uvSetKey);
             // 刷新历史总访问量缓存
             redisUtils.delete(RedisConst.HISTORY_VIEW_COUNT);
         } catch (Exception e) {

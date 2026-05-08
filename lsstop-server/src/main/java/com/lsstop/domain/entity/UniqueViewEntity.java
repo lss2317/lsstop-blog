@@ -34,4 +34,9 @@ public class UniqueViewEntity implements BaseData {
      * 当日访问量
      */
     private Integer viewsCount;
+
+    /**
+     * 当日独立访客数
+     */
+    private Integer uniqueVisitorCount;
 }

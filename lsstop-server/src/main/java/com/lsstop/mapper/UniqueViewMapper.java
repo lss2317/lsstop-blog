@@ -41,7 +41,8 @@ public interface UniqueViewMapper {
      *
      * @param viewDate   统计日期
      * @param viewsCount 访问量
+     * @param uniqueVisitorCount 独立访客数
      * @return 影响行数
      */
-    int updateViewsCount(@Param("viewDate") LocalDate viewDate, @Param("viewsCount") Integer viewsCount);
+    int updateViewsCount(@Param("viewDate") LocalDate viewDate, @Param("viewsCount") Integer viewsCount, @Param("uniqueVisitorCount") Integer uniqueVisitorCount);
 }
