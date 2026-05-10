@@ -156,4 +156,15 @@ public class StringUtils {
             return false;
         }
     }
+
+    /**
+     * 格式化百分比数值为带符号字符串
+     * <p>例如：20 → "+20%"、-12 → "-12%"、0 → "+0%"</p>
+     *
+     * @param percent 百分比数值
+     * @return 格式化后的百分比字符串
+     */
+    public static String formatPercent(int percent) {
+        return (percent >= 0 ? "+" : "") + percent + "%";
+    }
 }

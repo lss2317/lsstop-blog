@@ -39,6 +39,66 @@ public class RedisConst {
     public static final String HISTORY_VIEW_COUNT = PREFIX + "visitor:history:count";
 
     /**
+     * 历史日期访问量缓存（按日期缓存，如 blog:visitor:daily:20260509）
+     */
+    public static final String DAILY_VIEW_COUNT = PREFIX + "visitor:daily:";
+
+    /**
+     * 今日新增评论数（如 blog:comment:today:20260510）
+     */
+    public static final String TODAY_COMMENT_COUNT = PREFIX + "comment:today:";
+
+    /**
+     * 历史日期评论数缓存（如 blog:comment:daily:20260509）
+     */
+    public static final String DAILY_COMMENT_COUNT = PREFIX + "comment:daily:";
+
+    /**
+     * 用户总数缓存
+     */
+    public static final String TOTAL_USER_COUNT = PREFIX + "user:total:count";
+
+    /**
+     * 评论总数缓存
+     */
+    public static final String TOTAL_COMMENT_COUNT = PREFIX + "comment:total:count";
+
+    /**
+     * 留言总数缓存
+     */
+    public static final String TOTAL_MESSAGE_COUNT = PREFIX + "message:total:count";
+
+    /**
+     * 文章总数缓存
+     */
+    public static final String TOTAL_ARTICLE_COUNT = PREFIX + "article:total:count";
+
+    /**
+     * 分类总数缓存
+     */
+    public static final String TOTAL_CATEGORY_COUNT = PREFIX + "category:total:count";
+
+    /**
+     * 标签总数缓存
+     */
+    public static final String TOTAL_TAG_COUNT = PREFIX + "tag:total:count";
+
+    /**
+     * 友链总数缓存
+     */
+    public static final String TOTAL_FRIEND_LINK_COUNT = PREFIX + "friendLink:total:count";
+
+    /**
+     * 待审核评论数缓存
+     */
+    public static final String PENDING_REVIEW_COMMENT_COUNT = PREFIX + "comment:pendingReview:count";
+
+    /**
+     * 待审核留言数缓存
+     */
+    public static final String PENDING_REVIEW_MESSAGE_COUNT = PREFIX + "message:pendingReview:count";
+
+    /**
      * 文章浏览量
      */
     public static final String ARTICLE_VIEW_COUNT = PREFIX + "article:view:";

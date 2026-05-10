@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.DashboardMapper">
+
+    <select id="getTotalUserCount" resultType="java.lang.Integer">
+        select count(*)
+        from blog_user
+        where deleted_at = 0
+    </select>
+
+    <select id="getTotalCommentCount" resultType="java.lang.Integer">
+        select count(*)
+        from blog_comment
+        where deleted_at = 0
+          and review = 0
+    </select>
+
+    <select id="getTotalMessageCount" resultType="java.lang.Integer">
+        select count(*)
+        from blog_message
+        where deleted_at = 0
+          and review = 0
+    </select>
+
+    <select id="getCommentCountByDate" resultType="java.lang.Integer">
+        select count(*)
+        from blog_comment
+        where deleted_at = 0
+          and review = 0
+          and date(create_time) = #{date}
+    </select>
+
+    <resultMap id="dailyStatItemResult" type="com.lsstop.domain.vo.ConsoleDataVO$DailyStatItem">
+        <result property="date" column="date"/>
+        <result property="count" column="count"/>
+    </resultMap>
+
+    <select id="getDailyCommentStats" resultMap="dailyStatItemResult">
+        select date(create_time) as date, count(*) as count
+        from blog_comment
+        where deleted_at = 0
+          and review = 0
+          and date(create_time) &gt;= #{startDate}
+          and date(create_time) &lt;= #{endDate}
+        group by date(create_time)
+        order by date(create_time)
+    </select>
+
+    <resultMap id="recentCommentItemResult" type="com.lsstop.domain.vo.ConsoleDataVO$RecentCommentItem">
+        <result property="avatar" column="avatar"/>
+        <result property="nickname" column="nickname"/>
+        <result property="content" column="content"/>
+        <result property="targetType" column="target_type"/>
+        <result property="targetName" column="target_name"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="getRecentComments" resultMap="recentCommentItemResult">
+        select up.avatar,
+               up.nickname,
+               c.content,
+               c.target_type,
+               case
+                   when c.target_type = 1 then ifnull(a.article_title, '')
+                   when c.target_type = 3 then ifnull(left(t.content, 20), '')
+                   else ''
+               end as target_name,
+               c.create_time as created_at
+        from blog_comment c
+                 left join blog_user_profile up on c.user_id = up.user_id and up.deleted_at = 0
+                 left join blog_article a on c.target_type = 1 and c.target_id = a.id and a.deleted_at = 0
+                 left join blog_talk t on c.target_type = 3 and c.target_id = t.id and t.deleted_at = 0
+        where c.deleted_at = 0
+          and c.review = 0
+        order by c.create_time desc
+        limit #{limit}
+    </select>
+
+    <select id="getPendingReviewCommentCount" resultType="java.lang.Integer">
+        select count(*)
+        from blog_comment
+        where deleted_at = 0
+          and review = 1
+    </select>
+
+    <select id="getPendingReviewMessageCount" resultType="java.lang.Integer">
+        select count(*)
+        from blog_message
+        where deleted_at = 0
+          and review = 1
+    </select>
+
+    <select id="getCategoryCount" resultType="java.lang.Integer">
+        select count(*)
+        from blog_category
+        where deleted_at = 0
+    </select>
+
+    <select id="getTagCount" resultType="java.lang.Integer">
+        select count(*)
+        from blog_tag
+        where deleted_at = 0
+    </select>
+
+    <select id="getFriendLinkCount" resultType="java.lang.Integer">
+        select count(*)
+        from blog_friend_link
+        where deleted_at = 0
+    </select>
+
+</mapper>

@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -82,6 +83,10 @@ public class CommentServiceImpl implements CommentService {
 
         // 更新Redis计数
         updateRedisCount(comment);
+        // 待审核评论：清除待审核数缓存
+        if (CommonConst.REVIEW_PENDING.equals(comment.getReview())) {
+            redisUtils.delete(RedisConst.PENDING_REVIEW_COMMENT_COUNT);
+        }
 
         // 查询用户资料并组装返回数据
         UserProfileEntity userProfile = authMapper.selectProfileById(comment.getUserId());
@@ -118,6 +123,14 @@ public class CommentServiceImpl implements CommentService {
         if (CommentTypeEnum.TALK.getType().equals(comment.getTargetType())) {
             redisUtils.increment(RedisConst.TALK_COMMENT_COUNT + comment.getTargetId());
         }
+        // 更新今日评论计数
+        String todayKey = RedisConst.TODAY_COMMENT_COUNT + LocalDate.now().format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE);
+        Long val = redisUtils.increment(todayKey);
+        if (val != null && val == 1L) {
+            redisUtils.expire(todayKey, RedisConst.EXPIRE_ONE_DAY * 2);
+        }
+        // 清除评论总数缓存
+        redisUtils.delete(RedisConst.TOTAL_COMMENT_COUNT);
     }
 
     /**
@@ -253,6 +266,10 @@ public class CommentServiceImpl implements CommentService {
 
         // 删除评论点赞数缓存
         redisUtils.delete(RedisConst.COMMENT_LIKE_COUNT + commentId);
+        // 如果删除的是待审核评论，清除待审核数缓存
+        if (CommonConst.REVIEW_PENDING.equals(comment.getReview())) {
+            redisUtils.delete(RedisConst.PENDING_REVIEW_COMMENT_COUNT);
+        }
     }
 
     /**

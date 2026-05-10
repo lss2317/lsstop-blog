@@ -1,12 +1,14 @@
 package com.lsstop.service.impl;
 
 import com.lsstop.constant.CommonConst;
+import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.entity.MessageEntity;
 import com.lsstop.domain.entity.WebsiteConfigEntity;
 import com.lsstop.enums.IllegalPolicyEnum;
 import com.lsstop.mapper.MessageMapper;
 import com.lsstop.service.MessageService;
 import com.lsstop.service.WebsiteConfigService;
+import com.lsstop.utils.RedisUtils;
 import com.lsstop.utils.SensitiveWordUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,9 @@ public class MessageServiceImpl implements MessageService {
 
     @Resource
     private WebsiteConfigService websiteConfigService;
+
+    @Resource
+    private RedisUtils redisUtils;
 
     /**
      * 前台获取留言数据
@@ -60,6 +65,12 @@ public class MessageServiceImpl implements MessageService {
         }
 
         messageMapper.insertMessage(message);
+        // 清除留言总数缓存
+        redisUtils.delete(RedisConst.TOTAL_MESSAGE_COUNT);
+        // 待审核留言：清除待审核数缓存
+        if (CommonConst.REVIEW_PENDING.equals(message.getReview())) {
+            redisUtils.delete(RedisConst.PENDING_REVIEW_MESSAGE_COUNT);
+        }
         return message;
     }
 }

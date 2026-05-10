@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * Redis 工具类
@@ -151,6 +152,27 @@ public class RedisUtils {
      */
     public Object get(String key) {
         return redisTemplate.opsForValue().get(key);
+    }
+
+    /**
+     * 获取缓存，未命中则通过 loader 加载并缓存
+     *
+     * @param key     键
+     * @param clazz   目标类型
+     * @param loader  数据加载器
+     * @param seconds 过期时间（秒）
+     * @param <T>     泛型
+     * @return 值
+     */
+    public <T> T getOrLoad(String key, Class<T> clazz, Supplier<T> loader, long seconds) {
+        T value = get(key, clazz);
+        if (value == null) {
+            value = loader.get();
+            if (value != null) {
+                set(key, value, seconds);
+            }
+        }
+        return value;
     }
 
     /**

@@ -587,6 +587,9 @@ public class AuthServiceImpl implements AuthService {
         // 删除验证码
         redisUtils.delete(codeKey);
 
+        // 清除用户总数缓存（下次查询会重新加载）
+        redisUtils.delete(RedisConst.TOTAL_USER_COUNT);
+
         // 发送登录成功日志到MQ
         loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), email, AuthConst.LOGIN_SUCCESS);
 
