@@ -194,7 +194,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     /**
-     * 从 Redis 获取总访问量（历史总量 + 今日访问量）
+     * 从 Redis 获取总访问量（历史总量 + 昨日未同步量 + 今日访问量）
      */
     private Integer getTotalViewsFromRedis(LocalDate today) {
         Integer historyCount = redisUtils.get(RedisConst.HISTORY_VIEW_COUNT, Integer.class);
@@ -203,6 +203,12 @@ public class DashboardServiceImpl implements DashboardService {
             if (historyCount == null) {
                 historyCount = 0;
             }
+        }
+        // 补充昨日未同步的访问量（解决凌晨00:00~01:00数据窗口问题）
+        String yesterdayStr = today.minusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE);
+        Integer yesterdayCount = redisUtils.get(RedisConst.TODAY_VIEW_COUNT + yesterdayStr, Integer.class);
+        if (yesterdayCount != null) {
+            historyCount = historyCount + yesterdayCount;
         }
         String todayStr = today.format(DateTimeFormatter.BASIC_ISO_DATE);
         Integer todayCount = redisUtils.get(RedisConst.TODAY_VIEW_COUNT + todayStr, Integer.class);
@@ -239,9 +245,16 @@ public class DashboardServiceImpl implements DashboardService {
                 // 今天无数据表示还没有访问/评论
                 result.add(0);
             } else {
-                // 历史日期未命中：查库并缓存
-                int dbCount = loadHistoryDailyCount(dates.get(i), historyPrefix);
-                result.add(dbCount);
+                // 历史日期未命中：先尝试从todayPrefix读取（可能定时任务尚未同步）
+                String dateStr = dates.get(i).format(DateTimeFormatter.BASIC_ISO_DATE);
+                Integer unsyncedCount = redisUtils.get(todayPrefix + dateStr, Integer.class);
+                if (unsyncedCount != null) {
+                    result.add(unsyncedCount);
+                } else {
+                    // todayPrefix也没有，查库并缓存
+                    int dbCount = loadHistoryDailyCount(dates.get(i), historyPrefix);
+                    result.add(dbCount);
+                }
             }
         }
         return result;

@@ -68,20 +68,24 @@ public class WebsiteConfigServiceImpl implements WebsiteConfigService {
         // 检查该IP是否3小时内已访问，未访问则增加访问量
         Boolean isNew = redisUtils.setIfAbsent(uvKey, 1, 3 * RedisConst.EXPIRE_ONE_HOUR, TimeUnit.SECONDS);
         if (Boolean.TRUE.equals(isNew)) {
-            // 增加今日访问量，返回1说明是首次创建，设置过期时间
+            // 增加今日访问量（expire每次调用可确保TTL不丢失）
             String todayKey = RedisConst.TODAY_VIEW_COUNT + today;
-            Long count = redisUtils.increment(todayKey);
-            if (count != null && count == 1) {
-                redisUtils.expire(todayKey, RedisConst.EXPIRE_ONE_DAY + 2 * 3600);
-            }
+            redisUtils.increment(todayKey);
+            redisUtils.expire(todayKey, RedisConst.EXPIRE_ONE_DAY + RedisConst.EXPIRE_TWO_HOURS);
         }
 
         // 记录今日独立访客（每个IP每天只计一次）
         String uvSetKey = RedisConst.TODAY_UV_SET + today;
         Long uvAdded = redisUtils.sAdd(uvSetKey, ipAddress);
         if (uvAdded != null && uvAdded > 0) {
-            // 设置过期时间（幂等操作，重复设置无副作用）
-            redisUtils.expire(uvSetKey, RedisConst.EXPIRE_ONE_DAY + 2 * 3600);
+            // 新IP加入时刷新过期时间，确保TTL不丢失
+            redisUtils.expire(uvSetKey, RedisConst.EXPIRE_ONE_DAY + RedisConst.EXPIRE_TWO_HOURS);
+        } else {
+            // 防御性检查：如果key存在但无TTL（极端情况），补设过期时间
+            Long ttl = redisUtils.getExpire(uvSetKey);
+            if (ttl != null && ttl == -1) {
+                redisUtils.expire(uvSetKey, RedisConst.EXPIRE_ONE_DAY + RedisConst.EXPIRE_TWO_HOURS);
+            }
         }
 
         // 获取历史总访问量，优先从Redis取
@@ -91,7 +95,15 @@ public class WebsiteConfigServiceImpl implements WebsiteConfigService {
             if (historyCount == null) {
                 historyCount = 0;
             }
-            redisUtils.set(RedisConst.HISTORY_VIEW_COUNT, historyCount);
+            // 缓存历史总量，设置2天过期兜底（定时任务每天会主动刷新）
+            redisUtils.set(RedisConst.HISTORY_VIEW_COUNT, historyCount, 2 * RedisConst.EXPIRE_ONE_DAY);
+        }
+
+        // 补充昨日未同步的访问量（解决凌晨00:00~01:00数据窗口问题）
+        String yesterday = LocalDate.now().minusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE);
+        Integer yesterdayCount = redisUtils.get(RedisConst.TODAY_VIEW_COUNT + yesterday, Integer.class);
+        if (yesterdayCount != null) {
+            historyCount = historyCount + yesterdayCount;
         }
 
         // 获取今日访问量

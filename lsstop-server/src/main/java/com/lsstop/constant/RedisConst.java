@@ -239,6 +239,11 @@ public class RedisConst {
     public static final long EXPIRE_ONE_HOUR = 60 * 60;
 
     /**
+     * 过期时间：2小时（秒）
+     */
+    public static final long EXPIRE_TWO_HOURS = 2 * 60 * 60;
+
+    /**
      * 过期时间：1天（秒）
      */
     public static final long EXPIRE_ONE_DAY = 24 * 60 * 60;
