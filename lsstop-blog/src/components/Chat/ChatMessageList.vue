@@ -393,7 +393,7 @@ defineExpose({
 }
 
 .chat-bubble.self {
-  background: #007aff;
+  background: hsl(204, 88%, 53%);
   color: #fff;
 }
 
@@ -469,7 +469,7 @@ defineExpose({
 }
 
 .v-theme--dark .chat-bubble.self {
-  background: #0066d6;
+  background: hsl(204, 88%, 45%);
 }
 
 .v-theme--dark .chat-nickname {
