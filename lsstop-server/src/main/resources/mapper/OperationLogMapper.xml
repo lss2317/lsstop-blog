@@ -5,12 +5,14 @@
     <!-- 操作日志ResultMap -->
     <resultMap id="OperationLogResultMap" type="com.lsstop.domain.entity.OperationLogEntity">
         <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="logNumber" column="log_number" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="module" column="module" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="operationType" column="operation_type" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="description" column="description" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="requestUrl" column="request_url" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="requestParam" column="request_param" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="responseParam" column="response_param" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="ipAddress" column="ip_address" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="ipRegion" column="ip_region" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="browser" column="browser" jdbcType="VARCHAR" javaType="java.lang.String"/>
@@ -25,11 +27,11 @@
 
     <!-- 插入操作日志 -->
     <insert id="insert" parameterType="com.lsstop.domain.entity.OperationLogEntity">
-        INSERT INTO blog_operation_log (user_id, module, operation_type, description, request_url, request_param,
-                                        ip_address, ip_region, browser, os, cost_time, state, error_msg,
+        INSERT INTO blog_operation_log (log_number, user_id, module, operation_type, description, request_url, request_param,
+                                        response_param, ip_address, ip_region, browser, os, cost_time, state, error_msg,
                                         deleted_at, create_time, update_time)
-        VALUES (#{userId}, #{module}, #{operationType}, #{description}, #{requestUrl}, #{requestParam},
-                #{ipAddress}, #{ipRegion}, #{browser}, #{os}, #{costTime}, #{state}, #{errorMsg},
+        VALUES (#{logNumber}, #{userId}, #{module}, #{operationType}, #{description}, #{requestUrl}, #{requestParam},
+                #{responseParam}, #{ipAddress}, #{ipRegion}, #{browser}, #{os}, #{costTime}, #{state}, #{errorMsg},
                 0, NOW(), NOW())
     </insert>
 

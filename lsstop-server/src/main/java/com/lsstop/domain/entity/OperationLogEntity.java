@@ -25,6 +25,11 @@ public class OperationLogEntity {
     private Integer id;
 
     /**
+     * 日志编号
+     */
+    private String logNumber;
+
+    /**
      * 操作用户ID
      */
     private String userId;
@@ -53,6 +58,11 @@ public class OperationLogEntity {
      * 请求参数
      */
     private String requestParam;
+
+    /**
+     * 返回参数
+     */
+    private String responseParam;
 
     /**
      * IP地址

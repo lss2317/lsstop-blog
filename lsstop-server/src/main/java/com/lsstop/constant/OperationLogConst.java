@@ -31,6 +31,11 @@ public class OperationLogConst {
     public static final int MAX_PARAM_LENGTH = 2000;
 
     /**
+     * 返回参数最大长度
+     */
+    public static final int MAX_RESPONSE_PARAM_LENGTH = 2000;
+
+    /**
      * 敏感字段
      */
     public static final Set<String> SENSITIVE_FIELDS = Set.of(

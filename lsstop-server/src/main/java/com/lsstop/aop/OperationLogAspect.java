@@ -7,6 +7,7 @@ import com.lsstop.constant.OperationLogConst;
 import com.lsstop.constant.RabbitMQConst;
 import com.lsstop.domain.entity.OperationLogEntity;
 import com.lsstop.utils.IpUtils;
+import com.lsstop.utils.StringUtils;
 import com.lsstop.utils.UserAgentUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * 操作日志切面
@@ -47,14 +49,14 @@ public class OperationLogAspect {
         HttpServletRequest request = getRequest();
 
         // 执行目标方法
-        Object result;
+        Object result = null;
         int state = OperationLogConst.STATE_SUCCESS;
         String errorMsg = null;
         try {
             result = joinPoint.proceed();
         } catch (Throwable e) {
             state = OperationLogConst.STATE_FAIL;
-            errorMsg = truncate(e.getMessage(), OperationLogConst.MAX_ERROR_MSG_LENGTH);
+            errorMsg = StringUtils.truncate(e.getMessage(), OperationLogConst.MAX_ERROR_MSG_LENGTH);
             throw e;
         } finally {
             // 计算耗时
@@ -62,7 +64,7 @@ public class OperationLogAspect {
 
             // 记录日志
             try {
-                recordLog(joinPoint, operationLog, request, costTime, state, errorMsg);
+                recordLog(joinPoint, operationLog, request, costTime, state, errorMsg, result);
             } catch (Exception e) {
                 log.error("操作日志记录失败", e);
             }
@@ -75,7 +77,8 @@ public class OperationLogAspect {
      * 记录操作日志
      */
     private void recordLog(ProceedingJoinPoint joinPoint, OperationLog operationLog,
-                           HttpServletRequest request, long costTime, Integer state, String errorMsg) {
+                           HttpServletRequest request, long costTime, Integer state, String errorMsg,
+                           Object result) {
         String userId = null;
         String ipAddress = CommonConst.UNKNOWN;
         String ipRegion = CommonConst.UNKNOWN_REGION;
@@ -95,6 +98,9 @@ public class OperationLogAspect {
         // 获取请求参数
         String requestParam = getRequestParam(joinPoint);
 
+        // 获取返回参数
+        String responseParam = getResponseParam(result);
+
         // 构建日志描述
         String description = operationLog.description();
         if (description.isEmpty()) {
@@ -102,12 +108,14 @@ public class OperationLogAspect {
         }
 
         OperationLogEntity logEntity = OperationLogEntity.builder()
+                .logNumber(UUID.randomUUID().toString().replace("-", ""))
                 .userId(userId)
                 .module(operationLog.module().name())
                 .operationType(operationLog.type().name())
                 .description(description)
                 .requestUrl(requestUrl)
                 .requestParam(requestParam)
+                .responseParam(responseParam)
                 .ipAddress(ipAddress)
                 .ipRegion(ipRegion)
                 .browser(browser)
@@ -158,21 +166,21 @@ public class OperationLogAspect {
             }
         }
         String result = params.toString().trim();
-        return truncate(result, OperationLogConst.MAX_PARAM_LENGTH);
+        return StringUtils.truncate(result, OperationLogConst.MAX_PARAM_LENGTH);
+    }
+
+    /**
+     * 获取返回参数
+     */
+    private String getResponseParam(Object result) {
+        if (result == null) {
+            return "";
+        }
+        return StringUtils.truncate(String.valueOf(result), OperationLogConst.MAX_RESPONSE_PARAM_LENGTH);
     }
 
     private HttpServletRequest getRequest() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         return attributes != null ? attributes.getRequest() : null;
-    }
-
-    /**
-     * 截断字符串
-     */
-    private String truncate(String str, int maxLength) {
-        if (str == null || str.length() <= maxLength) {
-            return str;
-        }
-        return str.substring(0, maxLength) + "...";
     }
 }
