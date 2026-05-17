@@ -54,6 +54,31 @@ public class RedisConst {
     public static final String DAILY_COMMENT_COUNT = PREFIX + "comment:daily:";
 
     /**
+     * 今日新增留言数（如 blog:message:today:20260510）
+     */
+    public static final String TODAY_MESSAGE_COUNT = PREFIX + "message:today:";
+
+    /**
+     * 历史日期留言数缓存（如 blog:message:daily:20260509）
+     */
+    public static final String DAILY_MESSAGE_COUNT = PREFIX + "message:daily:";
+
+    /**
+     * 今日新增点赞数（如 blog:like:today:20260510）
+     */
+    public static final String TODAY_LIKE_COUNT = PREFIX + "like:today:";
+
+    /**
+     * 历史日期点赞数缓存（如 blog:like:daily:20260509）
+     */
+    public static final String DAILY_LIKE_COUNT = PREFIX + "like:daily:";
+
+    /**
+     * 历史日期独立访客数缓存（如 blog:visitor:daily:uv:20260509）
+     */
+    public static final String DAILY_UV_COUNT = PREFIX + "visitor:daily:uv:";
+
+    /**
      * 用户总数缓存
      */
     public static final String TOTAL_USER_COUNT = PREFIX + "user:total:count";
@@ -101,7 +126,7 @@ public class RedisConst {
     /**
      * 文章浏览量
      */
-    public static final String ARTICLE_VIEW_COUNT = PREFIX + "article:view:";
+    public static final String ARTICLE_VIEW_COUNT = PREFIX + "article:viewCount:";
 
     /**
      * 文章点赞数
@@ -222,6 +247,26 @@ public class RedisConst {
      * 页面信息列表缓存
      */
     public static final String PAGE_INFO_LIST = PREFIX + "page:info:list";
+
+    /**
+     * 仪表盘-热门文章缓存
+     */
+    public static final String DASHBOARD_TOP_ARTICLES = PREFIX + "dashboard:topArticles";
+
+    /**
+     * 仪表盘-分类分布缓存
+     */
+    public static final String DASHBOARD_CATEGORY_DISTRIBUTION = PREFIX + "dashboard:categoryDistribution";
+
+    /**
+     * 仪表盘-评论来源分布缓存
+     */
+    public static final String DASHBOARD_COMMENT_SOURCE = PREFIX + "dashboard:commentSource";
+
+    /**
+     * 仪表盘-标签热度缓存
+     */
+    public static final String DASHBOARD_TAG_RADAR = PREFIX + "dashboard:tagRadar";
 
     /**
      * 过期时间：1分钟（秒）

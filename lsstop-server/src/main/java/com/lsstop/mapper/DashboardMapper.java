@@ -1,5 +1,6 @@
 package com.lsstop.mapper;
 
+import com.lsstop.domain.vo.AnalysisDataVO;
 import com.lsstop.domain.vo.ConsoleDataVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -68,4 +69,39 @@ public interface DashboardMapper {
      * 查询友链总数
      */
     Integer getFriendLinkCount();
+
+    /**
+     * 查询热门文章 Top N（按浏览量降序）
+     */
+    List<AnalysisDataVO.TopArticleItem> getTopArticles(@Param("limit") Integer limit);
+
+    /**
+     * 查询文章分类分布
+     */
+    List<AnalysisDataVO.CategoryDistributionItem> getCategoryDistribution();
+
+    /**
+     * 查询评论来源分布
+     */
+    List<AnalysisDataVO.CommentSourceItem> getCommentSourceDistribution();
+
+    /**
+     * 查询指定日期的留言数
+     */
+    Integer getMessageCountByDate(@Param("date") LocalDate date);
+
+    /**
+     * 查询指定日期的点赞数
+     */
+    Integer getLikeCountByDate(@Param("date") LocalDate date);
+
+    /**
+     * 查询指定日期的独立访客数
+     */
+    Integer getUniqueVisitorCountByDate(@Param("date") LocalDate date);
+
+    /**
+     * 查询标签热度（按文章数降序）
+     */
+    List<AnalysisDataVO.TagRadarItem> getTagRadar();
 }

@@ -43,4 +43,14 @@ public class DashboardConst {
      */
     public static final int RECENT_COMMENT_LIMIT = 5;
 
+    /**
+     * 近30天统计天数
+     */
+    public static final int DAYS_30 = 30;
+
+    /**
+     * 热门文章查询数量
+     */
+    public static final int TOP_ARTICLE_LIMIT = 7;
+
 }

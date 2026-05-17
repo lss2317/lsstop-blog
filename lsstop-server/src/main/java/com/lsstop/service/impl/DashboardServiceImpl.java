@@ -58,7 +58,16 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public AnalysisDataVO getAnalysisData() {
-        return null;
+        LocalDate today = LocalDate.now();
+
+        return AnalysisDataVO.builder()
+                .uniqueVisitorTrend(buildUniqueVisitorTrend(today))
+                .topArticles(getCachedTopArticles())
+                .categoryDistribution(getCachedCategoryDistribution())
+                .commentSource(getCachedCommentSource())
+                .interactionTrend(buildInteractionTrend(today))
+                .tagRadar(getCachedTagRadar())
+                .build();
     }
 
     /**
@@ -268,11 +277,130 @@ public class DashboardServiceImpl implements DashboardService {
         int count;
         if (keyPrefix.equals(RedisConst.DAILY_COMMENT_COUNT)) {
             count = dashboardMapper.getCommentCountByDate(date);
+        } else if (keyPrefix.equals(RedisConst.DAILY_MESSAGE_COUNT)) {
+            count = dashboardMapper.getMessageCountByDate(date);
+        } else if (keyPrefix.equals(RedisConst.DAILY_LIKE_COUNT)) {
+            count = dashboardMapper.getLikeCountByDate(date);
         } else {
             var record = uniqueViewMapper.getByViewDate(date);
             count = (record != null && record.getViewsCount() != null) ? record.getViewsCount() : 0;
         }
         redisUtils.set(cacheKey, count, RedisConst.EXPIRE_ONE_WEEK);
         return count;
+    }
+
+    /**
+     * 构建近30天独立访客趋势（历史日期走Redis批量+DB兜底，今日走UV Set）
+     */
+    private AnalysisDataVO.UniqueVisitorTrendVO buildUniqueVisitorTrend(LocalDate today) {
+        LocalDate startDate = today.minusDays(DashboardConst.DAYS_30 - 1);
+
+        // 批量获取历史日期的独立访客数（Redis缓存 + DB兜底）
+        List<AnalysisDataVO.DailyStatItem> dailyStats = new ArrayList<>(DashboardConst.DAYS_30);
+        for (int i = 0; i < DashboardConst.DAYS_30; i++) {
+            LocalDate date = startDate.plusDays(i);
+            int count;
+            if (date.equals(today)) {
+                // 今日独立访客数从UV Set取
+                Long uvSize = redisUtils.sSize(RedisConst.TODAY_UV_SET + today.format(DateTimeFormatter.BASIC_ISO_DATE));
+                count = uvSize != null ? uvSize.intValue() : 0;
+            } else {
+                // 历史日期：先查Redis缓存，未命中查库并缓存
+                String key = RedisConst.DAILY_UV_COUNT + date.format(DateTimeFormatter.BASIC_ISO_DATE);
+                Integer cached = redisUtils.get(key, Integer.class);
+                if (cached != null) {
+                    count = cached;
+                } else {
+                    count = dashboardMapper.getUniqueVisitorCountByDate(date);
+                    redisUtils.set(key, count, RedisConst.EXPIRE_ONE_WEEK);
+                }
+            }
+            dailyStats.add(AnalysisDataVO.DailyStatItem.builder()
+                    .date(date.format(DATE_FMT))
+                    .count(count)
+                    .build());
+        }
+        return AnalysisDataVO.UniqueVisitorTrendVO.builder().dailyStats(dailyStats).build();
+    }
+
+    /**
+     * 构建近7天互动趋势（评论、留言、点赞，全部走Redis批量+DB兜底）
+     */
+    private AnalysisDataVO.InteractionTrendVO buildInteractionTrend(LocalDate today) {
+        // 批量获取近7天评论/留言/点赞数（Redis缓存 + DB兜底）
+        List<Integer> commentCounts = batchGetDailyCounts(today, DashboardConst.DAYS_7,
+                RedisConst.TODAY_COMMENT_COUNT, RedisConst.DAILY_COMMENT_COUNT);
+        List<Integer> messageCounts = batchGetDailyCounts(today, DashboardConst.DAYS_7,
+                RedisConst.TODAY_MESSAGE_COUNT, RedisConst.DAILY_MESSAGE_COUNT);
+        List<Integer> likeCounts = batchGetDailyCounts(today, DashboardConst.DAYS_7,
+                RedisConst.TODAY_LIKE_COUNT, RedisConst.DAILY_LIKE_COUNT);
+
+        List<AnalysisDataVO.DailyInteractionItem> dailyData = new ArrayList<>(DashboardConst.DAYS_7);
+        for (int i = 0; i < DashboardConst.DAYS_7; i++) {
+            LocalDate date = today.minusDays(DashboardConst.DAYS_7 - 1 - i);
+            dailyData.add(AnalysisDataVO.DailyInteractionItem.builder()
+                    .date(date.format(DATE_FMT))
+                    .comment(commentCounts.get(i))
+                    .message(messageCounts.get(i))
+                    .like(likeCounts.get(i))
+                    .build());
+        }
+        return AnalysisDataVO.InteractionTrendVO.builder().dailyData(dailyData).build();
+    }
+
+    /**
+     * 获取热门文章（缓存1小时，浏览量通过定时任务同步）
+     */
+    private List<AnalysisDataVO.TopArticleItem> getCachedTopArticles() {
+        List<AnalysisDataVO.TopArticleItem> cached = redisUtils.getList(
+                RedisConst.DASHBOARD_TOP_ARTICLES, AnalysisDataVO.TopArticleItem.class);
+        if (cached != null) {
+            return cached;
+        }
+        List<AnalysisDataVO.TopArticleItem> result = dashboardMapper.getTopArticles(DashboardConst.TOP_ARTICLE_LIMIT);
+        redisUtils.set(RedisConst.DASHBOARD_TOP_ARTICLES, result, RedisConst.EXPIRE_ONE_HOUR);
+        return result;
+    }
+
+    /**
+     * 获取文章分类分布（缓存1小时，仅后台管理操作才变化）
+     */
+    private List<AnalysisDataVO.CategoryDistributionItem> getCachedCategoryDistribution() {
+        List<AnalysisDataVO.CategoryDistributionItem> cached = redisUtils.getList(
+                RedisConst.DASHBOARD_CATEGORY_DISTRIBUTION, AnalysisDataVO.CategoryDistributionItem.class);
+        if (cached != null) {
+            return cached;
+        }
+        List<AnalysisDataVO.CategoryDistributionItem> result = dashboardMapper.getCategoryDistribution();
+        redisUtils.set(RedisConst.DASHBOARD_CATEGORY_DISTRIBUTION, result, RedisConst.EXPIRE_ONE_HOUR);
+        return result;
+    }
+
+    /**
+     * 获取评论来源分布（缓存5分钟，评论实时变化）
+     */
+    private List<AnalysisDataVO.CommentSourceItem> getCachedCommentSource() {
+        List<AnalysisDataVO.CommentSourceItem> cached = redisUtils.getList(
+                RedisConst.DASHBOARD_COMMENT_SOURCE, AnalysisDataVO.CommentSourceItem.class);
+        if (cached != null) {
+            return cached;
+        }
+        List<AnalysisDataVO.CommentSourceItem> result = dashboardMapper.getCommentSourceDistribution();
+        redisUtils.set(RedisConst.DASHBOARD_COMMENT_SOURCE, result, RedisConst.EXPIRE_FIVE_MINUTES);
+        return result;
+    }
+
+    /**
+     * 获取标签热度（缓存1小时，仅后台管理操作才变化）
+     */
+    private List<AnalysisDataVO.TagRadarItem> getCachedTagRadar() {
+        List<AnalysisDataVO.TagRadarItem> cached = redisUtils.getList(
+                RedisConst.DASHBOARD_TAG_RADAR, AnalysisDataVO.TagRadarItem.class);
+        if (cached != null) {
+            return cached;
+        }
+        List<AnalysisDataVO.TagRadarItem> result = dashboardMapper.getTagRadar();
+        redisUtils.set(RedisConst.DASHBOARD_TAG_RADAR, result, RedisConst.EXPIRE_ONE_HOUR);
+        return result;
     }
 }

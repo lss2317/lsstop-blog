@@ -9,6 +9,8 @@ import com.lsstop.utils.RedisUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -62,6 +64,12 @@ public class LikeServiceImpl implements LikeService {
             // 未点赞，添加点赞
             redisUtils.sAdd(userLikeKey, targetId);
             redisUtils.increment(likeCountKey);
+            // 更新今日点赞计数
+            String todayKey = RedisConst.TODAY_LIKE_COUNT + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+            Long val = redisUtils.increment(todayKey);
+            if (val != null && val == 1L) {
+                redisUtils.expire(todayKey, RedisConst.EXPIRE_ONE_DAY * 2);
+            }
             // 记录待同步状态：1表示点赞
             redisUtils.hSet(pendingSyncKey, pendingField, 1);
             return true;

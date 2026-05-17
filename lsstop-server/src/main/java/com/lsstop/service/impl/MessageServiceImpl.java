@@ -13,6 +13,8 @@ import com.lsstop.utils.SensitiveWordUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -65,6 +67,12 @@ public class MessageServiceImpl implements MessageService {
         }
 
         messageMapper.insertMessage(message);
+        // 更新今日留言计数（Redis缓存 + DB兜底）
+        String todayKey = RedisConst.TODAY_MESSAGE_COUNT + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        Long val = redisUtils.increment(todayKey);
+        if (val != null && val == 1L) {
+            redisUtils.expire(todayKey, RedisConst.EXPIRE_ONE_DAY * 2);
+        }
         // 清除留言总数缓存
         redisUtils.delete(RedisConst.TOTAL_MESSAGE_COUNT);
         // 待审核留言：清除待审核数缓存
