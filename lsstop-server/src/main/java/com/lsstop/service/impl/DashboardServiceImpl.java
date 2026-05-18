@@ -275,15 +275,14 @@ public class DashboardServiceImpl implements DashboardService {
     private int loadHistoryDailyCount(LocalDate date, String keyPrefix) {
         String cacheKey = keyPrefix + date.format(DateTimeFormatter.BASIC_ISO_DATE);
         int count;
-        if (keyPrefix.equals(RedisConst.DAILY_COMMENT_COUNT)) {
-            count = dashboardMapper.getCommentCountByDate(date);
-        } else if (keyPrefix.equals(RedisConst.DAILY_MESSAGE_COUNT)) {
-            count = dashboardMapper.getMessageCountByDate(date);
-        } else if (keyPrefix.equals(RedisConst.DAILY_LIKE_COUNT)) {
-            count = dashboardMapper.getLikeCountByDate(date);
-        } else {
-            var record = uniqueViewMapper.getByViewDate(date);
-            count = (record != null && record.getViewsCount() != null) ? record.getViewsCount() : 0;
+        switch (keyPrefix) {
+            case RedisConst.DAILY_COMMENT_COUNT -> count = dashboardMapper.getCommentCountByDate(date);
+            case RedisConst.DAILY_MESSAGE_COUNT -> count = dashboardMapper.getMessageCountByDate(date);
+            case RedisConst.DAILY_LIKE_COUNT -> count = dashboardMapper.getLikeCountByDate(date);
+            default -> {
+                var record = uniqueViewMapper.getByViewDate(date);
+                count = (record != null && record.getViewsCount() != null) ? record.getViewsCount() : 0;
+            }
         }
         redisUtils.set(cacheKey, count, RedisConst.EXPIRE_ONE_WEEK);
         return count;
@@ -311,7 +310,8 @@ public class DashboardServiceImpl implements DashboardService {
                 if (cached != null) {
                     count = cached;
                 } else {
-                    count = dashboardMapper.getUniqueVisitorCountByDate(date);
+                    Integer dbCount = dashboardMapper.getUniqueVisitorCountByDate(date);
+                    count = dbCount != null ? dbCount : 0;
                     redisUtils.set(key, count, RedisConst.EXPIRE_ONE_WEEK);
                 }
             }
