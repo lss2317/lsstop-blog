@@ -388,7 +388,7 @@ defineExpose({
 }
 
 .chat-bubble.other {
-  background: #fff;
+  background: #ececec;
   color: #4c4948;
 }
 
