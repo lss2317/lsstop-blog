@@ -103,5 +103,5 @@ public interface DashboardMapper {
     /**
      * 查询标签热度（按文章数降序）
      */
-    List<AnalysisDataVO.TagRadarItem> getTagRadar();
+    List<AnalysisDataVO.TagRadarItem> getTagRadar(@Param("limit") Integer limit);
 }

@@ -183,6 +183,7 @@
         where t.deleted_at = 0
         group by t.id, t.tag_name
         order by value desc
+        limit #{limit}
     </select>
 
 </mapper>

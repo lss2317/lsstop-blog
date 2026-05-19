@@ -53,4 +53,9 @@ public class DashboardConst {
      */
     public static final int TOP_ARTICLE_LIMIT = 7;
 
+    /**
+     * 标签热度查询数量
+     */
+    public static final int TAG_RADAR_LIMIT = 8;
+
 }

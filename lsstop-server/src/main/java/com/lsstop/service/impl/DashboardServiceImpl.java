@@ -399,7 +399,7 @@ public class DashboardServiceImpl implements DashboardService {
         if (cached != null) {
             return cached;
         }
-        List<AnalysisDataVO.TagRadarItem> result = dashboardMapper.getTagRadar();
+        List<AnalysisDataVO.TagRadarItem> result = dashboardMapper.getTagRadar(DashboardConst.TAG_RADAR_LIMIT);
         redisUtils.set(RedisConst.DASHBOARD_TAG_RADAR, result, RedisConst.EXPIRE_ONE_HOUR);
         return result;
     }
