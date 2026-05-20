@@ -5,6 +5,7 @@
     <!-- 登录日志ResultMap -->
     <resultMap id="LoginLogResultMap" type="com.lsstop.domain.entity.LoginLogEntity">
         <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="logNumber" column="log_number" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="loginType" column="login_type" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result property="loginTime" column="login_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
@@ -23,9 +24,9 @@
 
     <!-- 插入登录日志 -->
     <insert id="insert" parameterType="com.lsstop.domain.entity.LoginLogEntity">
-        INSERT INTO blog_login_log (user_id, login_type, login_time, ip_address, ip_region,
+        INSERT INTO blog_login_log (log_number, user_id, login_type, login_time, ip_address, ip_region,
                                     browser, os, type, state, login_identifier, message, deleted_at, create_time, update_time)
-        VALUES (#{userId}, #{loginType}, #{loginTime}, #{ipAddress}, #{ipRegion},
+        VALUES (#{logNumber}, #{userId}, #{loginType}, #{loginTime}, #{ipAddress}, #{ipRegion},
                 #{browser}, #{os}, #{type}, #{state}, #{loginIdentifier}, #{message}, 0, NOW(), NOW())
     </insert>
 

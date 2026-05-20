@@ -16,6 +16,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * 登录日志服务实现类
@@ -62,6 +63,7 @@ public class LoginLogServiceImpl implements LoginLogService {
             String os = request != null ? UserAgentUtils.getOS(request) : CommonConst.UNKNOWN;
 
             LoginLogEntity loginLog = LoginLogEntity.builder()
+                    .logNumber(UUID.randomUUID().toString().replace("-", ""))
                     .userId(userId)
                     .loginType(loginType)
                     .loginTime(LocalDateTime.now())

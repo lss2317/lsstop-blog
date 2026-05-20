@@ -25,6 +25,11 @@ public class LoginLogEntity {
     private Integer id;
 
     /**
+     * 日志编号
+     */
+    private String logNumber;
+
+    /**
      * 用户ID
      */
     private String userId;
