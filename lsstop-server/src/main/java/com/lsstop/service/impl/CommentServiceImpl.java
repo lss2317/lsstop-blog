@@ -129,8 +129,9 @@ public class CommentServiceImpl implements CommentService {
         if (val != null && val == 1L) {
             redisUtils.expire(todayKey, RedisConst.EXPIRE_ONE_DAY * 2);
         }
-        // 清除评论总数缓存
+        // 清除评论总数与评论来源分布缓存
         redisUtils.delete(RedisConst.TOTAL_COMMENT_COUNT);
+        redisUtils.delete(RedisConst.DASHBOARD_COMMENT_SOURCE);
     }
 
     /**
@@ -266,6 +267,9 @@ public class CommentServiceImpl implements CommentService {
 
         // 删除评论点赞数缓存
         redisUtils.delete(RedisConst.COMMENT_LIKE_COUNT + commentId);
+        // 清除评论总数与评论来源分布缓存
+        redisUtils.delete(RedisConst.TOTAL_COMMENT_COUNT);
+        redisUtils.delete(RedisConst.DASHBOARD_COMMENT_SOURCE);
         // 如果删除的是待审核评论，清除待审核数缓存
         if (CommonConst.REVIEW_PENDING.equals(comment.getReview())) {
             redisUtils.delete(RedisConst.PENDING_REVIEW_COMMENT_COUNT);
