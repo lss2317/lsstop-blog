@@ -176,7 +176,7 @@ public class OperationLogAspect {
         if (result == null) {
             return "";
         }
-        return StringUtils.truncate(String.valueOf(result), OperationLogConst.MAX_RESPONSE_PARAM_LENGTH);
+        return StringUtils.truncate(JSON.toJSONString(result), OperationLogConst.MAX_RESPONSE_PARAM_LENGTH);
     }
 
     private HttpServletRequest getRequest() {
