@@ -35,4 +35,76 @@
                 0, NOW(), NOW())
     </insert>
 
+    <!-- 操作日志列表ResultMap -->
+    <resultMap id="OperationLogVOResultMap" type="com.lsstop.domain.vo.OperationLogVO">
+        <result property="logNumber" column="log_number" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="module" column="module" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="operationType" column="operation_type" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="description" column="description" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="requestUrl" column="request_url" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="nickname" column="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="ipAddress" column="ip_address" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="ipRegion" column="ip_region" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="browser" column="browser" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="os" column="os" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="state" column="state" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="costTime" column="cost_time" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="requestParam" column="request_param" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="responseParam" column="response_param" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="errorMsg" column="error_msg" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    </resultMap>
+
+    <!-- 分页查询操作日志列表 -->
+    <select id="selectList" resultMap="OperationLogVOResultMap">
+        select ol.log_number,
+               ol.module,
+               ol.operation_type,
+               ol.description,
+               ol.request_url,
+               ol.user_id,
+               up.nickname,
+               ol.ip_address,
+               ol.ip_region,
+               ol.browser,
+               ol.os,
+               ol.state,
+               ol.cost_time,
+               ol.create_time,
+               ol.request_param,
+               ol.response_param,
+               ol.error_msg
+        from blog_operation_log ol
+                 left join blog_user_profile up on ol.user_id = up.user_id and up.deleted_at = 0
+        where ol.deleted_at = 0
+        <if test="module != null and module != ''">
+            and ol.module like concat('%', #{module}, '%')
+        </if>
+        <if test="operationType != null and operationType != ''">
+            and ol.operation_type = #{operationType}
+        </if>
+        <if test="userId != null and userId != ''">
+            and ol.user_id = #{userId}
+        </if>
+        order by ol.create_time desc
+        limit #{offset}, #{size}
+    </select>
+
+    <!-- 统计操作日志总数 -->
+    <select id="countTotal" resultType="java.lang.Integer">
+        select count(*)
+        from blog_operation_log
+        where deleted_at = 0
+        <if test="module != null and module != ''">
+            and module like concat('%', #{module}, '%')
+        </if>
+        <if test="operationType != null and operationType != ''">
+            and operation_type = #{operationType}
+        </if>
+        <if test="userId != null and userId != ''">
+            and user_id = #{userId}
+        </if>
+    </select>
+
 </mapper>

@@ -1,6 +1,10 @@
 package com.lsstop.mapper;
 
 import com.lsstop.domain.entity.OperationLogEntity;
+import com.lsstop.domain.vo.OperationLogVO;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * 操作日志数据访问层
@@ -16,5 +20,33 @@ public interface OperationLogMapper {
      * @param operationLog 操作日志实体
      */
     void insert(OperationLogEntity operationLog);
+
+    /**
+     * 分页查询操作日志列表
+     *
+     * @param offset        偏移量
+     * @param size          每页数量
+     * @param module        操作模块（模糊搜索）
+     * @param operationType 操作类型
+     * @param userId        用户ID
+     * @return 操作日志列表
+     */
+    List<OperationLogVO> selectList(@Param("offset") Integer offset,
+                                    @Param("size") Integer size,
+                                    @Param("module") String module,
+                                    @Param("operationType") String operationType,
+                                    @Param("userId") String userId);
+
+    /**
+     * 统计操作日志总数
+     *
+     * @param module        操作模块（模糊搜索）
+     * @param operationType 操作类型
+     * @param userId        用户ID
+     * @return 操作日志总数
+     */
+    Integer countTotal(@Param("module") String module,
+                       @Param("operationType") String operationType,
+                       @Param("userId") String userId);
 
 }
