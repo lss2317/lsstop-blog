@@ -49,4 +49,12 @@ public interface OperationLogMapper {
                        @Param("operationType") String operationType,
                        @Param("userId") String userId);
 
+    /**
+     * 软删除操作日志（支持单个和批量删除）
+     *
+     * @param logNumbers 日志编号列表
+     * @param deletedAt  删除时间戳
+     */
+    void deleteByLogNumbers(@Param("logNumbers") List<String> logNumbers, @Param("deletedAt") Long deletedAt);
+
 }

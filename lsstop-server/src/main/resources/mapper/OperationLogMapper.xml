@@ -107,4 +107,15 @@
         </if>
     </select>
 
+    <!-- 软删除操作日志（支持单个和批量删除） -->
+    <update id="deleteByLogNumbers">
+        update blog_operation_log
+        set deleted_at = #{deletedAt}, update_time = NOW()
+        where log_number in
+        <foreach collection="logNumbers" item="logNumber" open="(" separator="," close=")">
+            #{logNumber}
+        </foreach>
+        and deleted_at = 0
+    </update>
+
 </mapper>

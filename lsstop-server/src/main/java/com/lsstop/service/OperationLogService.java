@@ -43,4 +43,11 @@ public interface OperationLogService {
      */
     Integer countTotal(String module, String operationType, String userId);
 
+    /**
+     * 删除操作日志（支持单个和批量删除）
+     *
+     * @param logNumbers 日志编号列表
+     */
+    void deleteByLogNumbers(List<String> logNumbers);
+
 }

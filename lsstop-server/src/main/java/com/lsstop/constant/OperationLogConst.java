@@ -11,16 +11,6 @@ import java.util.Set;
 public class OperationLogConst {
 
     /**
-     * 接口防刷：限流时间窗口（秒）
-     */
-    public static final int ACCESS_LIMIT_SECONDS = 60;
-
-    /**
-     * 接口防刷：限流最大次数
-     */
-    public static final int ACCESS_LIMIT_MAX_COUNT = 60;
-
-    /**
      * 操作成功
      */
     public static final int STATE_SUCCESS = 0;

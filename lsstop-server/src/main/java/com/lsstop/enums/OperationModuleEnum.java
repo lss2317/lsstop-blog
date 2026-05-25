@@ -27,7 +27,8 @@ public enum OperationModuleEnum {
     PAGE_INFO("页面模块"),
     WEBSITE_CONFIG("网站配置模块"),
     FILE("文件模块"),
-    CHAT_MESSAGE("聊天消息模块");
+    CHAT_MESSAGE("聊天消息模块"),
+    OPERATION_LOG("操作日志模块");
 
     /**
      * 描述

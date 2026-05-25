@@ -61,4 +61,14 @@ public class OperationLogServiceImpl implements OperationLogService {
         return operationLogMapper.countTotal(module, operationType, userId);
     }
 
+    /**
+     * 删除操作日志（支持单个和批量删除）
+     *
+     * @param logNumbers 日志编号列表
+     */
+    @Override
+    public void deleteByLogNumbers(List<String> logNumbers) {
+        operationLogMapper.deleteByLogNumbers(logNumbers, System.currentTimeMillis());
+    }
+
 }
