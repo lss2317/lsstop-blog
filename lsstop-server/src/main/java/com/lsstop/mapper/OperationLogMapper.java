@@ -57,4 +57,16 @@ public interface OperationLogMapper {
      */
     void deleteByLogNumbers(@Param("logNumbers") List<String> logNumbers, @Param("deletedAt") Long deletedAt);
 
+    /**
+     * 查询所有操作日志（用于导出，不带分页）
+     *
+     * @param module        操作模块（模糊搜索）
+     * @param operationType 操作类型
+     * @param userId        用户ID
+     * @return 操作日志列表
+     */
+    List<OperationLogVO> selectAllForExport(@Param("module") String module,
+                                            @Param("operationType") String operationType,
+                                            @Param("userId") String userId);
+
 }

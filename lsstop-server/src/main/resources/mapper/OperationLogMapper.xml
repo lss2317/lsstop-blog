@@ -118,4 +118,38 @@
         and deleted_at = 0
     </update>
 
+    <!-- 查询所有操作日志（用于导出，不带分页） -->
+    <select id="selectAllForExport" resultMap="OperationLogVOResultMap">
+        select ol.log_number,
+               ol.module,
+               ol.operation_type,
+               ol.description,
+               ol.request_url,
+               ol.user_id,
+               up.nickname,
+               ol.ip_address,
+               ol.ip_region,
+               ol.browser,
+               ol.os,
+               ol.state,
+               ol.cost_time,
+               ol.create_time,
+               ol.request_param,
+               ol.response_param,
+               ol.error_msg
+        from blog_operation_log ol
+                 left join blog_user_profile up on ol.user_id = up.user_id and up.deleted_at = 0
+        where ol.deleted_at = 0
+        <if test="module != null and module != ''">
+            and ol.module like concat('%', #{module}, '%')
+        </if>
+        <if test="operationType != null and operationType != ''">
+            and ol.operation_type = #{operationType}
+        </if>
+        <if test="userId != null and userId != ''">
+            and ol.user_id = #{userId}
+        </if>
+        order by ol.create_time desc
+    </select>
+
 </mapper>

@@ -33,7 +33,7 @@ public class FileController {
      */
     @PostMapping("/admin/file/article")
     @AccessLimit(seconds = 60, maxCount = 30)
-    @OperationLog(module = OperationModuleEnum.FILE, type = OperationTypeEnum.ADD, description = "上传文章图片")
+    @OperationLog(module = OperationModuleEnum.FILE, type = OperationTypeEnum.UPLOAD, description = "上传文章图片")
     public Result<String> uploadArticleImage(@RequestParam("file") MultipartFile file) {
         String url = cosService.uploadImage(file, FileFolderEnum.ARTICLE.getFolder());
         return Result.success(url);
@@ -47,7 +47,7 @@ public class FileController {
      */
     @PostMapping("/admin/file/album")
     @AccessLimit(seconds = 60, maxCount = 30)
-    @OperationLog(module = OperationModuleEnum.FILE, type = OperationTypeEnum.ADD, description = "上传相册图片")
+    @OperationLog(module = OperationModuleEnum.FILE, type = OperationTypeEnum.UPLOAD, description = "上传相册图片")
     public Result<String> uploadAlbumImage(@RequestParam("file") MultipartFile file) {
         String url = cosService.uploadImage(file, FileFolderEnum.ALBUM.getFolder());
         return Result.success(url);
@@ -61,7 +61,7 @@ public class FileController {
      */
     @PostMapping("/admin/file/talk")
     @AccessLimit(seconds = 60, maxCount = 30)
-    @OperationLog(module = OperationModuleEnum.FILE, type = OperationTypeEnum.ADD, description = "上传说说图片")
+    @OperationLog(module = OperationModuleEnum.FILE, type = OperationTypeEnum.UPLOAD, description = "上传说说图片")
     public Result<String> uploadTalkImage(@RequestParam("file") MultipartFile file) {
         String url = cosService.uploadImage(file, FileFolderEnum.TALK.getFolder());
         return Result.success(url);

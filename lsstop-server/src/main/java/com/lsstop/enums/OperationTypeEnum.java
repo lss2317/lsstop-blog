@@ -14,8 +14,14 @@ import lombok.Getter;
 public enum OperationTypeEnum {
 
     ADD("新增"),
-    UPDATE("修改"),
-    DELETE("删除");
+    UPDATE("编辑"),
+    DELETE("删除"),
+    PUBLISH("发布"),
+    REVOKE("撤回"),
+    UPLOAD("上传"),
+    RESTORE("恢复"),
+    CLEAR("清空"),
+    REFRESH_CACHE("刷新缓存");
 
     /**
      * 描述

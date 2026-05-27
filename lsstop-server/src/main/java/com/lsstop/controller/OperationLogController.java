@@ -4,6 +4,7 @@ import com.lsstop.annotation.AccessLimit;
 import com.lsstop.annotation.OperationLog;
 import com.lsstop.common.Result;
 import com.lsstop.constant.CommentConst;
+import com.lsstop.constant.OperationLogConst;
 import com.lsstop.domain.dto.DeleteOperationLogDTO;
 import com.lsstop.domain.vo.OperationLogPageVO;
 import com.lsstop.enums.OperationModuleEnum;
@@ -12,12 +13,19 @@ import com.lsstop.service.OperationLogService;
 import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 
 /**
  * 操作日志控制层
@@ -73,5 +81,33 @@ public class OperationLogController {
     public Result<Void> deleteOperationLog(@RequestBody @Validated DeleteOperationLogDTO dto) {
         operationLogService.deleteByLogNumbers(dto.getLogNumbers());
         return Result.success();
+    }
+
+    /**
+     * 导出操作日志为 Excel
+     *
+     * @param module        操作模块（模糊搜索）
+     * @param operationType 操作类型
+     * @param userId        用户ID
+     * @param response      HTTP响应
+     */
+    @GetMapping("/admin/operation-log/export")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    public void exportOperationLog(@RequestParam(required = false) String module,
+                                   @RequestParam(required = false) String operationType,
+                                   @RequestParam(required = false) String userId,
+                                   HttpServletResponse response) throws IOException {
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String filename = URLEncoder.encode(
+                OperationLogConst.EXPORT_FILENAME_PREFIX + LocalDate.now(), StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment;filename*=UTF-8''" + filename + OperationLogConst.EXPORT_FILE_EXTENSION);
+        // 禁止缓存，避免浏览器返回304空白页
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
+        response.setHeader(HttpHeaders.PRAGMA, "no-cache");
+        response.setDateHeader(HttpHeaders.EXPIRES, 0);
+        operationLogService.exportOperationLogs(module, operationType, userId, response);
     }
 }
