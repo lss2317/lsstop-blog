@@ -116,12 +116,12 @@ public class AuthServiceImpl implements AuthService {
             authMapper.updateLastLoginTime(userId);
 
             // 发送登录成功日志到MQ
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), email, AuthConst.LOGIN_SUCCESS);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthActionEnum.LOGIN.getCode(), email, AuthConst.LOGIN_SUCCESS);
 
             return buildLoginVO(userAuth, source);
         } catch (BusinessException e) {
             // 发送登录失败日志到MQ
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), email, e.getMessage());
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), AuthActionEnum.LOGIN.getCode(), email, e.getMessage());
             throw e;
         }
     }
@@ -167,12 +167,12 @@ public class AuthServiceImpl implements AuthService {
             redisUtils.delete(codeKey);
 
             // 发送登录成功日志到MQ
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), email, AuthConst.LOGIN_SUCCESS);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthActionEnum.LOGIN.getCode(), email, AuthConst.LOGIN_SUCCESS);
 
             return buildLoginVO(userAuth, source);
         } catch (BusinessException e) {
             // 发送登录失败日志到MQ
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), email, e.getMessage());
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), AuthActionEnum.LOGIN.getCode(), email, e.getMessage());
             throw e;
         }
     }
@@ -236,15 +236,15 @@ public class AuthServiceImpl implements AuthService {
             authMapper.updateLastLoginTime(userId);
 
             // 发送登录成功日志
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), openId, AuthConst.LOGIN_SUCCESS);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthActionEnum.LOGIN.getCode(), openId, AuthConst.LOGIN_SUCCESS);
 
             return buildLoginVO(userAuth, source);
         } catch (BusinessException e) {
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), openId, e.getMessage());
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), AuthActionEnum.LOGIN.getCode(), openId, e.getMessage());
             throw e;
         } catch (Exception e) {
             log.error("QQ登录失败", e);
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), openId, AuthConst.QQ_LOGIN_FAILED);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), AuthActionEnum.LOGIN.getCode(), openId, AuthConst.QQ_LOGIN_FAILED);
             throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.QQ_LOGIN_FAILED);
         }
     }
@@ -304,15 +304,15 @@ public class AuthServiceImpl implements AuthService {
             authMapper.updateLastLoginTime(userId);
 
             // 发送登录成功日志
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), uid, AuthConst.LOGIN_SUCCESS);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthActionEnum.LOGIN.getCode(), uid, AuthConst.LOGIN_SUCCESS);
 
             return buildLoginVO(userAuth, source);
         } catch (BusinessException e) {
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), uid, e.getMessage());
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), AuthActionEnum.LOGIN.getCode(), uid, e.getMessage());
             throw e;
         } catch (Exception e) {
             log.error("微博登录失败", e);
-            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), uid, AuthConst.WEIBO_LOGIN_FAILED);
+            loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), AuthActionEnum.LOGIN.getCode(), uid, AuthConst.WEIBO_LOGIN_FAILED);
             throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.WEIBO_LOGIN_FAILED);
         }
     }
@@ -383,6 +383,8 @@ public class AuthServiceImpl implements AuthService {
                 String storedToken = redisUtils.get(redisKey, String.class);
                 if (storedToken != null && storedToken.equals(refreshToken)) {
                     redisUtils.delete(redisKey);
+                    // 发送退出登录日志到MQ
+                    loginLogService.sendLoginLog(userId, null, source.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthActionEnum.LOGOUT.getCode(), null, AuthConst.LOGOUT_SUCCESS);
                 }
             }
         } catch (Exception e) {
@@ -590,8 +592,10 @@ public class AuthServiceImpl implements AuthService {
         // 清除用户总数缓存（下次查询会重新加载）
         redisUtils.delete(RedisConst.TOTAL_USER_COUNT);
 
-        // 发送登录成功日志到MQ
-        loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), email, AuthConst.LOGIN_SUCCESS);
+        // 发送注册成功日志到MQ
+        loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthActionEnum.REGISTER.getCode(), email, AuthConst.REGISTER_SUCCESS);
+        // 发送自动登录日志到MQ（注册成功后自动登录）
+        loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthActionEnum.LOGIN.getCode(), email, AuthConst.LOGIN_SUCCESS);
 
         // 自动登录，返回登录结果（注册只在前台）
         return buildLoginVO(userAuth, LoginSourceEnum.FRONT);

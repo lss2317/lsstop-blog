@@ -49,7 +49,7 @@ public class OperationLogConst {
      */
     public static final String[] EXPORT_HEADERS = {
             "日志编号", "系统模块", "操作类型", "操作描述", "请求路径",
-            "用户ID", "操作人员", "操作IP", "IP归属地", "浏览器",
+            "用户ID", "操作人员", "IP地址", "IP归属地", "浏览器",
             "操作系统", "状态", "消耗时间", "操作时间", "错误信息",
             "请求参数", "返回参数"
     };

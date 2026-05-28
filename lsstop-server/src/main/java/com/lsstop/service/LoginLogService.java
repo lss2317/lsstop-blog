@@ -18,15 +18,16 @@ public interface LoginLogService {
     void insert(LoginLogEntity loginLog);
 
     /**
-     * 发送登录日志到MQ
+     * 发送认证日志到MQ
      *
      * @param userId          用户ID
      * @param loginType       登录方式
-     * @param source          登录来源
-     * @param state           登录结果
-     * @param loginIdentifier 登录标识（邮箱/openId/uid）
-     * @param message         登录信息
+     * @param source          操作来源
+     * @param state           操作结果
+     * @param actionType      操作类型（1登录 2退出 3注册）
+     * @param loginIdentifier 操作标识（邮箱/openId/uid）
+     * @param message         操作信息
      */
-    void sendLoginLog(String userId, Integer loginType, Integer source, Integer state, String loginIdentifier, String message);
+    void sendLoginLog(String userId, Integer loginType, Integer source, Integer state, Integer actionType, String loginIdentifier, String message);
 
 }

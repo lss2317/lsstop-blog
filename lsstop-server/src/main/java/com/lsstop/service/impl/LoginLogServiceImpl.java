@@ -45,17 +45,18 @@ public class LoginLogServiceImpl implements LoginLogService {
     }
 
     /**
-     * 发送登录日志到MQ
+     * 发送认证日志到MQ
      *
      * @param userId          用户ID
      * @param loginType       登录方式
-     * @param source          登录来源
-     * @param state           登录结果
-     * @param loginIdentifier 登录标识（邮箱/openId/uid）
-     * @param message         登录信息
+     * @param source          操作来源
+     * @param state           操作结果
+     * @param actionType      操作类型（1登录 2退出 3注册）
+     * @param loginIdentifier 操作标识（邮箱/openId/uid）
+     * @param message         操作信息
      */
     @Override
-    public void sendLoginLog(String userId, Integer loginType, Integer source, Integer state, String loginIdentifier, String message) {
+    public void sendLoginLog(String userId, Integer loginType, Integer source, Integer state, Integer actionType, String loginIdentifier, String message) {
         try {
             HttpServletRequest request = getRequest();
             String ipAddress = request != null ? IpUtils.getIpAddress(request) : CommonConst.UNKNOWN;
@@ -73,13 +74,14 @@ public class LoginLogServiceImpl implements LoginLogService {
                     .os(os)
                     .type(source)
                     .state(state)
+                    .actionType(actionType)
                     .loginIdentifier(loginIdentifier)
                     .message(message)
                     .build();
 
             rabbitTemplate.convertAndSend(RabbitMQConst.BLOG_EXCHANGE, RabbitMQConst.LOGIN_LOG_ROUTING_KEY, loginLog);
         } catch (Exception e) {
-            log.error("发送登录日志到MQ失败, loginIdentifier={}, message={}", loginIdentifier, message, e);
+            log.error("发送认证日志到MQ失败, loginIdentifier={}, message={}", loginIdentifier, message, e);
         }
     }
 

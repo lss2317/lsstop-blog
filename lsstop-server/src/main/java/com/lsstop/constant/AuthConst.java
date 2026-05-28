@@ -59,6 +59,16 @@ public class AuthConst {
     public static final String LOGIN_SUCCESS = "登录成功";
 
     /**
+     * 注册成功
+     */
+    public static final String REGISTER_SUCCESS = "注册成功";
+
+    /**
+     * 退出登录
+     */
+    public static final String LOGOUT_SUCCESS = "退出登录";
+
+    /**
      * refreshToken无效
      */
     public static final String REFRESH_TOKEN_INVALID = "refreshToken无效";

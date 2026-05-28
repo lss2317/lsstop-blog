@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 登录日志实体
+ * 认证日志实体（登录/注册/退出）
  *
  * @author lishusheng
  * @date 2026/01/17
@@ -35,12 +35,12 @@ public class LoginLogEntity {
     private String userId;
 
     /**
-     * 登录方式 1邮箱 2QQ 3微博
+     * 登录方式 1邮箱 2QQ 3微博，退出登录时为null
      */
     private Integer loginType;
 
     /**
-     * 登录时间
+     * 操作时间
      */
     private LocalDateTime loginTime;
 
@@ -65,22 +65,27 @@ public class LoginLogEntity {
     private String os;
 
     /**
-     * 登录来源
+     * 操作来源 0前台 1后台 2非法
      */
     private Integer type;
 
     /**
-     * 登录结果 0成功 1失败
+     * 操作结果 0成功 1失败
      */
     private Integer state;
 
     /**
-     * 登录标识（邮箱/openId/uid，用于追踪登录尝试）
+     * 操作类型 1登录 2退出 3注册
+     */
+    private Integer actionType;
+
+    /**
+     * 操作标识（登录时为邮箱/openId/uid，退出时为null）
      */
     private String loginIdentifier;
 
     /**
-     * 登录信息
+     * 操作信息（如：登录成功、注册成功、退出登录）
      */
     private String message;
 
