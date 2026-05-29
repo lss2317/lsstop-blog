@@ -42,4 +42,142 @@
         LIMIT 1
     </select>
 
+    <!-- 认证日志列表ResultMap -->
+    <resultMap id="LoginLogVOResultMap" type="com.lsstop.domain.vo.LoginLogVO">
+        <result property="logNumber" column="log_number" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="nickname" column="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="loginType" column="login_type" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="loginTime" column="login_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="ipAddress" column="ip_address" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="ipRegion" column="ip_region" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="browser" column="browser" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="os" column="os" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="type" column="type" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="state" column="state" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="actionType" column="action_type" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="loginIdentifier" column="login_identifier" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="message" column="message" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <!-- 分页查询认证日志列表 -->
+    <select id="selectList" resultMap="LoginLogVOResultMap">
+        select ll.log_number,
+               ll.user_id,
+               up.nickname,
+               ll.login_type,
+               ll.login_time,
+               ll.ip_address,
+               ll.ip_region,
+               ll.browser,
+               ll.os,
+               ll.type,
+               ll.state,
+               ll.action_type,
+               ll.login_identifier,
+               ll.message,
+               ll.create_time
+        from blog_login_log ll
+                 left join blog_user_profile up on ll.user_id = up.user_id and up.deleted_at = 0
+        where ll.deleted_at = 0
+        <if test="userId != null and userId != ''">
+            and ll.user_id = #{userId}
+        </if>
+        <if test="actionType != null">
+            and ll.action_type = #{actionType}
+        </if>
+        <if test="state != null">
+            and ll.state = #{state}
+        </if>
+        <if test="type != null">
+            and ll.type = #{type}
+        </if>
+        <if test="loginType != null">
+            and ll.login_type = #{loginType}
+        </if>
+        <if test="noUserId != null and noUserId == true">
+            and (ll.user_id is null or ll.user_id = '')
+        </if>
+        order by ll.create_time desc
+        limit #{offset}, #{size}
+    </select>
+
+    <!-- 统计认证日志总数 -->
+    <select id="countTotal" resultType="java.lang.Integer">
+        select count(*)
+        from blog_login_log
+        where deleted_at = 0
+        <if test="userId != null and userId != ''">
+            and user_id = #{userId}
+        </if>
+        <if test="actionType != null">
+            and action_type = #{actionType}
+        </if>
+        <if test="state != null">
+            and state = #{state}
+        </if>
+        <if test="type != null">
+            and type = #{type}
+        </if>
+        <if test="loginType != null">
+            and login_type = #{loginType}
+        </if>
+        <if test="noUserId != null and noUserId == true">
+            and (user_id is null or user_id = '')
+        </if>
+    </select>
+
+    <!-- 软删除认证日志（支持单个和批量删除） -->
+    <update id="deleteByLogNumbers">
+        update blog_login_log
+        set deleted_at = #{deletedAt}, update_time = NOW()
+        where log_number in
+        <foreach collection="logNumbers" item="logNumber" open="(" separator="," close=")">
+            #{logNumber}
+        </foreach>
+        and deleted_at = 0
+    </update>
+
+    <!-- 查询所有认证日志（用于导出，不带分页） -->
+    <select id="selectAllForExport" resultMap="LoginLogVOResultMap">
+        select ll.log_number,
+               ll.user_id,
+               up.nickname,
+               ll.login_type,
+               ll.login_time,
+               ll.ip_address,
+               ll.ip_region,
+               ll.browser,
+               ll.os,
+               ll.type,
+               ll.state,
+               ll.action_type,
+               ll.login_identifier,
+               ll.message,
+               ll.create_time
+        from blog_login_log ll
+                 left join blog_user_profile up on ll.user_id = up.user_id and up.deleted_at = 0
+        where ll.deleted_at = 0
+        <if test="userId != null and userId != ''">
+            and ll.user_id = #{userId}
+        </if>
+        <if test="actionType != null">
+            and ll.action_type = #{actionType}
+        </if>
+        <if test="state != null">
+            and ll.state = #{state}
+        </if>
+        <if test="type != null">
+            and ll.type = #{type}
+        </if>
+        <if test="loginType != null">
+            and ll.login_type = #{loginType}
+        </if>
+        <if test="noUserId != null and noUserId == true">
+            and (ll.user_id is null or ll.user_id = '')
+        </if>
+        order by ll.create_time desc
+    </select>
+
 </mapper>

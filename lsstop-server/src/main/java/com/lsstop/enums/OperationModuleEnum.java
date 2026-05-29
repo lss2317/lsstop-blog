@@ -28,7 +28,8 @@ public enum OperationModuleEnum {
     WEBSITE_CONFIG("网站配置模块"),
     FILE("文件模块"),
     CHAT_MESSAGE("聊天消息模块"),
-    OPERATION_LOG("操作日志模块");
+    OPERATION_LOG("操作日志模块"),
+    LOGIN_LOG("认证日志模块");
 
     /**
      * 描述
