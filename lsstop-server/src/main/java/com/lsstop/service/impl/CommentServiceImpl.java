@@ -83,6 +83,9 @@ public class CommentServiceImpl implements CommentService {
 
         // 更新Redis计数
         updateRedisCount(comment);
+        // 清除评论者的用户主页缓存（公开和自己查看）
+        redisUtils.delete(RedisConst.USER_HOME_PUBLIC + comment.getUserId());
+        redisUtils.delete(RedisConst.USER_HOME_ME + comment.getUserId());
         // 待审核评论：清除待审核数缓存
         if (CommonConst.REVIEW_PENDING.equals(comment.getReview())) {
             redisUtils.delete(RedisConst.PENDING_REVIEW_COMMENT_COUNT);
@@ -267,6 +270,9 @@ public class CommentServiceImpl implements CommentService {
 
         // 删除评论点赞数缓存
         redisUtils.delete(RedisConst.COMMENT_LIKE_COUNT + commentId);
+        // 清除评论者的用户主页缓存（公开和自己查看）
+        redisUtils.delete(RedisConst.USER_HOME_PUBLIC + comment.getUserId());
+        redisUtils.delete(RedisConst.USER_HOME_ME + comment.getUserId());
         // 清除评论总数与评论来源分布缓存
         redisUtils.delete(RedisConst.TOTAL_COMMENT_COUNT);
         redisUtils.delete(RedisConst.DASHBOARD_COMMENT_SOURCE);
