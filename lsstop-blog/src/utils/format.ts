@@ -79,3 +79,14 @@ export function extractKeywordContext(
 export function formatWebsite(url: string): string {
   return url.replace(/^https?:\/\//, '').replace(/\/$/, '');
 }
+
+/**
+ * 移除输入框中的空白字符（空格、tab等）
+ * 用于 @input / @paste 事件，防止粘贴或拖拽带入空格
+ */
+export function stripSpaces(e: Event): void {
+  const input = e.target as HTMLInputElement;
+  if (/\s/.test(input.value)) {
+    input.value = input.value.replace(/\s/g, '');
+  }
+}

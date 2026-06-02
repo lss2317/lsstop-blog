@@ -9,41 +9,31 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 角色实体
+ * 角色接口权限关联实体
  *
  * @author lishusheng
- * @date 2026/05/04
+ * @date 2026/05/31
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoleEntity implements BaseData {
+public class RoleApiPermissionEntity implements BaseData {
 
     /**
-     * 角色ID
+     * 关联ID
      */
     private Integer id;
 
     /**
-     * 角色编码（如 admin, editor, visitor）
+     * 角色ID，关联 blog_role.id
      */
-    private String roleCode;
+    private Integer roleId;
 
     /**
-     * 角色名称
+     * 接口权限ID，关联 blog_api_permission.id
      */
-    private String roleName;
-
-    /**
-     * 角色描述
-     */
-    private String description;
-
-    /**
-     * 是否启用：0-禁用 1-启用
-     */
-    private Integer isEnabled;
+    private Integer apiPermissionId;
 
     /**
      * 删除时间戳，0表示未删除

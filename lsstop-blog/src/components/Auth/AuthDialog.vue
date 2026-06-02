@@ -21,6 +21,8 @@
               autocomplete="email"
               maxlength="100"
               @keydown.space.prevent
+              @paste="stripSpaces"
+              @input="stripSpaces"
             />
             <label class="form-label">邮箱</label>
           </div>
@@ -33,6 +35,8 @@
               autocomplete="current-password"
               maxlength="20"
               @keydown.space.prevent
+              @paste="stripSpaces"
+              @input="stripSpaces"
             />
             <label class="form-label">密码</label>
             <span class="input-icon" @click="loginForm.showPwd = !loginForm.showPwd">
@@ -79,6 +83,8 @@
               autocomplete="email"
               maxlength="100"
               @keydown.space.prevent
+              @paste="stripSpaces"
+              @input="stripSpaces"
             />
             <label class="form-label">邮箱</label>
           </div>
@@ -91,6 +97,8 @@
               autocomplete="one-time-code"
               maxlength="6"
               @keydown.space.prevent
+              @paste="stripSpaces"
+              @input="stripSpaces"
             />
             <label class="form-label">验证码</label>
             <span
@@ -129,6 +137,8 @@
               autocomplete="email"
               maxlength="100"
               @keydown.space.prevent
+              @paste="stripSpaces"
+              @input="stripSpaces"
             />
             <label class="form-label">邮箱</label>
           </div>
@@ -141,6 +151,8 @@
               autocomplete="one-time-code"
               maxlength="6"
               @keydown.space.prevent
+              @paste="stripSpaces"
+              @input="stripSpaces"
             />
             <label class="form-label">验证码</label>
             <span
@@ -160,6 +172,8 @@
               autocomplete="new-password"
               maxlength="20"
               @keydown.space.prevent
+              @paste="stripSpaces"
+              @input="stripSpaces"
             />
             <label class="form-label">密码</label>
             <span class="input-icon" @click="registerForm.showPwd = !registerForm.showPwd">
@@ -175,6 +189,8 @@
               autocomplete="new-password"
               maxlength="20"
               @keydown.space.prevent
+              @paste="stripSpaces"
+              @input="stripSpaces"
             />
             <label class="form-label">确认密码</label>
             <span
@@ -216,6 +232,8 @@
               autocomplete="email"
               maxlength="100"
               @keydown.space.prevent
+              @paste="stripSpaces"
+              @input="stripSpaces"
             />
             <label class="form-label">邮箱</label>
           </div>
@@ -228,6 +246,8 @@
               autocomplete="one-time-code"
               maxlength="6"
               @keydown.space.prevent
+              @paste="stripSpaces"
+              @input="stripSpaces"
             />
             <label class="form-label">验证码</label>
             <span
@@ -247,6 +267,8 @@
               autocomplete="new-password"
               maxlength="20"
               @keydown.space.prevent
+              @paste="stripSpaces"
+              @input="stripSpaces"
             />
             <label class="form-label">新密码</label>
             <span
@@ -265,6 +287,8 @@
               autocomplete="new-password"
               maxlength="20"
               @keydown.space.prevent
+              @paste="stripSpaces"
+              @input="stripSpaces"
             />
             <label class="form-label">确认密码</label>
             <span
@@ -315,6 +339,7 @@ import { useSnackbarStore } from '@/stores/modules/snackbar';
 import { tokenManager } from '@/utils/token';
 import { isValidEmail } from '@/utils/validate';
 import { getErrorMessage } from '@/utils/error';
+import { stripSpaces } from '@/utils/format';
 import { OAUTH_CONFIG } from '@/constants/oauth';
 
 const loginStore = useLoginStore();

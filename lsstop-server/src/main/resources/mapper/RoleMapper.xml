@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.RoleMapper">
+
+    <!-- 角色列表ResultMap -->
+    <resultMap id="RoleVOResultMap" type="com.lsstop.domain.vo.RoleVO">
+        <result property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="roleName" column="role_name" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="roleCode" column="role_code" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="description" column="description" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="isEnabled" column="is_enabled" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <!-- 分页查询角色列表 -->
+    <select id="selectRoleList" resultMap="RoleVOResultMap">
+        select id, role_name, role_code, description, is_enabled, create_time
+        from blog_role
+        where deleted_at = 0
+        <if test="roleName != null and roleName != ''">
+            and role_name like concat('%', #{roleName}, '%')
+        </if>
+        <if test="roleCode != null and roleCode != ''">
+            and role_code = #{roleCode}
+        </if>
+        <if test="isEnabled != null">
+            and is_enabled = #{isEnabled}
+        </if>
+        order by update_time desc
+        limit #{offset}, #{size}
+    </select>
+
+    <!-- 统计角色总数 -->
+    <select id="countRoleTotal" resultType="java.lang.Integer">
+        select count(*)
+        from blog_role
+        where deleted_at = 0
+        <if test="roleName != null and roleName != ''">
+            and role_name like concat('%', #{roleName}, '%')
+        </if>
+        <if test="roleCode != null and roleCode != ''">
+            and role_code = #{roleCode}
+        </if>
+        <if test="isEnabled != null">
+            and is_enabled = #{isEnabled}
+        </if>
+    </select>
+
+    <!-- 根据ID查询角色 -->
+    <select id="selectRoleById" resultMap="RoleVOResultMap">
+        select id, role_name, role_code, description, is_enabled, create_time
+        from blog_role
+        where deleted_at = 0
+          and id = #{id}
+    </select>
+
+    <!-- 根据角色编码查询角色（排除指定ID） -->
+    <select id="selectByRoleCode" resultMap="RoleVOResultMap">
+        select id, role_name, role_code, description, is_enabled, create_time
+        from blog_role
+        where deleted_at = 0
+          and role_code = #{roleCode}
+        <if test="excludeId != null">
+            and id != #{excludeId}
+        </if>
+    </select>
+
+    <!-- 新增角色 -->
+    <insert id="insertRole" parameterType="com.lsstop.domain.dto.AddRoleDTO">
+        insert into blog_role (role_name, role_code, description, is_enabled, deleted_at, create_time, update_time)
+        values (#{roleName}, #{roleCode}, #{description}, #{isEnabled}, 0, NOW(), NOW())
+    </insert>
+
+    <!-- 编辑角色 -->
+    <update id="updateRole" parameterType="com.lsstop.domain.dto.UpdateRoleDTO">
+        update blog_role
+        set role_name = #{roleName},
+            role_code = #{roleCode},
+            description = #{description},
+            is_enabled = #{isEnabled},
+            update_time = NOW()
+        where deleted_at = 0
+          and id = #{id}
+    </update>
+
+</mapper>
