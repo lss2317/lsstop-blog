@@ -98,6 +98,8 @@ public class RoleServiceImpl implements RoleService {
             throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST, RoleConst.ROLE_CODE_EXISTS);
         }
         roleMapper.updateRole(dto);
+        // 清除拥有该角色的用户的菜单缓存（启用/禁用状态变更时需刷新）
+        clearRoleUserCache(dto.getId());
     }
 
     /**
@@ -118,6 +120,8 @@ public class RoleServiceImpl implements RoleService {
             throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), RoleConst.ROLE_HAS_USERS);
         }
         roleMapper.deleteById(id, System.currentTimeMillis());
+        // 清除拥有该角色的用户的菜单缓存
+        clearRoleUserCache(id);
     }
 
     /**
@@ -198,6 +202,7 @@ public class RoleServiceImpl implements RoleService {
         List<String> cacheKeys = new ArrayList<>();
         for (String userId : userIds) {
             cacheKeys.add(RedisConst.USER_MENU_TREE + userId);
+            cacheKeys.add(RedisConst.USER_API_PERMISSIONS + userId);
         }
         redisUtils.delete(cacheKeys);
     }
