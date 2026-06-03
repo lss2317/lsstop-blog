@@ -17,4 +17,9 @@ public class RoleConst {
      * 角色不存在
      */
     public static final String ROLE_NOT_FOUND = "角色不存在";
+
+    /**
+     * 角色下存在用户，无法删除
+     */
+    public static final String ROLE_HAS_USERS = "该角色下存在用户，无法删除";
 }

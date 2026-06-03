@@ -67,6 +67,21 @@
         order by m.sort, m.id
     </select>
 
+    <resultMap id="menuPermissionResult" type="com.lsstop.domain.vo.MenuPermissionVO">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="parentId" column="parent_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="name" column="name" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="title" column="title" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    </resultMap>
+
+    <select id="selectAllMenusForPermission" resultMap="menuPermissionResult">
+        select m.id, m.parent_id, m.name, m.title
+        from blog_menu m
+        where m.deleted_at = 0
+          and m.is_enabled = 1
+        order by m.sort, m.id
+    </select>
+
     <select id="selectAllButtonPaths" resultType="java.lang.String">
         select m.path
         from blog_menu m
@@ -75,6 +90,21 @@
           and m.menu_type = 3
           and m.path is not null
           and m.path != ''
+    </select>
+
+    <select id="selectMenusByIds" resultMap="menuVoResult">
+        select m.id, m.parent_id, m.menu_type, m.name, m.path, m.component,
+               m.redirect, m.title, m.icon, m.sort,
+               m.is_hide, m.is_hide_tab, m.keep_alive, m.is_full_page,
+               m.is_first_level, m.fixed_tab, m.link, m.is_iframe,
+               m.active_path, m.auth_mark
+        from blog_menu m
+        where m.deleted_at = 0
+          and m.is_enabled = 1
+          and m.id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
     </select>
 
 </mapper>

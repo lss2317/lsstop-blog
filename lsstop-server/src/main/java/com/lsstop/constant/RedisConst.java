@@ -244,6 +244,11 @@ public class RedisConst {
     public static final String ALL_API_PERMISSIONS = PREFIX + "all:api:permissions";
 
     /**
+     * 全量菜单权限树缓存（用于权限配置弹窗）
+     */
+    public static final String MENU_PERMISSION_TREE = PREFIX + "menu:permission:tree";
+
+    /**
      * 页面信息列表缓存
      */
     public static final String PAGE_INFO_LIST = PREFIX + "page:info:list";

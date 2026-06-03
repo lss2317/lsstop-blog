@@ -1,5 +1,6 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.vo.MenuPermissionVO;
 import com.lsstop.domain.vo.MenuVO;
 
 import java.util.List;
@@ -36,5 +37,13 @@ public interface MenuService {
      * @return 全局按钮权限 path 集合
      */
     Set<String> getAllApiPermissions();
+
+    /**
+     * 获取全量菜单权限树（用于权限配置弹窗）
+     * <p>返回系统所有启用菜单的精简树形结构，包含目录、菜单、按钮三类节点
+     *
+     * @return 菜单权限树
+     */
+    List<MenuPermissionVO> getMenuPermissionTree();
 
 }

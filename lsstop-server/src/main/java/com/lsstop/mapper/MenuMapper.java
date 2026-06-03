@@ -1,5 +1,6 @@
 package com.lsstop.mapper;
 
+import com.lsstop.domain.vo.MenuPermissionVO;
 import com.lsstop.domain.vo.MenuVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -30,5 +31,20 @@ public interface MenuMapper {
      * @return 所有按钮权限的 path 列表（格式：METHOD:/uri/pattern）
      */
     List<String> selectAllButtonPaths();
+
+    /**
+     * 根据ID列表批量查询菜单（用于补全祖先目录）
+     *
+     * @param ids 菜单ID列表
+     * @return 菜单列表
+     */
+    List<MenuVO> selectMenusByIds(@Param("ids") List<Integer> ids);
+
+    /**
+     * 查询系统所有启用的菜单（精简字段，用于权限配置弹窗）
+     *
+     * @return 全量启用菜单列表（已按 sort, id 排序）
+     */
+    List<MenuPermissionVO> selectAllMenusForPermission();
 
 }

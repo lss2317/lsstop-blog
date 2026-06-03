@@ -73,4 +73,55 @@ public interface RoleMapper {
      * @return 角色信息
      */
     RoleVO selectByRoleCode(@Param("roleCode") String roleCode, @Param("excludeId") Integer excludeId);
+
+    /**
+     * 软删除角色
+     *
+     * @param id        角色ID
+     * @param deletedAt 删除时间戳
+     */
+    void deleteById(@Param("id") Integer id, @Param("deletedAt") Long deletedAt);
+
+    /**
+     * 统计已分配该角色的用户数
+     *
+     * @param id 角色ID
+     * @return 已分配该角色的用户数
+     */
+    Integer countUsersByRoleId(@Param("id") Integer id);
+
+    /**
+     * 查询角色已关联的菜单ID列表（用于权限配置弹窗回显）
+     *
+     * @param roleId 角色ID
+     * @return 菜单ID列表
+     */
+    List<Integer> selectMenuIdsByRoleId(@Param("roleId") Integer roleId);
+
+    /**
+     * 查询拥有指定角色的用户ID列表
+     *
+     * @param roleId 角色ID
+     * @return 用户ID列表
+     */
+    List<String> selectUserIdsByRoleId(@Param("roleId") Integer roleId);
+
+    /**
+     * 批量新增角色菜单关联（已软删除的记录自动恢复）
+     *
+     * @param roleId  角色ID
+     * @param menuIds 菜单ID列表
+     */
+    void batchInsertRoleMenu(@Param("roleId") Integer roleId, @Param("menuIds") List<Integer> menuIds);
+
+    /**
+     * 批量软删除角色菜单关联
+     *
+     * @param roleId    角色ID
+     * @param menuIds   菜单ID列表
+     * @param deletedAt 删除时间戳
+     */
+    void batchSoftDeleteRoleMenu(@Param("roleId") Integer roleId,
+                                  @Param("menuIds") List<Integer> menuIds,
+                                  @Param("deletedAt") Long deletedAt);
 }

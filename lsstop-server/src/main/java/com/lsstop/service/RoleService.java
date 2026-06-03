@@ -2,6 +2,7 @@ package com.lsstop.service;
 
 import com.lsstop.domain.dto.AddRoleDTO;
 import com.lsstop.domain.dto.UpdateRoleDTO;
+import com.lsstop.domain.dto.UpdateRoleMenuDTO;
 import com.lsstop.domain.vo.RoleVO;
 
 import java.util.List;
@@ -49,4 +50,28 @@ public interface RoleService {
      * @param dto 编辑角色参数
      */
     void updateRole(UpdateRoleDTO dto);
+
+    /**
+     * 删除角色
+     *
+     * @param id 角色ID
+     */
+    void deleteRole(Integer id);
+
+    /**
+     * 获取角色已关联的菜单ID列表（用于权限配置弹窗回显）
+     *
+     * @param roleId 角色ID
+     * @return 菜单ID列表
+     */
+    List<Integer> getRoleMenuIds(Integer roleId);
+
+    /**
+     * 修改角色菜单权限（差量更新）
+     * <p>接收全量菜单ID列表，后端与现有权限做差集计算，
+     * 多的新增，少的软删除
+     *
+     * @param dto 修改角色菜单权限参数
+     */
+    void updateRoleMenuPermission(UpdateRoleMenuDTO dto);
 }

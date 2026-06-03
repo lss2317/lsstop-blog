@@ -6,19 +6,27 @@ import com.lsstop.common.Result;
 import com.lsstop.constant.CommentConst;
 import com.lsstop.domain.dto.AddRoleDTO;
 import com.lsstop.domain.dto.UpdateRoleDTO;
+import com.lsstop.domain.dto.UpdateRoleMenuDTO;
+import com.lsstop.domain.vo.MenuPermissionVO;
 import com.lsstop.domain.vo.RolePageVO;
 import com.lsstop.enums.OperationModuleEnum;
 import com.lsstop.enums.OperationTypeEnum;
 import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
+import com.lsstop.service.MenuService;
 import com.lsstop.service.RoleService;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 角色控制层
@@ -31,6 +39,9 @@ public class RoleController {
 
     @Resource
     private RoleService roleService;
+
+    @Resource
+    private MenuService menuService;
 
     /**
      * 获取角色列表（分页）
@@ -82,11 +93,64 @@ public class RoleController {
      * @param dto 编辑角色参数
      * @return 操作结果
      */
-    @PostMapping("/admin/role/update")
+    @PutMapping("/admin/role/update")
     @AccessLimit(seconds = 60, maxCount = 30)
     @OperationLog(module = OperationModuleEnum.ROLE, type = OperationTypeEnum.UPDATE, description = "编辑角色")
     public Result<Void> updateRole(@RequestBody @Validated UpdateRoleDTO dto) {
         roleService.updateRole(dto);
+        return Result.success();
+    }
+
+    /**
+     * 删除角色
+     *
+     * @param id 角色ID
+     * @return 操作结果
+     */
+    @DeleteMapping("/admin/role/delete/{id}")
+    @AccessLimit(seconds = 60, maxCount = 30)
+    @OperationLog(module = OperationModuleEnum.ROLE, type = OperationTypeEnum.DELETE, description = "删除角色")
+    public Result<Void> deleteRole(@PathVariable Integer id) {
+        roleService.deleteRole(id);
+        return Result.success();
+    }
+
+    /**
+     * 获取角色已关联的菜单ID列表（用于权限配置弹窗回显）
+     *
+     * @param roleId 角色ID
+     * @return 菜单ID列表
+     */
+    @GetMapping("/admin/role/menu-permission")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<List<Integer>> getRoleMenuIds(@RequestParam Integer roleId) {
+        return Result.success(roleService.getRoleMenuIds(roleId));
+    }
+
+    /**
+     * 获取全量菜单权限树（用于权限配置弹窗）
+     * <p>返回系统所有启用菜单的精简树形结构，包含目录、菜单、按钮三类节点
+     *
+     * @return 菜单权限树
+     */
+    @GetMapping("/admin/role/menu-permission/tree")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<List<MenuPermissionVO>> getMenuPermissionTree() {
+        return Result.success(menuService.getMenuPermissionTree());
+    }
+
+    /**
+     * 修改角色菜单权限
+     * <p>接收全量菜单ID列表，后端与现有权限做差集计算后更新
+     *
+     * @param dto 修改角色菜单权限参数
+     * @return 操作结果
+     */
+    @PutMapping("/admin/role/menu-permission")
+    @AccessLimit(seconds = 60, maxCount = 30)
+    @OperationLog(module = OperationModuleEnum.ROLE, type = OperationTypeEnum.UPDATE, description = "修改角色菜单权限")
+    public Result<Void> updateRoleMenuPermission(@RequestBody @Validated UpdateRoleMenuDTO dto) {
+        roleService.updateRoleMenuPermission(dto);
         return Result.success();
     }
 }

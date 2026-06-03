@@ -83,4 +83,61 @@
           and id = #{id}
     </update>
 
+    <!-- 软删除角色 -->
+    <update id="deleteById">
+        update blog_role
+        set deleted_at = #{deletedAt}, update_time = NOW()
+        where deleted_at = 0
+          and id = #{id}
+    </update>
+
+    <!-- 统计已分配该角色的用户数 -->
+    <select id="countUsersByRoleId" resultType="java.lang.Integer">
+        select count(*)
+        from blog_user_role
+        where deleted_at = 0
+          and role_id = #{id}
+    </select>
+
+    <!-- 查询角色已关联的菜单ID列表（用于权限配置弹窗回显） -->
+    <select id="selectMenuIdsByRoleId" resultType="java.lang.Integer">
+        select m.id
+        from blog_role_menu rm
+                 inner join blog_menu m on rm.menu_id = m.id
+                    and m.deleted_at = 0
+                    and m.is_enabled = 1
+        where rm.deleted_at = 0
+          and rm.role_id = #{roleId}
+    </select>
+
+    <!-- 查询拥有指定角色的用户ID列表 -->
+    <select id="selectUserIdsByRoleId" resultType="java.lang.String">
+        select ur.user_id
+        from blog_user_role ur
+        where ur.deleted_at = 0
+          and ur.role_id = #{roleId}
+    </select>
+
+    <!-- 批量新增角色菜单关联（已软删除的记录自动恢复） -->
+    <insert id="batchInsertRoleMenu">
+        insert into blog_role_menu (role_id, menu_id, deleted_at, create_time, update_time)
+        values
+        <foreach collection="menuIds" item="menuId" separator=",">
+            (#{roleId}, #{menuId}, 0, NOW(), NOW())
+        </foreach>
+        on duplicate key update deleted_at = 0, update_time = NOW()
+    </insert>
+
+    <!-- 批量软删除角色菜单关联 -->
+    <update id="batchSoftDeleteRoleMenu">
+        update blog_role_menu
+        set deleted_at = #{deletedAt}
+        where role_id = #{roleId}
+          and deleted_at = 0
+          and menu_id in
+        <foreach collection="menuIds" item="menuId" open="(" separator="," close=")">
+            #{menuId}
+        </foreach>
+    </update>
+
 </mapper>
