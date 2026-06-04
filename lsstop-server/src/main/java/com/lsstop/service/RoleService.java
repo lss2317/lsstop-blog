@@ -1,6 +1,7 @@
 package com.lsstop.service;
 
 import com.lsstop.domain.dto.AddRoleDTO;
+import com.lsstop.domain.dto.UpdateRoleApiPermissionDTO;
 import com.lsstop.domain.dto.UpdateRoleDTO;
 import com.lsstop.domain.dto.UpdateRoleMenuDTO;
 import com.lsstop.domain.vo.RoleVO;
@@ -74,4 +75,21 @@ public interface RoleService {
      * @param dto 修改角色菜单权限参数
      */
     void updateRoleMenuPermission(UpdateRoleMenuDTO dto);
+
+    /**
+     * 获取角色已关联的接口权限ID列表
+     *
+     * @param roleId 角色ID
+     * @return 接口权限ID列表
+     */
+    List<Integer> getRoleApiPermissionIds(Integer roleId);
+
+    /**
+     * 修改角色接口权限（差量更新）
+     * <p>接收全量接口权限ID列表，后端与现有权限做差集计算，
+     * 多的新增，少的软删除
+     *
+     * @param dto 修改角色接口权限参数
+     */
+    void updateRoleApiPermission(UpdateRoleApiPermissionDTO dto);
 }

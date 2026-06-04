@@ -3,6 +3,7 @@ package com.lsstop.service.impl;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.constant.RoleConst;
 import com.lsstop.domain.dto.AddRoleDTO;
+import com.lsstop.domain.dto.UpdateRoleApiPermissionDTO;
 import com.lsstop.domain.dto.UpdateRoleDTO;
 import com.lsstop.domain.dto.UpdateRoleMenuDTO;
 import com.lsstop.domain.vo.RoleVO;
@@ -186,6 +187,71 @@ public class RoleServiceImpl implements RoleService {
         }
 
         // 清除拥有该角色的用户的菜单缓存
+        clearRoleUserCache(roleId);
+    }
+
+    /**
+     * 获取角色已关联的接口权限ID列表
+     *
+     * @param roleId 角色ID
+     * @return 接口权限ID列表
+     */
+    @Override
+    public List<Integer> getRoleApiPermissionIds(Integer roleId) {
+        // 校验角色是否存在
+        RoleVO role = roleMapper.selectRoleById(roleId);
+        if (role == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, RoleConst.ROLE_NOT_FOUND);
+        }
+        return roleMapper.selectApiPermissionIdsByRoleId(roleId);
+    }
+
+    /**
+     * 修改角色接口权限（差量更新）
+     * <p>接收全量接口权限ID列表，后端与现有权限做差集计算，
+     * 多的新增，少的软删除
+     *
+     * @param dto 修改角色接口权限参数
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateRoleApiPermission(UpdateRoleApiPermissionDTO dto) {
+        Integer roleId = dto.getRoleId();
+        // 校验角色是否存在
+        RoleVO role = roleMapper.selectRoleById(roleId);
+        if (role == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, RoleConst.ROLE_NOT_FOUND);
+        }
+
+        Set<Integer> newApiPermissionIds = new HashSet<>(dto.getApiIds());
+        // 查询当前激活的接口权限ID
+        Set<Integer> activeExisting = new HashSet<>(roleMapper.selectApiPermissionIdsByRoleId(roleId));
+
+        // 计算需要新增的（不在当前激活列表中）
+        List<Integer> toInsert = new ArrayList<>();
+        for (Integer apiPermissionId : newApiPermissionIds) {
+            if (!activeExisting.contains(apiPermissionId)) {
+                toInsert.add(apiPermissionId);
+            }
+        }
+
+        // 计算需要软删除的（当前激活但不在新列表中）
+        List<Integer> toSoftDelete = new ArrayList<>();
+        for (Integer apiPermissionId : activeExisting) {
+            if (!newApiPermissionIds.contains(apiPermissionId)) {
+                toSoftDelete.add(apiPermissionId);
+            }
+        }
+
+        // 执行差量操作
+        if (!toInsert.isEmpty()) {
+            roleMapper.batchInsertRoleApiPermission(roleId, toInsert);
+        }
+        if (!toSoftDelete.isEmpty()) {
+            roleMapper.batchSoftDeleteRoleApiPermission(roleId, toSoftDelete, System.currentTimeMillis());
+        }
+
+        // 清除拥有该角色的用户的缓存
         clearRoleUserCache(roleId);
     }
 

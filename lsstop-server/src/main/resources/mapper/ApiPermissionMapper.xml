@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.ApiPermissionMapper">
+
+    <resultMap id="apiPermissionNodeResult" type="com.lsstop.domain.vo.ApiPermissionNodeVO">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="parentId" column="parent_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="name" column="description" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="path" column="request_url" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="method" column="request_method" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    </resultMap>
+
+    <select id="selectAllApiPermissions" resultMap="apiPermissionNodeResult">
+        select ap.id, ap.parent_id, ap.description, ap.request_url, ap.request_method
+        from blog_api_permission ap
+        where ap.deleted_at = 0
+          and ap.is_enabled = 1
+        order by ap.sort, ap.id
+    </select>
+
+</mapper>

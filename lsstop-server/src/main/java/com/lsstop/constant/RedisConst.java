@@ -249,6 +249,11 @@ public class RedisConst {
     public static final String MENU_PERMISSION_TREE = PREFIX + "menu:permission:tree";
 
     /**
+     * 全量接口权限树缓存
+     */
+    public static final String API_PERMISSION_TREE = PREFIX + "api:permission:tree";
+
+    /**
      * 页面信息列表缓存
      */
     public static final String PAGE_INFO_LIST = PREFIX + "page:info:list";

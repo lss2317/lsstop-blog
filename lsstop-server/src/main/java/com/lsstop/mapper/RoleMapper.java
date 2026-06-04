@@ -107,7 +107,7 @@ public interface RoleMapper {
     List<String> selectUserIdsByRoleId(@Param("roleId") Integer roleId);
 
     /**
-     * 批量新增角色菜单关联（已软删除的记录自动恢复）
+     * 批量新增角色菜单关联（已存在活跃记录时幂等更新）
      *
      * @param roleId  角色ID
      * @param menuIds 菜单ID列表
@@ -124,4 +124,32 @@ public interface RoleMapper {
     void batchSoftDeleteRoleMenu(@Param("roleId") Integer roleId,
                                   @Param("menuIds") List<Integer> menuIds,
                                   @Param("deletedAt") Long deletedAt);
+
+    /**
+     * 查询角色已关联的接口权限ID列表
+     *
+     * @param roleId 角色ID
+     * @return 接口权限ID列表
+     */
+    List<Integer> selectApiPermissionIdsByRoleId(@Param("roleId") Integer roleId);
+
+    /**
+     * 批量新增角色接口权限关联（已存在活跃记录时幂等更新）
+     *
+     * @param roleId           角色ID
+     * @param apiPermissionIds 接口权限ID列表
+     */
+    void batchInsertRoleApiPermission(@Param("roleId") Integer roleId,
+                                       @Param("apiPermissionIds") List<Integer> apiPermissionIds);
+
+    /**
+     * 批量软删除角色接口权限关联
+     *
+     * @param roleId           角色ID
+     * @param apiPermissionIds 接口权限ID列表
+     * @param deletedAt        删除时间戳
+     */
+    void batchSoftDeleteRoleApiPermission(@Param("roleId") Integer roleId,
+                                           @Param("apiPermissionIds") List<Integer> apiPermissionIds,
+                                           @Param("deletedAt") Long deletedAt);
 }

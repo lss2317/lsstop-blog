@@ -5,14 +5,17 @@ import com.lsstop.annotation.OperationLog;
 import com.lsstop.common.Result;
 import com.lsstop.constant.CommentConst;
 import com.lsstop.domain.dto.AddRoleDTO;
+import com.lsstop.domain.dto.UpdateRoleApiPermissionDTO;
 import com.lsstop.domain.dto.UpdateRoleDTO;
 import com.lsstop.domain.dto.UpdateRoleMenuDTO;
+import com.lsstop.domain.vo.ApiPermissionNodeVO;
 import com.lsstop.domain.vo.MenuPermissionVO;
 import com.lsstop.domain.vo.RolePageVO;
 import com.lsstop.enums.OperationModuleEnum;
 import com.lsstop.enums.OperationTypeEnum;
 import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
+import com.lsstop.service.ApiPermissionService;
 import com.lsstop.service.MenuService;
 import com.lsstop.service.RoleService;
 import jakarta.annotation.Resource;
@@ -42,6 +45,9 @@ public class RoleController {
 
     @Resource
     private MenuService menuService;
+
+    @Resource
+    private ApiPermissionService apiPermissionService;
 
     /**
      * 获取角色列表（分页）
@@ -151,6 +157,45 @@ public class RoleController {
     @OperationLog(module = OperationModuleEnum.ROLE, type = OperationTypeEnum.UPDATE, description = "修改角色菜单权限")
     public Result<Void> updateRoleMenuPermission(@RequestBody @Validated UpdateRoleMenuDTO dto) {
         roleService.updateRoleMenuPermission(dto);
+        return Result.success();
+    }
+
+    /**
+     * 获取全量接口权限树
+     * <p>返回系统所有启用接口的树形结构，用于接口权限配置界面展示
+     *
+     * @return 接口权限树
+     */
+    @GetMapping("/admin/role/api-permission/tree")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<List<ApiPermissionNodeVO>> getApiPermissionTree() {
+        return Result.success(apiPermissionService.getApiPermissionTree());
+    }
+
+    /**
+     * 获取角色已关联的接口权限ID列表（用于权限配置弹窗回显）
+     *
+     * @param roleId 角色ID
+     * @return 接口权限ID列表
+     */
+    @GetMapping("/admin/role/api-permission")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<List<Integer>> getRoleApiPermissionIds(@RequestParam Integer roleId) {
+        return Result.success(roleService.getRoleApiPermissionIds(roleId));
+    }
+
+    /**
+     * 修改角色接口权限
+     * <p>接收全量接口权限ID列表，后端与现有权限做差集计算后更新
+     *
+     * @param dto 修改角色接口权限参数
+     * @return 操作结果
+     */
+    @PutMapping("/admin/role/api-permission")
+    @AccessLimit(seconds = 60, maxCount = 30)
+    @OperationLog(module = OperationModuleEnum.ROLE, type = OperationTypeEnum.UPDATE, description = "修改角色接口权限")
+    public Result<Void> updateRoleApiPermission(@RequestBody @Validated UpdateRoleApiPermissionDTO dto) {
+        roleService.updateRoleApiPermission(dto);
         return Result.success();
     }
 }
