@@ -282,10 +282,11 @@ public class AuthServiceImpl implements AuthService {
             }
             JSONObject tokenJson = JSONObject.parseObject(tokenResponse);
             String accessToken = tokenJson.getString(AuthConst.WEIBO_RESPONSE_ACCESS_TOKEN);
-            uid = String.valueOf(tokenJson.get(AuthConst.WEIBO_RESPONSE_UID));
-            if (accessToken == null || uid == null) {
+            Object uidObj = tokenJson.get(AuthConst.WEIBO_RESPONSE_UID);
+            if (accessToken == null || uidObj == null) {
                 throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.WEIBO_AUTH_FAILED);
             }
+            uid = String.valueOf(uidObj);
 
             // 根据 uid 查询用户认证信息
             UserAuthEntity userAuth = authMapper.selectByIdentifierAndType(uid, LoginTypeEnum.WEIBO.getCode());

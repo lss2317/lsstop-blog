@@ -140,7 +140,7 @@ public class LikeServiceImpl implements LikeService {
             return Collections.emptySet();
         }
         return members.stream()
-                .map(obj -> (Integer) obj)
+                .map(obj -> ((Number) obj).intValue())
                 .collect(Collectors.toSet());
     }
 

@@ -1,7 +1,6 @@
 package com.lsstop.service.impl;
 
 import com.lsstop.constant.ArticleConst;
-import com.lsstop.constant.CommentConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.vo.*;
 import com.lsstop.enums.StatusEnum;
@@ -40,8 +39,8 @@ public class ArticleServiceImpl implements ArticleService {
      */
     @Override
     public ArticleHomePageVO getHomeArticleList(Integer current) {
-        int offset = (current - 1) * CommentConst.DEFAULT_PAGE_SIZE;
-        List<ArticleHomeVO> list = articleMapper.getHomeArticleList(offset, CommentConst.DEFAULT_PAGE_SIZE);
+        int offset = (current - 1) * ArticleConst.DEFAULT_PAGE_SIZE;
+        List<ArticleHomeVO> list = articleMapper.getHomeArticleList(offset, ArticleConst.DEFAULT_PAGE_SIZE);
         Integer total = articleMapper.getArticleCount();
         return new ArticleHomePageVO(list, total);
     }

@@ -29,6 +29,11 @@ public class ArticleConst {
     public static final long VIEW_RECORD_EXPIRE = 60 * 60;
 
     /**
+     * 首页文章默认每页数量
+     */
+    public static final int DEFAULT_PAGE_SIZE = 10;
+
+    /**
      * 文章不存在
      */
     public static final String ARTICLE_NOT_FOUND = "文章不存在";

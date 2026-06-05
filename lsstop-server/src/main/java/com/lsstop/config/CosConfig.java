@@ -55,7 +55,7 @@ public class CosConfig {
     /**
      * 创建 COS 客户端
      */
-    @Bean
+    @Bean(destroyMethod = "shutdown")
     public COSClient cosClient() {
         // 初始化身份信息
         COSCredentials credentials = new BasicCOSCredentials(secretId, secretKey);
