@@ -1,5 +1,6 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.dto.AddMenuDTO;
 import com.lsstop.domain.vo.MenuAdminVO;
 import com.lsstop.domain.vo.MenuPermissionVO;
 import com.lsstop.domain.vo.MenuVO;
@@ -57,5 +58,12 @@ public interface MenuService {
      * @return 菜单管理树
      */
     List<MenuAdminVO> getAdminMenuTree(String keyword, Integer menuType, Integer isEnabled);
+
+    /**
+     * 新增菜单
+     *
+     * @param dto 新增菜单参数
+     */
+    void addMenu(AddMenuDTO dto);
 
 }

@@ -40,6 +40,16 @@ public class StringUtils {
     );
 
     /**
+     * 判断字符串是否为空（null、空字符串、纯空白）
+     *
+     * @param value 字符串
+     * @return true-为空，false-不为空
+     */
+    public static boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    /**
      * 截断文本
      *
      * @param text      文本

@@ -1,5 +1,6 @@
 package com.lsstop.mapper;
 
+import com.lsstop.domain.entity.MenuEntity;
 import com.lsstop.domain.vo.MenuAdminVO;
 import com.lsstop.domain.vo.MenuPermissionVO;
 import com.lsstop.domain.vo.MenuVO;
@@ -67,5 +68,46 @@ public interface MenuMapper {
      * @return 菜单列表（含 isEnabled、createTime、updateTime）
      */
     List<MenuAdminVO> selectAdminMenusByIds(@Param("ids") List<Integer> ids);
+
+    /**
+     * 新增菜单
+     *
+     * @param menu 菜单数据
+     */
+    void insertMenu(MenuEntity menu);
+
+    /**
+     * 根据ID查询菜单（校验父级是否存在）
+     *
+     * @param id 菜单ID
+     * @return 菜单实体（仅含 id、menuType）
+     */
+    MenuEntity selectMenuById(@Param("id") Integer id);
+
+    /**
+     * 校验同级path是否已存在
+     *
+     * @param parentId 父级ID
+     * @param path     路由地址
+     * @return 存在返回数量 > 0
+     */
+    Integer countByParentIdAndPath(@Param("parentId") Integer parentId, @Param("path") String path);
+
+    /**
+     * 校验同级authMark是否已存在
+     *
+     * @param parentId 父级ID
+     * @param authMark 权限标识
+     * @return 存在返回数量 > 0
+     */
+    Integer countByParentIdAndAuthMark(@Param("parentId") Integer parentId, @Param("authMark") String authMark);
+
+    /**
+     * 校验name全局唯一性
+     *
+     * @param name 路由标识
+     * @return 存在返回数量 > 0
+     */
+    Integer countByName(@Param("name") String name);
 
 }

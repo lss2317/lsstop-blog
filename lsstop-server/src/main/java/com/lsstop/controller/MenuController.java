@@ -1,15 +1,22 @@
 package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
+import com.lsstop.annotation.OperationLog;
 import com.lsstop.common.Result;
+import com.lsstop.domain.dto.AddMenuDTO;
 import com.lsstop.domain.dto.MenuListQueryDTO;
 import com.lsstop.domain.vo.MenuAdminVO;
 import com.lsstop.domain.vo.MenuVO;
 import com.lsstop.enums.MenuTypeEnum;
+import com.lsstop.enums.OperationModuleEnum;
+import com.lsstop.enums.OperationTypeEnum;
 import com.lsstop.service.MenuService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -51,6 +58,20 @@ public class MenuController {
     public Result<List<MenuAdminVO>> getAdminMenuList(MenuListQueryDTO query) {
         Integer menuType = MenuTypeEnum.toCode(query.getMenuType());
         return Result.success(menuService.getAdminMenuTree(query.getKeyword(), menuType, query.getIsEnabled()));
+    }
+
+    /**
+     * 新增菜单
+     *
+     * @param dto 新增菜单参数
+     * @return 操作结果
+     */
+    @PostMapping("/admin/menu/add")
+    @AccessLimit(seconds = 60, maxCount = 30)
+    @OperationLog(module = OperationModuleEnum.MENU, type = OperationTypeEnum.ADD, description = "新增菜单")
+    public Result<Void> addMenu(@RequestBody @Validated AddMenuDTO dto) {
+        menuService.addMenu(dto);
+        return Result.success();
     }
 
 }

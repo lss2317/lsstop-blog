@@ -30,7 +30,8 @@ public enum OperationModuleEnum {
     CHAT_MESSAGE("聊天消息模块"),
     OPERATION_LOG("操作日志模块"),
     LOGIN_LOG("认证日志模块"),
-    ROLE("角色模块");
+    ROLE("角色模块"),
+    MENU("菜单模块");
 
     /**
      * 描述

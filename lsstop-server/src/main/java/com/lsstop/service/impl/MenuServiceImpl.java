@@ -1,11 +1,21 @@
 package com.lsstop.service.impl;
 
+import com.lsstop.constant.CommonConst;
+import com.lsstop.constant.MenuConst;
 import com.lsstop.constant.RedisConst;
+import com.lsstop.domain.dto.AddMenuDTO;
+import com.lsstop.domain.entity.MenuEntity;
 import com.lsstop.domain.vo.MenuAdminVO;
 import com.lsstop.domain.vo.MenuPermissionVO;
 import com.lsstop.domain.vo.MenuVO;
+import com.lsstop.enums.MenuTypeEnum;
+import com.lsstop.enums.StatusEnum;
+import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.MenuMapper;
 import com.lsstop.service.MenuService;
+import com.lsstop.utils.ConvertUtils;
+import com.lsstop.utils.StringUtils;
+import com.lsstop.utils.ValidateUtils;
 import com.lsstop.utils.RedisUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -338,6 +348,375 @@ public class MenuServiceImpl implements MenuService {
         return buildTreeFromFlatList(flatMenus,
                 MenuPermissionVO::getId, MenuPermissionVO::getParentId,
                 MenuPermissionVO::getChildren, MenuPermissionVO::setChildren);
+    }
+
+    /**
+     * 新增菜单
+     *
+     * @param dto 新增菜单参数
+     */
+    @Override
+    public void addMenu(AddMenuDTO dto) {
+        // title 去首尾空格
+        dto.setTitle(dto.getTitle().trim());
+
+        // 1. 校验菜单类型有效性
+        Integer menuTypeCode = MenuTypeEnum.toCode(dto.getMenuType());
+        if (menuTypeCode == null) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.INVALID_MENU_TYPE);
+        }
+
+        int parentId = dto.getParentId() != null ? dto.getParentId() : MenuConst.TOP_LEVEL_PARENT_ID;
+
+        // 2. 分支校验 + 关系校验
+        switch (menuTypeCode) {
+            case MenuConst.TYPE_DIRECTORY -> validateDirectory(dto, parentId);
+            case MenuConst.TYPE_MENU -> validateMenu(dto, parentId);
+            case MenuConst.TYPE_BUTTON -> validateButton(dto, parentId);
+            case MenuConst.TYPE_IFRAME -> validateIframe(dto, parentId);
+            case MenuConst.TYPE_LINK -> validateLink(dto, parentId);
+            default -> throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.INVALID_MENU_TYPE);
+        }
+
+        // 3. 唯一性校验
+        validateUniqueness(dto, parentId, menuTypeCode);
+
+        // 4. 构建实体（按类型忽略无关字段）
+        MenuEntity entity = buildMenuEntity(dto, parentId, menuTypeCode);
+        menuMapper.insertMenu(entity);
+    }
+
+    /**
+     * 校验目录类型
+     */
+    private void validateDirectory(AddMenuDTO dto, int parentId) {
+        // path 必填 + 格式
+        if (StringUtils.isBlank(dto.getPath())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.PATH_REQUIRED);
+        }
+        validatePathFormat(dto.getPath(), parentId);
+        // name 格式（选填）
+        if (!StringUtils.isBlank(dto.getName())) {
+            validateNameFormat(dto.getName());
+        }
+        // icon 格式（选填）
+        validateIconFormat(dto.getIcon());
+        // 父级校验：非顶级时父级必须是目录
+        if (parentId != MenuConst.TOP_LEVEL_PARENT_ID) {
+            validateParentType(parentId, MenuConst.TYPE_DIRECTORY);
+        }
+    }
+
+    /**
+     * 校验菜单类型
+     */
+    private void validateMenu(AddMenuDTO dto, int parentId) {
+        // path 必填 + 格式
+        if (StringUtils.isBlank(dto.getPath())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.PATH_REQUIRED);
+        }
+        validatePathFormat(dto.getPath(), parentId);
+        // component 必填 + 格式
+        if (StringUtils.isBlank(dto.getComponent())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.COMPONENT_REQUIRED);
+        }
+        validateComponentFormat(dto.getComponent());
+        // name 格式（选填）
+        if (!StringUtils.isBlank(dto.getName())) {
+            validateNameFormat(dto.getName());
+        }
+        // activePath 格式（选填）
+        if (!StringUtils.isBlank(dto.getActivePath())) {
+            validateActivePathFormat(dto.getActivePath());
+        }
+        // icon 格式（选填）
+        validateIconFormat(dto.getIcon());
+        // 父级校验：非顶级时父级必须是目录或菜单
+        if (parentId != MenuConst.TOP_LEVEL_PARENT_ID) {
+            validateParentType(parentId, MenuConst.TYPE_DIRECTORY, MenuConst.TYPE_MENU);
+        }
+    }
+
+    /**
+     * 校验按钮类型
+     */
+    private void validateButton(AddMenuDTO dto, int parentId) {
+        // parentId 必填
+        if (parentId == MenuConst.TOP_LEVEL_PARENT_ID) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.BUTTON_PARENT_REQUIRED);
+        }
+        // authMark 必填 + 格式
+        if (StringUtils.isBlank(dto.getAuthMark())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.AUTH_MARK_REQUIRED);
+        }
+        validateAuthMarkFormat(dto.getAuthMark());
+        // 父级必须是菜单
+        validateParentType(parentId, MenuConst.TYPE_MENU);
+    }
+
+    /**
+     * 校验内嵌类型
+     */
+    private void validateIframe(AddMenuDTO dto, int parentId) {
+        // path 必填 + 格式
+        if (StringUtils.isBlank(dto.getPath())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.PATH_REQUIRED);
+        }
+        validatePathFormat(dto.getPath(), parentId);
+        // link 必填且格式正确
+        validateLinkUrl(dto.getLink());
+        // name 格式（选填）
+        if (!StringUtils.isBlank(dto.getName())) {
+            validateNameFormat(dto.getName());
+        }
+        // icon 格式（选填）
+        validateIconFormat(dto.getIcon());
+        // 父级校验：非顶级时父级必须是目录或菜单
+        if (parentId != MenuConst.TOP_LEVEL_PARENT_ID) {
+            validateParentType(parentId, MenuConst.TYPE_DIRECTORY, MenuConst.TYPE_MENU);
+        }
+    }
+
+    /**
+     * 校验外链类型
+     */
+    private void validateLink(AddMenuDTO dto, int parentId) {
+        // link 必填且格式正确
+        validateLinkUrl(dto.getLink());
+        // name 格式（选填）
+        if (!StringUtils.isBlank(dto.getName())) {
+            validateNameFormat(dto.getName());
+        }
+        // icon 格式（选填）
+        validateIconFormat(dto.getIcon());
+        // 父级校验：非顶级时父级必须是目录或菜单
+        if (parentId != MenuConst.TOP_LEVEL_PARENT_ID) {
+            validateParentType(parentId, MenuConst.TYPE_DIRECTORY, MenuConst.TYPE_MENU);
+        }
+    }
+
+    /**
+     * 校验父级菜单类型
+     */
+    private void validateParentType(int parentId, int... expectedTypes) {
+        MenuEntity parent = menuMapper.selectMenuById(parentId);
+        if (parent == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND.getCode(), MenuConst.PARENT_NOT_FOUND);
+        }
+        for (int expectedType : expectedTypes) {
+            if (parent.getMenuType() == expectedType) {
+                return;
+            }
+        }
+        // 根据传入类型确定错误信息
+        String msg;
+        if (expectedTypes.length == 1 && expectedTypes[0] == MenuConst.TYPE_MENU) {
+            msg = MenuConst.BUTTON_MUST_UNDER_MENU;
+        } else if (expectedTypes.length == 1 && expectedTypes[0] == MenuConst.TYPE_DIRECTORY) {
+            msg = MenuConst.MUST_UNDER_DIRECTORY;
+        } else {
+            msg = MenuConst.MUST_UNDER_DIRECTORY_OR_MENU;
+        }
+        throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), msg);
+    }
+
+    /**
+     * 校验链接URL格式
+     */
+    private void validateLinkUrl(String link) {
+        if (StringUtils.isBlank(link)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.LINK_REQUIRED);
+        }
+        if (link.length() > MenuConst.LINK_MAX_LENGTH) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.LINK_INVALID);
+        }
+        if (!StringUtils.isValidUrl(link)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.LINK_INVALID);
+        }
+    }
+
+    /**
+     * 唯一性校验
+     */
+    private void validateUniqueness(AddMenuDTO dto, int parentId, int menuTypeCode) {
+        // name 全局唯一（非空时校验）
+        if (!StringUtils.isBlank(dto.getName())) {
+            Integer nameCount = menuMapper.countByName(dto.getName());
+            if (nameCount != null && nameCount > 0) {
+                throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST.getCode(), MenuConst.NAME_EXISTS);
+            }
+        }
+        // path 同级唯一（非按钮、非外链、path非空时校验）
+        if (menuTypeCode != MenuConst.TYPE_BUTTON && menuTypeCode != MenuConst.TYPE_LINK
+                && !StringUtils.isBlank(dto.getPath())) {
+            Integer pathCount = menuMapper.countByParentIdAndPath(parentId, dto.getPath());
+            if (pathCount != null && pathCount > 0) {
+                throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST.getCode(), MenuConst.PATH_EXISTS);
+            }
+        }
+        // authMark 同级唯一（按钮类型、非空时校验）
+        if (menuTypeCode == MenuConst.TYPE_BUTTON && !StringUtils.isBlank(dto.getAuthMark())) {
+            Integer authMarkCount = menuMapper.countByParentIdAndAuthMark(parentId, dto.getAuthMark());
+            if (authMarkCount != null && authMarkCount > 0) {
+                throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST.getCode(), MenuConst.AUTH_MARK_EXISTS);
+            }
+        }
+    }
+
+    /**
+     * 构建菜单实体（按类型忽略无关字段）
+     */
+    private MenuEntity buildMenuEntity(AddMenuDTO dto, int parentId, int menuTypeCode) {
+        MenuEntity.MenuEntityBuilder builder = MenuEntity.builder()
+                .parentId(parentId)
+                .menuType(menuTypeCode)
+                .title(dto.getTitle())
+                .sort(dto.getSort() != null ? dto.getSort() : MenuConst.DEFAULT_SORT)
+                .isEnabled(ConvertUtils.boolToInt(dto.getIsEnabled(), true));
+
+        switch (menuTypeCode) {
+            case MenuConst.TYPE_DIRECTORY -> builder
+                    .name(dto.getName())
+                    .path(dto.getPath())
+                    .icon(dto.getIcon())
+                    .isHide(ConvertUtils.boolToInt(dto.getIsHide()))
+                    .isHideTab(ConvertUtils.boolToInt(dto.getIsHideTab()))
+                    .keepAlive(CommonConst.DISABLED)
+                    .isFullPage(ConvertUtils.boolToInt(dto.getIsFullPage()))
+                    .isFirstLevel(CommonConst.DISABLED)
+                    .fixedTab(ConvertUtils.boolToInt(dto.getFixedTab()))
+                    .isIframe(CommonConst.DISABLED);
+            case MenuConst.TYPE_MENU -> builder
+                    .name(dto.getName())
+                    .path(dto.getPath())
+                    .component(dto.getComponent())
+                    .icon(dto.getIcon())
+                    .activePath(dto.getActivePath())
+                    .isHide(ConvertUtils.boolToInt(dto.getIsHide()))
+                    .isHideTab(ConvertUtils.boolToInt(dto.getIsHideTab()))
+                    .keepAlive(ConvertUtils.boolToInt(dto.getKeepAlive(), true))
+                    .isFullPage(ConvertUtils.boolToInt(dto.getIsFullPage()))
+                    .isFirstLevel(CommonConst.DISABLED)
+                    .fixedTab(ConvertUtils.boolToInt(dto.getFixedTab()))
+                    .isIframe(CommonConst.DISABLED);
+            case MenuConst.TYPE_BUTTON -> builder
+                    .authMark(dto.getAuthMark())
+                    .isHide(CommonConst.DISABLED)
+                    .isHideTab(CommonConst.DISABLED)
+                    .keepAlive(CommonConst.DISABLED)
+                    .isFullPage(CommonConst.DISABLED)
+                    .isFirstLevel(CommonConst.DISABLED)
+                    .fixedTab(CommonConst.DISABLED)
+                    .isIframe(CommonConst.DISABLED);
+            case MenuConst.TYPE_IFRAME -> builder
+                    .name(dto.getName())
+                    .path(dto.getPath())
+                    .link(dto.getLink())
+                    .icon(dto.getIcon())
+                    .isHide(ConvertUtils.boolToInt(dto.getIsHide()))
+                    .isHideTab(ConvertUtils.boolToInt(dto.getIsHideTab()))
+                    .keepAlive(CommonConst.DISABLED)
+                    .isFullPage(ConvertUtils.boolToInt(dto.getIsFullPage()))
+                    .isFirstLevel(CommonConst.DISABLED)
+                    .fixedTab(ConvertUtils.boolToInt(dto.getFixedTab()))
+                    .isIframe(CommonConst.ENABLED);
+            case MenuConst.TYPE_LINK -> builder
+                    .name(dto.getName())
+                    .link(dto.getLink())
+                    .icon(dto.getIcon())
+                    .isHide(ConvertUtils.boolToInt(dto.getIsHide()))
+                    .isHideTab(ConvertUtils.boolToInt(dto.getIsHideTab()))
+                    .keepAlive(CommonConst.DISABLED)
+                    .isFullPage(ConvertUtils.boolToInt(dto.getIsFullPage()))
+                    .isFirstLevel(CommonConst.DISABLED)
+                    .fixedTab(ConvertUtils.boolToInt(dto.getFixedTab()))
+                    .isIframe(CommonConst.DISABLED);
+            default -> {}
+        }
+        return builder.build();
+    }
+
+    /**
+     * 校验path格式
+     */
+    private void validatePathFormat(String path, int parentId) {
+        if (path.length() > MenuConst.PATH_MAX_LENGTH) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.PATH_LENGTH_INVALID);
+        }
+        // 顶级必须以/开头
+        if (parentId == MenuConst.TOP_LEVEL_PARENT_ID && !path.startsWith("/")) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.PATH_TOP_LEVEL_SLASH);
+        }
+        // 非顶级不能以/开头
+        if (parentId != MenuConst.TOP_LEVEL_PARENT_ID && path.startsWith("/")) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.PATH_SUB_LEVEL_NO_SLASH);
+        }
+        if (!ValidateUtils.isValidPath(path)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.PATH_FORMAT_INVALID);
+        }
+    }
+
+    /**
+     * 校验name格式（PascalCase）
+     */
+    private void validateNameFormat(String name) {
+        if (name.length() > MenuConst.NAME_MAX_LENGTH) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.NAME_FORMAT_INVALID);
+        }
+        if (!ValidateUtils.isValidName(name)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.NAME_FORMAT_INVALID);
+        }
+    }
+
+    /**
+     * 校验component格式
+     */
+    private void validateComponentFormat(String component) {
+        if (component.length() > MenuConst.COMPONENT_MAX_LENGTH) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.COMPONENT_FORMAT_INVALID);
+        }
+        if (!ValidateUtils.isValidComponent(component)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.COMPONENT_FORMAT_INVALID);
+        }
+    }
+
+    /**
+     * 校验authMark格式
+     */
+    private void validateAuthMarkFormat(String authMark) {
+        if (authMark.length() > MenuConst.AUTH_MARK_MAX_LENGTH) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.AUTH_MARK_LENGTH_INVALID);
+        }
+        if (!ValidateUtils.isValidAuthMark(authMark)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.AUTH_MARK_FORMAT_INVALID);
+        }
+    }
+
+    /**
+     * 校验图标格式
+     */
+    private void validateIconFormat(String icon) {
+        if (StringUtils.isBlank(icon)) {
+            return;
+        }
+        if (icon.length() > MenuConst.ICON_MAX_LENGTH) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.ICON_FORMAT_INVALID);
+        }
+        if (!ValidateUtils.isValidIcon(icon)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.ICON_FORMAT_INVALID);
+        }
+    }
+
+    /**
+     * 校验activePath格式
+     */
+    private void validateActivePathFormat(String activePath) {
+        if (activePath.length() > MenuConst.ACTIVE_PATH_MAX_LENGTH) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.ACTIVE_PATH_FORMAT_INVALID);
+        }
+        if (!activePath.startsWith("/")) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.ACTIVE_PATH_FORMAT_INVALID);
+        }
     }
 
 }

@@ -169,4 +169,49 @@
         </foreach>
     </select>
 
+    <insert id="insertMenu" parameterType="com.lsstop.domain.entity.MenuEntity">
+        insert into blog_menu (parent_id, menu_type, name, path, component,
+                               title, icon, sort,
+                               is_hide, is_hide_tab, keep_alive, is_full_page,
+                               is_first_level, fixed_tab, link, is_iframe,
+                               active_path, auth_mark, is_enabled,
+                               deleted_at, create_time, update_time)
+        values (#{parentId}, #{menuType}, #{name}, #{path}, #{component},
+                #{title}, #{icon}, #{sort},
+                #{isHide}, #{isHideTab}, #{keepAlive}, #{isFullPage},
+                #{isFirstLevel}, #{fixedTab}, #{link}, #{isIframe},
+                #{activePath}, #{authMark}, #{isEnabled},
+                0, NOW(), NOW())
+    </insert>
+
+    <select id="selectMenuById" resultType="com.lsstop.domain.entity.MenuEntity">
+        select id, menu_type as menuType
+        from blog_menu
+        where deleted_at = 0
+          and id = #{id}
+    </select>
+
+    <select id="countByParentIdAndPath" resultType="java.lang.Integer">
+        select count(*)
+        from blog_menu
+        where deleted_at = 0
+          and parent_id = #{parentId}
+          and path = #{path}
+    </select>
+
+    <select id="countByParentIdAndAuthMark" resultType="java.lang.Integer">
+        select count(*)
+        from blog_menu
+        where deleted_at = 0
+          and parent_id = #{parentId}
+          and auth_mark = #{authMark}
+    </select>
+
+    <select id="countByName" resultType="java.lang.Integer">
+        select count(*)
+        from blog_menu
+        where deleted_at = 0
+          and name = #{name}
+    </select>
+
 </mapper>
