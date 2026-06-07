@@ -1,18 +1,18 @@
 package com.lsstop.domain.vo;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 菜单VO（树形结构）
+ * 菜单管理VO（后台管理专用，包含 parentId、sort 等内部字段）
  *
  * @author lishusheng
- * @date 2026/05/04
+ * @date 2026/06/07
  */
 @Data
-public class MenuVO {
+public class MenuAdminVO {
 
     /**
      * 菜单ID
@@ -22,7 +22,6 @@ public class MenuVO {
     /**
      * 父级ID（0=顶级）
      */
-    @JsonIgnore
     private Integer parentId;
 
     /**
@@ -58,7 +57,6 @@ public class MenuVO {
     /**
      * 排序
      */
-    @JsonIgnore
     private Integer sort;
 
     /**
@@ -112,8 +110,23 @@ public class MenuVO {
     private String authMark;
 
     /**
+     * 是否启用：0-禁用 1-启用
+     */
+    private Integer isEnabled;
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
+
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
+
+    /**
      * 子菜单
      */
-    private List<MenuVO> children;
+    private List<MenuAdminVO> children;
 
 }

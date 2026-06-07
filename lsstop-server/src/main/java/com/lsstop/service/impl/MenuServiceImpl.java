@@ -1,6 +1,7 @@
 package com.lsstop.service.impl;
 
 import com.lsstop.constant.RedisConst;
+import com.lsstop.domain.vo.MenuAdminVO;
 import com.lsstop.domain.vo.MenuPermissionVO;
 import com.lsstop.domain.vo.MenuVO;
 import com.lsstop.mapper.MenuMapper;
@@ -15,6 +16,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -50,7 +53,7 @@ public class MenuServiceImpl implements MenuService {
         List<MenuVO> flatMenus = menuMapper.selectMenusByUserId(userId);
         // 补全缺失的父级目录，确保子菜单在 buildTree 中不被丢弃
         flatMenus = fillMissingParents(flatMenus);
-        List<MenuVO> menuTree = buildTree(flatMenus);
+        List<MenuVO> menuTree = buildUserMenuTree(flatMenus);
         // 写入缓存，过期时间1天
         redisUtils.set(cacheKey, menuTree, RedisConst.EXPIRE_ONE_DAY);
         return menuTree;
@@ -123,53 +126,73 @@ public class MenuServiceImpl implements MenuService {
         }
         // 缓存不存在，查询数据库
         List<MenuPermissionVO> flatMenus = menuMapper.selectAllMenusForPermission();
-        List<MenuPermissionVO> tree = buildPermissionTree(flatMenus);
+        List<MenuPermissionVO> tree = buildPermissionMenuTree(flatMenus);
         // 写入缓存，过期时间1天
         redisUtils.set(cacheKey, tree, RedisConst.EXPIRE_ONE_DAY);
         return tree;
     }
 
     /**
-     * 将精简菜单列表构建为树形结构（权限配置弹窗专用）
+     * 通用树形构建方法
+     * <p>将扁平列表构建为树形结构，支持任意具有 id、parentId、children 的 VO
      *
-     * @param flatMenus 扁平菜单列表（已按 sort, id 排序）
-     * @return 树形菜单列表
+     * @param flatList    扁平列表（已按 sort, id 排序）
+     * @param getId       获取节点 ID
+     * @param getParentId 获取父节点 ID
+     * @param getChildren 获取子节点列表
+     * @param setChildren 设置子节点列表
+     * @return 树形结构列表
      */
-    private List<MenuPermissionVO> buildPermissionTree(List<MenuPermissionVO> flatMenus) {
-        // 使用 LinkedHashMap 保持插入顺序（即排序顺序）
-        Map<Integer, MenuPermissionVO> menuMap = new LinkedHashMap<>();
-        for (MenuPermissionVO menu : flatMenus) {
-            menu.setChildren(new ArrayList<>());
-            menuMap.put(menu.getId(), menu);
+    private <T> List<T> buildTreeFromFlatList(
+            List<T> flatList,
+            Function<T, Integer> getId,
+            Function<T, Integer> getParentId,
+            Function<T, List<T>> getChildren,
+            BiConsumer<T, List<T>> setChildren) {
+
+        if (flatList == null || flatList.isEmpty()) {
+            return new ArrayList<>();
         }
 
-        List<MenuPermissionVO> rootMenus = new ArrayList<>();
-        for (MenuPermissionVO menu : flatMenus) {
-            if (menu.getParentId() == null || menu.getParentId() == 0) {
-                rootMenus.add(menu);
+        // 使用 LinkedHashMap 保持插入顺序（即排序顺序）
+        Map<Integer, T> nodeMap = new LinkedHashMap<>();
+        for (T node : flatList) {
+            setChildren.accept(node, new ArrayList<>());
+            nodeMap.put(getId.apply(node), node);
+        }
+
+        List<T> roots = new ArrayList<>();
+        for (T node : flatList) {
+            Integer parentId = getParentId.apply(node);
+            if (parentId == null || parentId == 0) {
+                roots.add(node);
             } else {
-                MenuPermissionVO parent = menuMap.get(menu.getParentId());
+                T parent = nodeMap.get(parentId);
                 if (parent != null) {
-                    parent.getChildren().add(menu);
+                    getChildren.apply(parent).add(node);
                 }
-                // 父节点不在启用范围内，直接丢弃
+                // 父节点不在列表内，直接丢弃
             }
         }
 
         // 清理空的 children 列表，设为 null
-        removeEmptyPermissionChildren(rootMenus);
-        return rootMenus;
+        clearEmptyChildren(roots, getChildren, setChildren);
+        return roots;
     }
 
     /**
-     * 递归清理空的 children，设为 null（权限树专用）
+     * 递归清理空的 children，设为 null
      */
-    private void removeEmptyPermissionChildren(List<MenuPermissionVO> menus) {
-        for (MenuPermissionVO menu : menus) {
-            if (menu.getChildren() != null && menu.getChildren().isEmpty()) {
-                menu.setChildren(null);
-            } else if (menu.getChildren() != null) {
-                removeEmptyPermissionChildren(menu.getChildren());
+    private <T> void clearEmptyChildren(
+            List<T> nodes,
+            Function<T, List<T>> getChildren,
+            BiConsumer<T, List<T>> setChildren) {
+        for (T node : nodes) {
+            List<T> children = getChildren.apply(node);
+            if (children != null && children.isEmpty()) {
+                setChildren.accept(node, null);
+            } else if (children != null) {
+                clearEmptyChildren(children, getChildren, setChildren);
             }
         }
     }
@@ -220,48 +243,101 @@ public class MenuServiceImpl implements MenuService {
     }
 
     /**
-     * 将扁平菜单列表构建为树形结构
+     * 补全管理后台菜单列表中缺失的父级目录
+     * <p>当子菜单在搜索命中但父级目录不在时，向上递归补全所有祖先，
+     * 确保子菜单在构建树结构时不会被丢弃
+     *
+     * @param flatMenus 原始扁平菜单列表
+     * @return 补全后的扁平菜单列表
+     */
+    private List<MenuAdminVO> fillMissingAdminParents(List<MenuAdminVO> flatMenus) {
+        if (flatMenus.isEmpty()) {
+            return flatMenus;
+        }
+        List<MenuAdminVO> result = new ArrayList<>(flatMenus);
+        Set<Integer> existingIds = result.stream()
+                .map(MenuAdminVO::getId)
+                .collect(Collectors.toSet());
+
+        // 收集所有缺失的父级ID
+        Set<Integer> missingIds = result.stream()
+                .map(MenuAdminVO::getParentId)
+                .filter(p -> p != null && p != 0)
+                .filter(p -> !existingIds.contains(p))
+                .collect(Collectors.toSet());
+
+        // 向上递归补全所有祖先
+        while (!missingIds.isEmpty()) {
+            List<MenuAdminVO> parents = menuMapper.selectAdminMenusByIds(new ArrayList<>(missingIds));
+            if (parents.isEmpty()) {
+                break;
+            }
+            result.addAll(parents);
+            for (MenuAdminVO parent : parents) {
+                existingIds.add(parent.getId());
+            }
+            missingIds.clear();
+            for (MenuAdminVO parent : parents) {
+                if (parent.getParentId() != null && parent.getParentId() != 0
+                        && !existingIds.contains(parent.getParentId())) {
+                    missingIds.add(parent.getParentId());
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 将扁平菜单列表构建为用户菜单树（侧边栏）
      *
      * @param flatMenus 扁平菜单列表（已按 sort, id 排序）
      * @return 树形菜单列表
      */
-    private List<MenuVO> buildTree(List<MenuVO> flatMenus) {
-        // 使用 LinkedHashMap 保持插入顺序（即排序顺序）
-        Map<Integer, MenuVO> menuMap = new LinkedHashMap<>();
-        for (MenuVO menu : flatMenus) {
-            menu.setChildren(new ArrayList<>());
-            menuMap.put(menu.getId(), menu);
-        }
-
-        List<MenuVO> rootMenus = new ArrayList<>();
-        for (MenuVO menu : flatMenus) {
-            if (menu.getParentId() == null || menu.getParentId() == 0) {
-                rootMenus.add(menu);
-            } else {
-                MenuVO parent = menuMap.get(menu.getParentId());
-                if (parent != null) {
-                    parent.getChildren().add(menu);
-                }
-                // 父节点不在权限范围内，直接丢弃（无入口可达）
-            }
-        }
-
-        // 清理空的 children 列表，设为 null
-        removeEmptyChildren(rootMenus);
-        return rootMenus;
+    private List<MenuVO> buildUserMenuTree(List<MenuVO> flatMenus) {
+        return buildTreeFromFlatList(flatMenus,
+                MenuVO::getId, MenuVO::getParentId,
+                MenuVO::getChildren, MenuVO::setChildren);
     }
 
     /**
-     * 递归清理空的 children，设为 null
+     * 获取全量菜单管理树（后台管理页面用）
+     * <p>支持关键词、类型、启用状态过滤
+     *
+     * @param keyword   关键词（模糊搜索）
+     * @param menuType  菜单类型（1-目录 2-菜单 3-按钮 4-内嵌 5-外链）
+     * @param isEnabled 是否启用（0-禁用 1-启用）
+     * @return 菜单管理树
      */
-    private void removeEmptyChildren(List<MenuVO> menus) {
-        for (MenuVO menu : menus) {
-            if (menu.getChildren() != null && menu.getChildren().isEmpty()) {
-                menu.setChildren(null);
-            } else if (menu.getChildren() != null) {
-                removeEmptyChildren(menu.getChildren());
-            }
-        }
+    @Override
+    public List<MenuAdminVO> getAdminMenuTree(String keyword, Integer menuType, Integer isEnabled) {
+        List<MenuAdminVO> flatMenus = menuMapper.selectAllMenus(keyword, menuType, isEnabled);
+        // 补全缺失的父级目录，确保搜索命中的子菜单不被丢弃
+        flatMenus = fillMissingAdminParents(flatMenus);
+        return buildAdminMenuTree(flatMenus);
+    }
+
+    /**
+     * 将扁平菜单列表构建为管理后台树形结构
+     *
+     * @param flatMenus 扁平菜单列表（已按 sort, id 排序）
+     * @return 树形菜单列表
+     */
+    private List<MenuAdminVO> buildAdminMenuTree(List<MenuAdminVO> flatMenus) {
+        return buildTreeFromFlatList(flatMenus,
+                MenuAdminVO::getId, MenuAdminVO::getParentId,
+                MenuAdminVO::getChildren, MenuAdminVO::setChildren);
+    }
+
+    /**
+     * 将精简菜单列表构建为权限树（权限配置弹窗专用）
+     *
+     * @param flatMenus 扁平菜单列表（已按 sort, id 排序）
+     * @return 树形菜单列表
+     */
+    private List<MenuPermissionVO> buildPermissionMenuTree(List<MenuPermissionVO> flatMenus) {
+        return buildTreeFromFlatList(flatMenus,
+                MenuPermissionVO::getId, MenuPermissionVO::getParentId,
+                MenuPermissionVO::getChildren, MenuPermissionVO::setChildren);
     }
 
 }

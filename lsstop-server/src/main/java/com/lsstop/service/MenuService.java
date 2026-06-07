@@ -1,5 +1,6 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.vo.MenuAdminVO;
 import com.lsstop.domain.vo.MenuPermissionVO;
 import com.lsstop.domain.vo.MenuVO;
 
@@ -45,5 +46,16 @@ public interface MenuService {
      * @return 菜单权限树
      */
     List<MenuPermissionVO> getMenuPermissionTree();
+
+    /**
+     * 获取全量菜单管理树（后台管理页面用）
+     * <p>支持关键词、类型、启用状态过滤
+     *
+     * @param keyword   关键词（模糊搜索）
+     * @param menuType  菜单类型（1-目录 2-菜单 3-按钮 4-内嵌 5-外链）
+     * @param isEnabled 是否启用（0-禁用 1-启用）
+     * @return 菜单管理树
+     */
+    List<MenuAdminVO> getAdminMenuTree(String keyword, Integer menuType, Integer isEnabled);
 
 }

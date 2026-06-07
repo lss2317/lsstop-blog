@@ -31,7 +31,7 @@ public class MenuEntity implements BaseData {
     private Integer parentId;
 
     /**
-     * 类型：1-目录 2-菜单 3-按钮
+     * 类型：1-目录 2-菜单 3-按钮 4-内嵌 5-外链
      */
     private Integer menuType;
 
@@ -49,11 +49,6 @@ public class MenuEntity implements BaseData {
      * 组件路径（menuType=2时必填，如 /home/console；menuType=1时必须为NULL）
      */
     private String component;
-
-    /**
-     * 重定向路径（目录类型可留NULL，前端会自动推导首个子路由）
-     */
-    private String redirect;
 
     /**
      * 菜单标题（对应前端 meta.title）
@@ -116,7 +111,7 @@ public class MenuEntity implements BaseData {
     private String activePath;
 
     /**
-     * 权限标识（如 article:add）
+     * 权限标识（如 add）
      */
     private String authMark;
 

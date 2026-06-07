@@ -31,7 +31,7 @@ public class ApiPermissionEntity implements BaseData {
     private Integer parentId;
 
     /**
-     * 权限标识，如 article/article:list/article:add
+     * 权限标识（如 add）
      */
     private String module;
 

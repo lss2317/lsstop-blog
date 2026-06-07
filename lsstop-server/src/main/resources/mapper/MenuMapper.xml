@@ -9,7 +9,6 @@
         <result property="name" column="name" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="path" column="path" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="component" column="component" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="redirect" column="redirect" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="title" column="title" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="icon" column="icon" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="sort" column="sort" jdbcType="INTEGER" javaType="java.lang.Integer"/>
@@ -27,7 +26,7 @@
 
     <select id="selectMenusByUserId" resultMap="menuVoResult">
         select m.id, m.parent_id, m.menu_type, m.name, m.path, m.component,
-               m.redirect, m.title, m.icon, m.sort,
+               m.title, m.icon, m.sort,
                m.is_hide, m.is_hide_tab, m.keep_alive, m.is_full_page,
                m.is_first_level, m.fixed_tab, m.link, m.is_iframe,
                m.active_path, m.auth_mark
@@ -92,15 +91,78 @@
           and m.path != ''
     </select>
 
+    <resultMap id="menuAdminVoResult" type="com.lsstop.domain.vo.MenuAdminVO">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="parentId" column="parent_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="menuType" column="menu_type" jdbcType="TINYINT" javaType="java.lang.Integer"/>
+        <result property="name" column="name" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="path" column="path" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="component" column="component" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="title" column="title" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="icon" column="icon" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="sort" column="sort" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="isHide" column="is_hide" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="isHideTab" column="is_hide_tab" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="keepAlive" column="keep_alive" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="isFullPage" column="is_full_page" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="isFirstLevel" column="is_first_level" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="fixedTab" column="fixed_tab" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="link" column="link" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="isIframe" column="is_iframe" jdbcType="TINYINT" javaType="java.lang.Boolean"/>
+        <result property="activePath" column="active_path" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="authMark" column="auth_mark" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="isEnabled" column="is_enabled" jdbcType="TINYINT" javaType="java.lang.Integer"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <select id="selectAllMenus" resultMap="menuAdminVoResult">
+        select m.id, m.parent_id, m.menu_type, m.name, m.path, m.component,
+               m.title, m.icon, m.sort,
+               m.is_hide, m.is_hide_tab, m.keep_alive, m.is_full_page,
+               m.is_first_level, m.fixed_tab, m.link, m.is_iframe,
+               m.active_path, m.auth_mark, m.is_enabled,
+               m.create_time, m.update_time
+        from blog_menu m
+        where m.deleted_at = 0
+        <if test="keyword != null and keyword != ''">
+          and (m.title like concat('%', #{keyword}, '%')
+               or m.path like concat('%', #{keyword}, '%')
+               or m.auth_mark like concat('%', #{keyword}, '%'))
+        </if>
+        <if test="menuType != null">
+          and m.menu_type = #{menuType}
+        </if>
+        <if test="isEnabled != null">
+          and m.is_enabled = #{isEnabled}
+        </if>
+        order by m.sort, m.id
+    </select>
+
     <select id="selectMenusByIds" resultMap="menuVoResult">
         select m.id, m.parent_id, m.menu_type, m.name, m.path, m.component,
-               m.redirect, m.title, m.icon, m.sort,
+               m.title, m.icon, m.sort,
                m.is_hide, m.is_hide_tab, m.keep_alive, m.is_full_page,
                m.is_first_level, m.fixed_tab, m.link, m.is_iframe,
                m.active_path, m.auth_mark
         from blog_menu m
         where m.deleted_at = 0
           and m.is_enabled = 1
+          and m.id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectAdminMenusByIds" resultMap="menuAdminVoResult">
+        select m.id, m.parent_id, m.menu_type, m.name, m.path, m.component,
+               m.title, m.icon, m.sort,
+               m.is_hide, m.is_hide_tab, m.keep_alive, m.is_full_page,
+               m.is_first_level, m.fixed_tab, m.link, m.is_iframe,
+               m.active_path, m.auth_mark, m.is_enabled,
+               m.create_time, m.update_time
+        from blog_menu m
+        where m.deleted_at = 0
           and m.id in
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}

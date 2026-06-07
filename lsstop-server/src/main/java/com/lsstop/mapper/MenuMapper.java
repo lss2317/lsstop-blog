@@ -1,5 +1,6 @@
 package com.lsstop.mapper;
 
+import com.lsstop.domain.vo.MenuAdminVO;
 import com.lsstop.domain.vo.MenuPermissionVO;
 import com.lsstop.domain.vo.MenuVO;
 import org.apache.ibatis.annotations.Param;
@@ -46,5 +47,25 @@ public interface MenuMapper {
      * @return 全量启用菜单列表（已按 sort, id 排序）
      */
     List<MenuPermissionVO> selectAllMenusForPermission();
+
+    /**
+     * 查询所有菜单（管理后台用，支持搜索过滤）
+     *
+     * @param keyword   关键词（模糊搜索：名称、路由、权限标识）
+     * @param menuType  菜单类型（1-目录 2-菜单 3-按钮 4-内嵌 5-外链）
+     * @param isEnabled 是否启用（0-禁用 1-启用）
+     * @return 过滤后的菜单列表（已按 sort, id 排序）
+     */
+    List<MenuAdminVO> selectAllMenus(@Param("keyword") String keyword,
+                                     @Param("menuType") Integer menuType,
+                                     @Param("isEnabled") Integer isEnabled);
+
+    /**
+     * 根据ID列表查询菜单（管理后台用，不过滤 is_enabled，用于补全祖先目录）
+     *
+     * @param ids 菜单ID列表
+     * @return 菜单列表（含 isEnabled、createTime、updateTime）
+     */
+    List<MenuAdminVO> selectAdminMenusByIds(@Param("ids") List<Integer> ids);
 
 }
