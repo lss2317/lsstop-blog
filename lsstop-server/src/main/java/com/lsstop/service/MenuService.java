@@ -66,4 +66,11 @@ public interface MenuService {
      */
     void addMenu(AddMenuDTO dto);
 
+    /**
+     * 删除菜单（软删除）
+     *
+     * @param id 菜单ID
+     */
+    void deleteMenu(Integer id);
+
 }

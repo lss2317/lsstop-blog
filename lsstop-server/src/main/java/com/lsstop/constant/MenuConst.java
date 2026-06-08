@@ -198,4 +198,14 @@ public class MenuConst {
      */
     public static final String ACTIVE_PATH_FORMAT_INVALID = "激活路径必须以/开头";
 
+    /**
+     * 菜单不存在
+     */
+    public static final String MENU_NOT_FOUND = "菜单不存在";
+
+    /**
+     * 存在子菜单不允许删除
+     */
+    public static final String HAS_CHILDREN = "该菜单下存在子菜单，请先删除子菜单";
+
 }

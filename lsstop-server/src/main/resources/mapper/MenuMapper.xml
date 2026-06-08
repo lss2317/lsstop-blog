@@ -176,11 +176,11 @@
                                is_first_level, fixed_tab, link, is_iframe,
                                active_path, auth_mark, is_enabled,
                                deleted_at, create_time, update_time)
-        values (#{parentId}, #{menuType}, #{name}, #{path}, #{component},
-                #{title}, #{icon}, #{sort},
+        values (#{parentId}, #{menuType}, #{name, jdbcType=VARCHAR}, #{path, jdbcType=VARCHAR}, #{component, jdbcType=VARCHAR},
+                #{title}, #{icon, jdbcType=VARCHAR}, #{sort},
                 #{isHide}, #{isHideTab}, #{keepAlive}, #{isFullPage},
-                #{isFirstLevel}, #{fixedTab}, #{link}, #{isIframe},
-                #{activePath}, #{authMark}, #{isEnabled},
+                #{isFirstLevel}, #{fixedTab}, #{link, jdbcType=VARCHAR}, #{isIframe},
+                #{activePath, jdbcType=VARCHAR}, #{authMark, jdbcType=VARCHAR}, #{isEnabled},
                 0, NOW(), NOW())
     </insert>
 
@@ -212,6 +212,22 @@
         from blog_menu
         where deleted_at = 0
           and name = #{name}
+    </select>
+
+    <!-- 软删除菜单 -->
+    <update id="deleteById">
+        update blog_menu
+        set deleted_at = #{deletedAt}
+        where deleted_at = 0
+          and id = #{id}
+    </update>
+
+    <!-- 统计指定父级下的子菜单数量 -->
+    <select id="countByParentId" resultType="java.lang.Integer">
+        select count(*)
+        from blog_menu
+        where deleted_at = 0
+          and parent_id = #{parentId}
     </select>
 
 </mapper>

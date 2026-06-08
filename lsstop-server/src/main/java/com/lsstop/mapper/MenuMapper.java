@@ -110,4 +110,20 @@ public interface MenuMapper {
      */
     Integer countByName(@Param("name") String name);
 
+    /**
+     * 软删除菜单
+     *
+     * @param id        菜单ID
+     * @param deletedAt 删除时间戳
+     */
+    void deleteById(@Param("id") Integer id, @Param("deletedAt") Long deletedAt);
+
+    /**
+     * 统计指定父级下的子菜单数量
+     *
+     * @param parentId 父级ID
+     * @return 子菜单数量
+     */
+    Integer countByParentId(@Param("parentId") Integer parentId);
+
 }

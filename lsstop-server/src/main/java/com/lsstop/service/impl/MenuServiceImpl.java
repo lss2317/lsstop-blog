@@ -384,6 +384,58 @@ public class MenuServiceImpl implements MenuService {
         // 4. 构建实体（按类型忽略无关字段）
         MenuEntity entity = buildMenuEntity(dto, parentId, menuTypeCode);
         menuMapper.insertMenu(entity);
+
+        // 5. 清理Redis缓存
+        clearMenuCache(menuTypeCode);
+    }
+
+    /**
+     * 删除菜单（软删除）
+     * <p>校验菜单是否存在、是否有子菜单，软删除后清理相关缓存
+     *
+     * @param id 菜单ID
+     */
+    @Override
+    public void deleteMenu(Integer id) {
+        // 1. 校验菜单是否存在
+        MenuEntity menu = menuMapper.selectMenuById(id);
+        if (menu == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, MenuConst.MENU_NOT_FOUND);
+        }
+
+        // 2. 校验是否存在子菜单
+        Integer childCount = menuMapper.countByParentId(id);
+        if (childCount != null && childCount > 0) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.HAS_CHILDREN);
+        }
+
+        // 3. 执行软删除
+        menuMapper.deleteById(id, System.currentTimeMillis());
+
+        // 4. 清理Redis缓存
+        clearMenuCache(menu.getMenuType());
+    }
+
+    /**
+     * 清理菜单相关Redis缓存
+     * <p>新增菜单后，清除受影响的缓存，下次查询时自动重建
+     *
+     * @param menuTypeCode 菜单类型编码
+     */
+    private void clearMenuCache(int menuTypeCode) {
+        // 全量菜单权限树缓存（任何菜单变更都影响）
+        redisUtils.delete(RedisConst.MENU_PERMISSION_TREE);
+        // 全量接口权限树缓存（任何菜单变更都影响）
+        redisUtils.delete(RedisConst.API_PERMISSION_TREE);
+        // 按用户的菜单树缓存（不确定影响哪些用户，全部清除）
+        redisUtils.deleteByPrefix(RedisConst.USER_MENU_TREE);
+
+        if (menuTypeCode == MenuConst.TYPE_BUTTON) {
+            // 全局按钮权限规则缓存
+            redisUtils.delete(RedisConst.ALL_API_PERMISSIONS);
+            // 按用户的API权限缓存
+            redisUtils.deleteByPrefix(RedisConst.USER_API_PERMISSIONS);
+        }
     }
 
     /**
@@ -576,7 +628,7 @@ public class MenuServiceImpl implements MenuService {
 
         switch (menuTypeCode) {
             case MenuConst.TYPE_DIRECTORY -> builder
-                    .name(dto.getName())
+                    .name(StringUtils.isBlank(dto.getName()) ? null : dto.getName())
                     .path(dto.getPath())
                     .icon(dto.getIcon())
                     .isHide(ConvertUtils.boolToInt(dto.getIsHide()))
@@ -587,7 +639,7 @@ public class MenuServiceImpl implements MenuService {
                     .fixedTab(ConvertUtils.boolToInt(dto.getFixedTab()))
                     .isIframe(CommonConst.DISABLED);
             case MenuConst.TYPE_MENU -> builder
-                    .name(dto.getName())
+                    .name(StringUtils.isBlank(dto.getName()) ? null : dto.getName())
                     .path(dto.getPath())
                     .component(dto.getComponent())
                     .icon(dto.getIcon())
@@ -609,7 +661,7 @@ public class MenuServiceImpl implements MenuService {
                     .fixedTab(CommonConst.DISABLED)
                     .isIframe(CommonConst.DISABLED);
             case MenuConst.TYPE_IFRAME -> builder
-                    .name(dto.getName())
+                    .name(StringUtils.isBlank(dto.getName()) ? null : dto.getName())
                     .path(dto.getPath())
                     .link(dto.getLink())
                     .icon(dto.getIcon())
@@ -621,7 +673,7 @@ public class MenuServiceImpl implements MenuService {
                     .fixedTab(ConvertUtils.boolToInt(dto.getFixedTab()))
                     .isIframe(CommonConst.ENABLED);
             case MenuConst.TYPE_LINK -> builder
-                    .name(dto.getName())
+                    .name(StringUtils.isBlank(dto.getName()) ? null : dto.getName())
                     .link(dto.getLink())
                     .icon(dto.getIcon())
                     .isHide(ConvertUtils.boolToInt(dto.getIsHide()))

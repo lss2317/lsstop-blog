@@ -14,7 +14,9 @@ import com.lsstop.service.MenuService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -71,6 +73,21 @@ public class MenuController {
     @OperationLog(module = OperationModuleEnum.MENU, type = OperationTypeEnum.ADD, description = "新增菜单")
     public Result<Void> addMenu(@RequestBody @Validated AddMenuDTO dto) {
         menuService.addMenu(dto);
+        return Result.success();
+    }
+
+    /**
+     * 删除菜单（软删除）
+     * <p>存在子菜单时不允许删除，需先删除子菜单
+     *
+     * @param id 菜单ID
+     * @return 操作结果
+     */
+    @DeleteMapping("/admin/menu/delete/{id}")
+    @AccessLimit(seconds = 60, maxCount = 30)
+    @OperationLog(module = OperationModuleEnum.MENU, type = OperationTypeEnum.DELETE, description = "删除菜单")
+    public Result<Void> deleteMenu(@PathVariable Integer id) {
+        menuService.deleteMenu(id);
         return Result.success();
     }
 
