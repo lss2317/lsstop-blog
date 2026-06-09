@@ -152,6 +152,7 @@
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+        order by m.sort, m.id
     </select>
 
     <select id="selectAdminMenusByIds" resultMap="menuAdminVoResult">
@@ -167,6 +168,7 @@
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+        order by m.sort, m.id
     </select>
 
     <insert id="insertMenu" parameterType="com.lsstop.domain.entity.MenuEntity">
@@ -185,7 +187,21 @@
     </insert>
 
     <select id="selectMenuById" resultType="com.lsstop.domain.entity.MenuEntity">
-        select id, menu_type as menuType
+        select id, parent_id as parentId, menu_type as menuType
+        from blog_menu
+        where deleted_at = 0
+          and id = #{id}
+    </select>
+
+    <select id="selectMenuFullById" resultType="com.lsstop.domain.entity.MenuEntity">
+        select id, parent_id as parentId, menu_type as menuType,
+               name, path, component, title, icon, sort,
+               is_hide as isHide, is_hide_tab as isHideTab,
+               keep_alive as keepAlive, is_full_page as isFullPage,
+               is_first_level as isFirstLevel, fixed_tab as fixedTab,
+               link, is_iframe as isIframe,
+               active_path as activePath, auth_mark as authMark,
+               is_enabled as isEnabled
         from blog_menu
         where deleted_at = 0
           and id = #{id}
@@ -197,6 +213,9 @@
         where deleted_at = 0
           and parent_id = #{parentId}
           and path = #{path}
+        <if test="excludeId != null">
+          and id != #{excludeId}
+        </if>
     </select>
 
     <select id="countByParentIdAndAuthMark" resultType="java.lang.Integer">
@@ -205,6 +224,9 @@
         where deleted_at = 0
           and parent_id = #{parentId}
           and auth_mark = #{authMark}
+        <if test="excludeId != null">
+          and id != #{excludeId}
+        </if>
     </select>
 
     <select id="countByName" resultType="java.lang.Integer">
@@ -212,7 +234,35 @@
         from blog_menu
         where deleted_at = 0
           and name = #{name}
+        <if test="excludeId != null">
+          and id != #{excludeId}
+        </if>
     </select>
+
+    <!-- 更新菜单 -->
+    <update id="updateMenu" parameterType="com.lsstop.domain.entity.MenuEntity">
+        update blog_menu
+        set parent_id   = #{parentId},
+            name        = #{name, jdbcType=VARCHAR},
+            path        = #{path, jdbcType=VARCHAR},
+            component   = #{component, jdbcType=VARCHAR},
+            title       = #{title},
+            icon        = #{icon, jdbcType=VARCHAR},
+            sort        = #{sort},
+            is_hide     = #{isHide},
+            is_hide_tab = #{isHideTab},
+            keep_alive  = #{keepAlive},
+            is_full_page = #{isFullPage},
+            fixed_tab   = #{fixedTab},
+            link        = #{link, jdbcType=VARCHAR},
+            is_iframe   = #{isIframe},
+            active_path = #{activePath, jdbcType=VARCHAR},
+            auth_mark   = #{authMark, jdbcType=VARCHAR},
+            is_enabled  = #{isEnabled},
+            update_time = NOW()
+        where deleted_at = 0
+          and id = #{id}
+    </update>
 
     <!-- 软删除菜单 -->
     <update id="deleteById">

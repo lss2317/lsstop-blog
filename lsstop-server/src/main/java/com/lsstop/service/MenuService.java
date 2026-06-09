@@ -1,6 +1,7 @@
 package com.lsstop.service;
 
 import com.lsstop.domain.dto.AddMenuDTO;
+import com.lsstop.domain.dto.UpdateMenuDTO;
 import com.lsstop.domain.vo.MenuAdminVO;
 import com.lsstop.domain.vo.MenuPermissionVO;
 import com.lsstop.domain.vo.MenuVO;
@@ -72,5 +73,12 @@ public interface MenuService {
      * @param id 菜单ID
      */
     void deleteMenu(Integer id);
+
+    /**
+     * 编辑菜单
+     *
+     * @param dto 编辑菜单参数
+     */
+    void updateMenu(UpdateMenuDTO dto);
 
 }

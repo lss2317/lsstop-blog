@@ -5,6 +5,7 @@ import com.lsstop.annotation.OperationLog;
 import com.lsstop.common.Result;
 import com.lsstop.domain.dto.AddMenuDTO;
 import com.lsstop.domain.dto.MenuListQueryDTO;
+import com.lsstop.domain.dto.UpdateMenuDTO;
 import com.lsstop.domain.vo.MenuAdminVO;
 import com.lsstop.domain.vo.MenuVO;
 import com.lsstop.enums.MenuTypeEnum;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -73,6 +75,21 @@ public class MenuController {
     @OperationLog(module = OperationModuleEnum.MENU, type = OperationTypeEnum.ADD, description = "新增菜单")
     public Result<Void> addMenu(@RequestBody @Validated AddMenuDTO dto) {
         menuService.addMenu(dto);
+        return Result.success();
+    }
+
+    /**
+     * 编辑菜单
+     * <p>菜单类型不允许修改
+     *
+     * @param dto 编辑菜单参数
+     * @return 操作结果
+     */
+    @PutMapping("/admin/menu/update")
+    @AccessLimit(seconds = 60, maxCount = 30)
+    @OperationLog(module = OperationModuleEnum.MENU, type = OperationTypeEnum.UPDATE, description = "编辑菜单")
+    public Result<Void> updateMenu(@RequestBody @Validated UpdateMenuDTO dto) {
+        menuService.updateMenu(dto);
         return Result.success();
     }
 

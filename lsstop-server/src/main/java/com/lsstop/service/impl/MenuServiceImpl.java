@@ -4,6 +4,7 @@ import com.lsstop.constant.CommonConst;
 import com.lsstop.constant.MenuConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.dto.AddMenuDTO;
+import com.lsstop.domain.dto.UpdateMenuDTO;
 import com.lsstop.domain.entity.MenuEntity;
 import com.lsstop.domain.vo.MenuAdminVO;
 import com.lsstop.domain.vo.MenuPermissionVO;
@@ -21,6 +22,7 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -63,6 +65,8 @@ public class MenuServiceImpl implements MenuService {
         List<MenuVO> flatMenus = menuMapper.selectMenusByUserId(userId);
         // 补全缺失的父级目录，确保子菜单在 buildTree 中不被丢弃
         flatMenus = fillMissingParents(flatMenus);
+        // 补全父级后重新排序，确保补全的目录在正确的排序位置
+        flatMenus.sort(Comparator.comparing(MenuVO::getSort).thenComparing(MenuVO::getId));
         List<MenuVO> menuTree = buildUserMenuTree(flatMenus);
         // 写入缓存，过期时间1天
         redisUtils.set(cacheKey, menuTree, RedisConst.EXPIRE_ONE_DAY);
@@ -323,6 +327,8 @@ public class MenuServiceImpl implements MenuService {
         List<MenuAdminVO> flatMenus = menuMapper.selectAllMenus(keyword, menuType, isEnabled);
         // 补全缺失的父级目录，确保搜索命中的子菜单不被丢弃
         flatMenus = fillMissingAdminParents(flatMenus);
+        // 补全父级后重新排序，确保补全的目录在正确的排序位置
+        flatMenus.sort(Comparator.comparing(MenuAdminVO::getSort).thenComparing(MenuAdminVO::getId));
         return buildAdminMenuTree(flatMenus);
     }
 
@@ -357,33 +363,49 @@ public class MenuServiceImpl implements MenuService {
      */
     @Override
     public void addMenu(AddMenuDTO dto) {
+        dto.setTitle(dto.getTitle().trim());
+        int parentId = dto.getParentId() != null ? dto.getParentId() : MenuConst.TOP_LEVEL_PARENT_ID;
+        MenuEntity entity = validateAndBuildAddEntity(dto, parentId);
+        menuMapper.insertMenu(entity);
+        clearMenuCache(entity.getMenuType());
+    }
+
+    /**
+     * 编辑菜单
+     * <p>菜单类型不允许修改，其余字段均可更新
+     *
+     * @param dto 编辑菜单参数
+     */
+    @Override
+    public void updateMenu(UpdateMenuDTO dto) {
+        // 1. 校验菜单是否存在
+        MenuEntity existing = menuMapper.selectMenuFullById(dto.getId());
+        if (existing == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, MenuConst.MENU_NOT_FOUND);
+        }
+
         // title 去首尾空格
         dto.setTitle(dto.getTitle().trim());
 
-        // 1. 校验菜单类型有效性
+        // 2. 校验菜单类型不能修改
         Integer menuTypeCode = MenuTypeEnum.toCode(dto.getMenuType());
         if (menuTypeCode == null) {
             throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.INVALID_MENU_TYPE);
         }
-
-        int parentId = dto.getParentId() != null ? dto.getParentId() : MenuConst.TOP_LEVEL_PARENT_ID;
-
-        // 2. 分支校验 + 关系校验
-        switch (menuTypeCode) {
-            case MenuConst.TYPE_DIRECTORY -> validateDirectory(dto, parentId);
-            case MenuConst.TYPE_MENU -> validateMenu(dto, parentId);
-            case MenuConst.TYPE_BUTTON -> validateButton(dto, parentId);
-            case MenuConst.TYPE_IFRAME -> validateIframe(dto, parentId);
-            case MenuConst.TYPE_LINK -> validateLink(dto, parentId);
-            default -> throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.INVALID_MENU_TYPE);
+        if (!menuTypeCode.equals(existing.getMenuType())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.MENU_TYPE_IMMUTABLE);
         }
 
-        // 3. 唯一性校验
-        validateUniqueness(dto, parentId, menuTypeCode);
+        int parentId = dto.getParentId() != null ? dto.getParentId() : existing.getParentId();
 
-        // 4. 构建实体（按类型忽略无关字段）
-        MenuEntity entity = buildMenuEntity(dto, parentId, menuTypeCode);
-        menuMapper.insertMenu(entity);
+        // 3. 若parentId变更，校验循环引用（自引用 + 祖先链包含自己）
+        if (parentId != existing.getParentId()) {
+            validateNoCircularReference(dto.getId(), parentId);
+        }
+
+        // 4. 校验字段格式 + 唯一性 + 构建实体
+        MenuEntity entity = validateAndUpdateEntity(dto, parentId, menuTypeCode, dto.getId());
+        menuMapper.updateMenu(entity);
 
         // 5. 清理Redis缓存
         clearMenuCache(menuTypeCode);
@@ -414,6 +436,32 @@ public class MenuServiceImpl implements MenuService {
 
         // 4. 清理Redis缓存
         clearMenuCache(menu.getMenuType());
+    }
+
+    /**
+     * 校验是否存在循环引用
+     * <p>移动菜单时，不允许将菜单移动到自身或其子孙节点下
+     *
+     * @param menuId   当前菜单ID
+     * @param parentId 目标父级ID
+     */
+    private void validateNoCircularReference(int menuId, int parentId) {
+        // 自引用检查
+        if (parentId == menuId) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.CIRCULAR_REFERENCE);
+        }
+        // 向上遍历祖先链，检查是否包含当前菜单
+        int currentId = parentId;
+        while (currentId != MenuConst.TOP_LEVEL_PARENT_ID) {
+            MenuEntity ancestor = menuMapper.selectMenuById(currentId);
+            if (ancestor == null) {
+                break;
+            }
+            currentId = ancestor.getParentId() != null ? ancestor.getParentId() : MenuConst.TOP_LEVEL_PARENT_ID;
+            if (currentId == menuId) {
+                throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.CIRCULAR_REFERENCE);
+            }
+        }
     }
 
     /**
@@ -588,12 +636,17 @@ public class MenuServiceImpl implements MenuService {
     }
 
     /**
-     * 唯一性校验
+     * 唯一性校验（新增/编辑通用）
+     *
+     * @param dto           菜单参数
+     * @param parentId      父级ID
+     * @param menuTypeCode  菜单类型编码
+     * @param excludeId     排除的菜单ID（编辑时传当前ID，新增时传null）
      */
-    private void validateUniqueness(AddMenuDTO dto, int parentId, int menuTypeCode) {
+    private void validateUniqueness(AddMenuDTO dto, int parentId, int menuTypeCode, Integer excludeId) {
         // name 全局唯一（非空时校验）
         if (!StringUtils.isBlank(dto.getName())) {
-            Integer nameCount = menuMapper.countByName(dto.getName());
+            Integer nameCount = menuMapper.countByName(dto.getName(), excludeId);
             if (nameCount != null && nameCount > 0) {
                 throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST.getCode(), MenuConst.NAME_EXISTS);
             }
@@ -601,14 +654,14 @@ public class MenuServiceImpl implements MenuService {
         // path 同级唯一（非按钮、非外链、path非空时校验）
         if (menuTypeCode != MenuConst.TYPE_BUTTON && menuTypeCode != MenuConst.TYPE_LINK
                 && !StringUtils.isBlank(dto.getPath())) {
-            Integer pathCount = menuMapper.countByParentIdAndPath(parentId, dto.getPath());
+            Integer pathCount = menuMapper.countByParentIdAndPath(parentId, dto.getPath(), excludeId);
             if (pathCount != null && pathCount > 0) {
                 throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST.getCode(), MenuConst.PATH_EXISTS);
             }
         }
         // authMark 同级唯一（按钮类型、非空时校验）
         if (menuTypeCode == MenuConst.TYPE_BUTTON && !StringUtils.isBlank(dto.getAuthMark())) {
-            Integer authMarkCount = menuMapper.countByParentIdAndAuthMark(parentId, dto.getAuthMark());
+            Integer authMarkCount = menuMapper.countByParentIdAndAuthMark(parentId, dto.getAuthMark(), excludeId);
             if (authMarkCount != null && authMarkCount > 0) {
                 throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST.getCode(), MenuConst.AUTH_MARK_EXISTS);
             }
@@ -617,9 +670,16 @@ public class MenuServiceImpl implements MenuService {
 
     /**
      * 构建菜单实体（按类型忽略无关字段）
+     *
+     * @param dto           菜单参数
+     * @param parentId      父级ID
+     * @param menuTypeCode  菜单类型编码
+     * @param id            菜单ID（编辑时传，新增时传null）
+     * @return 菜单实体
      */
-    private MenuEntity buildMenuEntity(AddMenuDTO dto, int parentId, int menuTypeCode) {
+    private MenuEntity buildMenuEntity(AddMenuDTO dto, int parentId, int menuTypeCode, Integer id) {
         MenuEntity.MenuEntityBuilder builder = MenuEntity.builder()
+                .id(id)
                 .parentId(parentId)
                 .menuType(menuTypeCode)
                 .title(dto.getTitle())
@@ -686,6 +746,73 @@ public class MenuServiceImpl implements MenuService {
             default -> {}
         }
         return builder.build();
+    }
+
+    /**
+     * 新增菜单：校验字段格式 + 唯一性 + 构建实体
+     */
+    private MenuEntity validateAndBuildAddEntity(AddMenuDTO dto, int parentId) {
+        Integer menuTypeCode = MenuTypeEnum.toCode(dto.getMenuType());
+        if (menuTypeCode == null) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.INVALID_MENU_TYPE);
+        }
+        // 按类型校验字段格式
+        switch (menuTypeCode) {
+            case MenuConst.TYPE_DIRECTORY -> validateDirectory(dto, parentId);
+            case MenuConst.TYPE_MENU -> validateMenu(dto, parentId);
+            case MenuConst.TYPE_BUTTON -> validateButton(dto, parentId);
+            case MenuConst.TYPE_IFRAME -> validateIframe(dto, parentId);
+            case MenuConst.TYPE_LINK -> validateLink(dto, parentId);
+            default -> throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.INVALID_MENU_TYPE);
+        }
+        // 唯一性校验
+        validateUniqueness(dto, parentId, menuTypeCode, null);
+        return buildMenuEntity(dto, parentId, menuTypeCode, null);
+    }
+
+    /**
+     * 编辑菜单：校验字段格式 + 唯一性 + 构建实体
+     */
+    private MenuEntity validateAndUpdateEntity(UpdateMenuDTO dto, int parentId, int menuTypeCode, int menuId) {
+        // 构造临时AddMenuDTO复用通用校验逻辑
+        AddMenuDTO addDto = toAddMenuDTO(dto);
+        // 按类型校验字段格式
+        switch (menuTypeCode) {
+            case MenuConst.TYPE_DIRECTORY -> validateDirectory(addDto, parentId);
+            case MenuConst.TYPE_MENU -> validateMenu(addDto, parentId);
+            case MenuConst.TYPE_BUTTON -> validateButton(addDto, parentId);
+            case MenuConst.TYPE_IFRAME -> validateIframe(addDto, parentId);
+            case MenuConst.TYPE_LINK -> validateLink(addDto, parentId);
+            default -> throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.INVALID_MENU_TYPE);
+        }
+        // 唯一性校验（排除当前菜单）
+        validateUniqueness(addDto, parentId, menuTypeCode, menuId);
+        return buildMenuEntity(addDto, parentId, menuTypeCode, menuId);
+    }
+
+    /**
+     * 将UpdateMenuDTO转为AddMenuDTO以复用通用校验方法
+     */
+    private AddMenuDTO toAddMenuDTO(UpdateMenuDTO dto) {
+        AddMenuDTO addDto = new AddMenuDTO();
+        addDto.setParentId(dto.getParentId());
+        addDto.setMenuType(dto.getMenuType());
+        addDto.setName(dto.getName());
+        addDto.setPath(dto.getPath());
+        addDto.setComponent(dto.getComponent());
+        addDto.setTitle(dto.getTitle());
+        addDto.setIcon(dto.getIcon());
+        addDto.setSort(dto.getSort());
+        addDto.setIsHide(dto.getIsHide());
+        addDto.setIsHideTab(dto.getIsHideTab());
+        addDto.setKeepAlive(dto.getKeepAlive());
+        addDto.setIsFullPage(dto.getIsFullPage());
+        addDto.setFixedTab(dto.getFixedTab());
+        addDto.setLink(dto.getLink());
+        addDto.setActivePath(dto.getActivePath());
+        addDto.setAuthMark(dto.getAuthMark());
+        addDto.setIsEnabled(dto.getIsEnabled());
+        return addDto;
     }
 
     /**

@@ -80,35 +80,57 @@ public interface MenuMapper {
      * 根据ID查询菜单（校验父级是否存在）
      *
      * @param id 菜单ID
-     * @return 菜单实体（仅含 id、menuType）
+     * @return 菜单实体（仅含 id、parentId、menuType）
      */
     MenuEntity selectMenuById(@Param("id") Integer id);
 
     /**
+     * 根据ID查询菜单完整信息（编辑回显用）
+     *
+     * @param id 菜单ID
+     * @return 菜单完整实体
+     */
+    MenuEntity selectMenuFullById(@Param("id") Integer id);
+
+    /**
      * 校验同级path是否已存在
      *
-     * @param parentId 父级ID
-     * @param path     路由地址
+     * @param parentId  父级ID
+     * @param path      路由地址
+     * @param excludeId 排除的菜单ID（编辑时传当前ID，新增时传null）
      * @return 存在返回数量 > 0
      */
-    Integer countByParentIdAndPath(@Param("parentId") Integer parentId, @Param("path") String path);
+    Integer countByParentIdAndPath(@Param("parentId") Integer parentId,
+                                   @Param("path") String path,
+                                   @Param("excludeId") Integer excludeId);
 
     /**
      * 校验同级authMark是否已存在
      *
-     * @param parentId 父级ID
-     * @param authMark 权限标识
+     * @param parentId  父级ID
+     * @param authMark  权限标识
+     * @param excludeId 排除的菜单ID（编辑时传当前ID，新增时传null）
      * @return 存在返回数量 > 0
      */
-    Integer countByParentIdAndAuthMark(@Param("parentId") Integer parentId, @Param("authMark") String authMark);
+    Integer countByParentIdAndAuthMark(@Param("parentId") Integer parentId,
+                                       @Param("authMark") String authMark,
+                                       @Param("excludeId") Integer excludeId);
 
     /**
      * 校验name全局唯一性
      *
-     * @param name 路由标识
+     * @param name      路由标识
+     * @param excludeId 排除的菜单ID（编辑时传当前ID，新增时传null）
      * @return 存在返回数量 > 0
      */
-    Integer countByName(@Param("name") String name);
+    Integer countByName(@Param("name") String name, @Param("excludeId") Integer excludeId);
+
+    /**
+     * 更新菜单
+     *
+     * @param menu 菜单数据
+     */
+    void updateMenu(MenuEntity menu);
 
     /**
      * 软删除菜单

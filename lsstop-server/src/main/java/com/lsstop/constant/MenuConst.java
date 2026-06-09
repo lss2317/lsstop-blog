@@ -208,4 +208,14 @@ public class MenuConst {
      */
     public static final String HAS_CHILDREN = "该菜单下存在子菜单，请先删除子菜单";
 
+    /**
+     * 不允许修改菜单类型
+     */
+    public static final String MENU_TYPE_IMMUTABLE = "不允许修改菜单类型";
+
+    /**
+     * 不允许将菜单移动到自身或其子菜单下
+     */
+    public static final String CIRCULAR_REFERENCE = "不允许将菜单移动到自身或其子菜单下";
+
 }
