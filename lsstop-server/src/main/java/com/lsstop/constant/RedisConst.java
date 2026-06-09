@@ -79,6 +79,11 @@ public class RedisConst {
     public static final String DAILY_UV_COUNT = PREFIX + "visitor:daily:uv:";
 
     /**
+     * 今日新增用户数（如 blog:user:today:20260609）
+     */
+    public static final String TODAY_USER_COUNT = PREFIX + "user:today:";
+
+    /**
      * 用户总数缓存
      */
     public static final String TOTAL_USER_COUNT = PREFIX + "user:total:count";

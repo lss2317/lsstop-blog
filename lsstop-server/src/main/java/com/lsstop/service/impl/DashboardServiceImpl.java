@@ -75,25 +75,30 @@ public class DashboardServiceImpl implements DashboardService {
      */
     private List<ConsoleDataVO.StatCardItem> buildStatCards(LocalDate today) {
         List<ConsoleDataVO.StatCardItem> cards = new ArrayList<>();
+        String todayStr = today.format(DateTimeFormatter.BASIC_ISO_DATE);
 
         // 总访问量
         Integer totalVisits = getTotalViewsFromRedis(today);
-        cards.add(buildStatCard(DashboardConst.STAT_KEY_TOTAL_VISITS, totalVisits));
+        Integer todayVisits = redisUtils.get(RedisConst.TODAY_VIEW_COUNT + todayStr, Integer.class);
+        cards.add(buildStatCard(DashboardConst.STAT_KEY_TOTAL_VISITS, totalVisits, todayVisits != null ? todayVisits : 0));
 
         // 总用户数（缓存1小时，注册频率低）
         Integer totalUsers = redisUtils.getOrLoad(RedisConst.TOTAL_USER_COUNT, Integer.class,
                 dashboardMapper::getTotalUserCount, RedisConst.EXPIRE_ONE_HOUR);
-        cards.add(buildStatCard(DashboardConst.STAT_KEY_TOTAL_USERS, totalUsers));
+        Integer todayUsers = redisUtils.get(RedisConst.TODAY_USER_COUNT + todayStr, Integer.class);
+        cards.add(buildStatCard(DashboardConst.STAT_KEY_TOTAL_USERS, totalUsers, todayUsers != null ? todayUsers : 0));
 
         // 总评论数（缓存5分钟兜底，新增/删除时主动清除）
         Integer totalComments = redisUtils.getOrLoad(RedisConst.TOTAL_COMMENT_COUNT, Integer.class,
                 dashboardMapper::getTotalCommentCount, RedisConst.EXPIRE_FIVE_MINUTES);
-        cards.add(buildStatCard(DashboardConst.STAT_KEY_TOTAL_COMMENTS, totalComments));
+        Integer todayComments = redisUtils.get(RedisConst.TODAY_COMMENT_COUNT + todayStr, Integer.class);
+        cards.add(buildStatCard(DashboardConst.STAT_KEY_TOTAL_COMMENTS, totalComments, todayComments != null ? todayComments : 0));
 
         // 总留言数（缓存5分钟兜底，新增时主动清除）
         Integer totalMessages = redisUtils.getOrLoad(RedisConst.TOTAL_MESSAGE_COUNT, Integer.class,
                 dashboardMapper::getTotalMessageCount, RedisConst.EXPIRE_FIVE_MINUTES);
-        cards.add(buildStatCard(DashboardConst.STAT_KEY_TOTAL_MESSAGES, totalMessages));
+        Integer todayMessages = redisUtils.get(RedisConst.TODAY_MESSAGE_COUNT + todayStr, Integer.class);
+        cards.add(buildStatCard(DashboardConst.STAT_KEY_TOTAL_MESSAGES, totalMessages, todayMessages != null ? todayMessages : 0));
 
         return cards;
     }
@@ -198,8 +203,8 @@ public class DashboardServiceImpl implements DashboardService {
     /**
      * 构建单个统计卡片
      */
-    private ConsoleDataVO.StatCardItem buildStatCard(String key, Integer num) {
-        return ConsoleDataVO.StatCardItem.builder().key(key).num(num).build();
+    private ConsoleDataVO.StatCardItem buildStatCard(String key, Integer num, Integer todayCount) {
+        return ConsoleDataVO.StatCardItem.builder().key(key).num(num).todayCount(todayCount).build();
     }
 
     /**

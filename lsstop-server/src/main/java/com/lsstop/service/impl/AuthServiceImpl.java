@@ -34,7 +34,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -592,6 +594,12 @@ public class AuthServiceImpl implements AuthService {
 
         // 清除用户总数缓存（下次查询会重新加载）
         redisUtils.delete(RedisConst.TOTAL_USER_COUNT);
+        // 今日新增用户计数 +1
+        String todayKey = RedisConst.TODAY_USER_COUNT + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        Long val = redisUtils.increment(todayKey);
+        if (val != null && val == 1L) {
+            redisUtils.expire(todayKey, RedisConst.EXPIRE_ONE_DAY * 2);
+        }
 
         // 发送注册成功日志到MQ
         loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), LoginSourceEnum.FRONT.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthActionEnum.REGISTER.getCode(), email, AuthConst.REGISTER_SUCCESS);

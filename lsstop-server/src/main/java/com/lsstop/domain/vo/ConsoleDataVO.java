@@ -62,9 +62,13 @@ public class ConsoleDataVO {
          */
         private String key;
         /**
-         * 数值
+         * 累计数值
          */
         private Integer num;
+        /**
+         * 今日新增
+         */
+        private Integer todayCount;
     }
 
     /**
