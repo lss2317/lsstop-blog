@@ -531,9 +531,9 @@ public class MenuServiceImpl implements MenuService {
         }
         // icon 格式（选填）
         validateIconFormat(dto.getIcon());
-        // 父级校验：非顶级时父级必须是目录或菜单
+        // 父级校验：非顶级时父级必须是目录
         if (parentId != MenuConst.TOP_LEVEL_PARENT_ID) {
-            validateParentType(parentId, MenuConst.TYPE_DIRECTORY, MenuConst.TYPE_MENU);
+            validateParentType(parentId, MenuConst.TYPE_DIRECTORY);
         }
     }
 
@@ -571,9 +571,9 @@ public class MenuServiceImpl implements MenuService {
         }
         // icon 格式（选填）
         validateIconFormat(dto.getIcon());
-        // 父级校验：非顶级时父级必须是目录或菜单
+        // 父级校验：非顶级时父级必须是目录
         if (parentId != MenuConst.TOP_LEVEL_PARENT_ID) {
-            validateParentType(parentId, MenuConst.TYPE_DIRECTORY, MenuConst.TYPE_MENU);
+            validateParentType(parentId, MenuConst.TYPE_DIRECTORY);
         }
     }
 
@@ -589,9 +589,9 @@ public class MenuServiceImpl implements MenuService {
         }
         // icon 格式（选填）
         validateIconFormat(dto.getIcon());
-        // 父级校验：非顶级时父级必须是目录或菜单
+        // 父级校验：非顶级时父级必须是目录
         if (parentId != MenuConst.TOP_LEVEL_PARENT_ID) {
-            validateParentType(parentId, MenuConst.TYPE_DIRECTORY, MenuConst.TYPE_MENU);
+            validateParentType(parentId, MenuConst.TYPE_DIRECTORY);
         }
     }
 

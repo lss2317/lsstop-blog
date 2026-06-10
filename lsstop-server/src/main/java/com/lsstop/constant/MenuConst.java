@@ -76,7 +76,7 @@ public class MenuConst {
     /**
      * 按钮parentId必填
      */
-    public static final String BUTTON_PARENT_REQUIRED = "按钮权限必须指定所属菜单";
+    public static final String BUTTON_PARENT_REQUIRED = "按钮权限必须挂在菜单页面下";
 
     /**
      * 菜单类型-目录
