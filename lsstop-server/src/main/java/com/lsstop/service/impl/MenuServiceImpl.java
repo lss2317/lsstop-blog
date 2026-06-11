@@ -15,9 +15,9 @@ import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.MenuMapper;
 import com.lsstop.service.MenuService;
 import com.lsstop.utils.ConvertUtils;
+import com.lsstop.utils.RedisUtils;
 import com.lsstop.utils.StringUtils;
 import com.lsstop.utils.ValidateUtils;
-import com.lsstop.utils.RedisUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -563,6 +563,13 @@ public class MenuServiceImpl implements MenuService {
             throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.PATH_REQUIRED);
         }
         validatePathFormat(dto.getPath(), parentId);
+        // 内嵌菜单path前缀校验
+        if (!dto.getPath().startsWith(MenuConst.IFRAME_PATH_PREFIX)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.IFRAME_PATH_PREFIX_INVALID);
+        }
+        if (dto.getPath().length() == MenuConst.IFRAME_PATH_PREFIX.length()) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.IFRAME_PATH_EMPTY);
+        }
         // link 必填且格式正确
         validateLinkUrl(dto.getLink());
         // name 格式（选填）
@@ -638,10 +645,10 @@ public class MenuServiceImpl implements MenuService {
     /**
      * 唯一性校验（新增/编辑通用）
      *
-     * @param dto           菜单参数
-     * @param parentId      父级ID
-     * @param menuTypeCode  菜单类型编码
-     * @param excludeId     排除的菜单ID（编辑时传当前ID，新增时传null）
+     * @param dto          菜单参数
+     * @param parentId     父级ID
+     * @param menuTypeCode 菜单类型编码
+     * @param excludeId    排除的菜单ID（编辑时传当前ID，新增时传null）
      */
     private void validateUniqueness(AddMenuDTO dto, int parentId, int menuTypeCode, Integer excludeId) {
         // name 全局唯一（非空时校验）
@@ -671,10 +678,10 @@ public class MenuServiceImpl implements MenuService {
     /**
      * 构建菜单实体（按类型忽略无关字段）
      *
-     * @param dto           菜单参数
-     * @param parentId      父级ID
-     * @param menuTypeCode  菜单类型编码
-     * @param id            菜单ID（编辑时传，新增时传null）
+     * @param dto          菜单参数
+     * @param parentId     父级ID
+     * @param menuTypeCode 菜单类型编码
+     * @param id           菜单ID（编辑时传，新增时传null）
      * @return 菜单实体
      */
     private MenuEntity buildMenuEntity(AddMenuDTO dto, int parentId, int menuTypeCode, Integer id) {
@@ -743,7 +750,8 @@ public class MenuServiceImpl implements MenuService {
                     .isFirstLevel(CommonConst.DISABLED)
                     .fixedTab(ConvertUtils.boolToInt(dto.getFixedTab()))
                     .isIframe(CommonConst.DISABLED);
-            default -> {}
+            default -> {
+            }
         }
         return builder.build();
     }

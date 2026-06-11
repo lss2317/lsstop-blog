@@ -194,6 +194,21 @@ public class MenuConst {
     public static final String AUTH_MARK_LENGTH_INVALID = "权限标识长度为1~30个字符";
 
     /**
+     * 内嵌菜单path前缀
+     */
+    public static final String IFRAME_PATH_PREFIX = "/outside/iframe/";
+
+    /**
+     * 内嵌菜单path前缀校验错误
+     */
+    public static final String IFRAME_PATH_PREFIX_INVALID = "内嵌菜单路由地址必须以" + IFRAME_PATH_PREFIX + "开头";
+
+    /**
+     * 内嵌菜单path不能仅为前缀，必须包含路径段
+     */
+    public static final String IFRAME_PATH_EMPTY = "内嵌菜单路由地址不能仅为" + IFRAME_PATH_PREFIX + "，需包含具体路径";
+
+    /**
      * activePath格式错误
      */
     public static final String ACTIVE_PATH_FORMAT_INVALID = "激活路径必须以/开头";
