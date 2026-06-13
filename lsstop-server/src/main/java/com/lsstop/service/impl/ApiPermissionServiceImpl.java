@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -442,6 +443,51 @@ public class ApiPermissionServiceImpl implements ApiPermissionService {
      */
     private void clearApiPermissionCache() {
         redisUtils.delete(RedisConst.API_PERMISSION_TREE);
+        redisUtils.delete(RedisConst.REGISTERED_API_PERMISSIONS);
+        // 权限变更可能影响所有用户，清除所有用户有效权限缓存
+        redisUtils.deleteByPrefix(RedisConst.USER_EFFECTIVE_API_PERMISSIONS);
+    }
+
+    @Override
+    public Set<String> getUserEffectiveApiPermissions(String userId) {
+        String cacheKey = RedisConst.USER_EFFECTIVE_API_PERMISSIONS + userId;
+        // 先从缓存获取
+        Set<String> cachedPermissions = redisUtils.getSet(cacheKey, String.class);
+        if (cachedPermissions != null) {
+            return cachedPermissions;
+        }
+        // 缓存不存在，查询数据库
+        List<ApiPermissionEntity> entities = apiPermissionMapper.selectUserEffectiveApiPermissions(userId);
+        Set<String> permissions = new HashSet<>();
+        for (ApiPermissionEntity entity : entities) {
+            if (entity.getRequestUrl() != null && entity.getRequestMethod() != null) {
+                permissions.add(entity.getRequestMethod() + ":" + entity.getRequestUrl());
+            }
+        }
+        // 写入缓存，过期时间1天
+        redisUtils.set(cacheKey, permissions, RedisConst.EXPIRE_ONE_DAY);
+        return permissions;
+    }
+
+    @Override
+    public Set<String> getAllRegisteredApiPermissions() {
+        String cacheKey = RedisConst.REGISTERED_API_PERMISSIONS;
+        // 先从缓存获取
+        Set<String> cachedPermissions = redisUtils.getSet(cacheKey, String.class);
+        if (cachedPermissions != null) {
+            return cachedPermissions;
+        }
+        // 缓存不存在，查询数据库
+        List<ApiPermissionEntity> entities = apiPermissionMapper.selectAllEnabledApiPatterns();
+        Set<String> permissions = new HashSet<>();
+        for (ApiPermissionEntity entity : entities) {
+            if (entity.getRequestUrl() != null && entity.getRequestMethod() != null) {
+                permissions.add(entity.getRequestMethod() + ":" + entity.getRequestUrl());
+            }
+        }
+        // 写入缓存，过期时间1天
+        redisUtils.set(cacheKey, permissions, RedisConst.EXPIRE_ONE_DAY);
+        return permissions;
     }
 
 }

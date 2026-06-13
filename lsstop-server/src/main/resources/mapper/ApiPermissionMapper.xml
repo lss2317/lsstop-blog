@@ -145,4 +145,52 @@
         </if>
     </select>
 
+    <!-- 查询用户有效接口权限（角色授予 ∪ 用户额外授予 - 用户额外排除） -->
+    <select id="selectUserEffectiveApiPermissions" resultMap="apiPermissionEntityResult">
+        select distinct ap.id, ap.request_url, ap.request_method
+        from blog_api_permission ap
+        where ap.deleted_at = 0
+          and ap.is_enabled = 1
+          and ap.request_url is not null
+          and (
+                -- 角色授予的权限
+                ap.id in (
+                    select rap.api_permission_id
+                    from blog_role_api_permission rap
+                             inner join blog_user_role ur on rap.role_id = ur.role_id
+                        and ur.deleted_at = 0
+                             inner join blog_role r on rap.role_id = r.id
+                        and r.deleted_at = 0
+                        and r.is_enabled = 1
+                    where rap.deleted_at = 0
+                      and ur.user_id = #{userId}
+                )
+                -- 用户额外授予的权限
+                or ap.id in (
+                    select uap.api_permission_id
+                    from blog_user_api_permission uap
+                    where uap.deleted_at = 0
+                      and uap.user_id = #{userId}
+                      and uap.type = 1
+                )
+          )
+          -- 排除用户额外移除的权限
+          and ap.id not in (
+              select uap.api_permission_id
+              from blog_user_api_permission uap
+              where uap.deleted_at = 0
+                and uap.user_id = #{userId}
+                and uap.type = 2
+          )
+    </select>
+
+    <!-- 查询系统所有启用的接口权限模式（用于判断 URL 是否受控） -->
+    <select id="selectAllEnabledApiPatterns" resultMap="apiPermissionEntityResult">
+        select ap.id, ap.request_url, ap.request_method
+        from blog_api_permission ap
+        where ap.deleted_at = 0
+          and ap.is_enabled = 1
+          and ap.request_url is not null
+    </select>
+
 </mapper>

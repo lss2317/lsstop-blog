@@ -101,4 +101,21 @@ public interface ApiPermissionMapper {
                                  @Param("requestMethod") String requestMethod,
                                  @Param("excludeId") Integer excludeId);
 
+    /**
+     * 查询用户有效接口权限（角色授予 ∪ 用户额外授予 - 用户额外排除）
+     * <p>仅返回接口节点（request_url IS NOT NULL），不含目录
+     *
+     * @param userId 用户uid
+     * @return 用户有效接口权限列表（含 request_url 和 request_method）
+     */
+    List<ApiPermissionEntity> selectUserEffectiveApiPermissions(@Param("userId") String userId);
+
+    /**
+     * 查询系统所有启用的接口权限模式（用于判断 URL 是否受控）
+     * <p>仅返回接口节点（request_url IS NOT NULL），不含目录
+     *
+     * @return 全量启用接口权限列表（含 request_url 和 request_method）
+     */
+    List<ApiPermissionEntity> selectAllEnabledApiPatterns();
+
 }

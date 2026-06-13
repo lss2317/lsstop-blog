@@ -1,5 +1,7 @@
 package com.lsstop.domain.dto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -39,6 +41,8 @@ public class AddApiPermissionDTO {
     /**
      * 排序，值越小越靠前
      */
+    @Min(value = 1, message = "排序值必须≥1")
+    @Max(value = 9999, message = "排序值不能超过9999")
     private Integer sort;
 
     /**
