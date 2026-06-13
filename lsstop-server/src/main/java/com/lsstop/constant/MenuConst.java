@@ -74,11 +74,6 @@ public class MenuConst {
     public static final String AUTH_MARK_REQUIRED = "权限标识不能为空";
 
     /**
-     * 按钮parentId必填
-     */
-    public static final String BUTTON_PARENT_REQUIRED = "按钮权限必须挂在菜单页面下";
-
-    /**
      * 菜单类型-目录
      */
     public static final int TYPE_DIRECTORY = 1;

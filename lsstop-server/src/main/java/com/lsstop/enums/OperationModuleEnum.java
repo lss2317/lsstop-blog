@@ -31,7 +31,8 @@ public enum OperationModuleEnum {
     OPERATION_LOG("操作日志模块"),
     LOGIN_LOG("认证日志模块"),
     ROLE("角色模块"),
-    MENU("菜单模块");
+    MENU("菜单模块"),
+    API_PERMISSION("接口权限模块");
 
     /**
      * 描述

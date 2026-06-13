@@ -1,42 +1,36 @@
-package com.lsstop.domain.entity;
+package com.lsstop.domain.vo;
 
-import com.lsstop.domain.BaseData;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * 接口权限定义实体
+ * 接口权限管理VO（后台管理专用，包含 parentId、sort 等内部字段）
  *
  * @author lishusheng
- * @date 2026/05/31
+ * @date 2026/06/12
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class ApiPermissionEntity implements BaseData {
+public class ApiPermissionAdminVO {
 
     /**
-     * 权限ID
+     * 接口ID
      */
     private Integer id;
 
     /**
-     * 父级权限ID，0表示顶级
+     * 父级权限ID（0表示顶级）
      */
     private Integer parentId;
 
     /**
-     * 接口路径（目录节点为NULL），如 /admin/article/list
+     * 接口路径（目录节点为null），如 /admin/article/list
      */
     private String requestUrl;
 
     /**
-     * 请求方法（目录节点为NULL）：GET、POST、PUT、DELETE
+     * 请求方法（目录节点为null）：GET、POST、PUT、DELETE
      */
     private String requestMethod;
 
@@ -56,11 +50,6 @@ public class ApiPermissionEntity implements BaseData {
     private Integer isEnabled;
 
     /**
-     * 删除时间戳，0表示未删除
-     */
-    private Long deletedAt;
-
-    /**
      * 创建时间
      */
     private LocalDateTime createTime;
@@ -69,5 +58,10 @@ public class ApiPermissionEntity implements BaseData {
      * 更新时间
      */
     private LocalDateTime updateTime;
+
+    /**
+     * 子节点
+     */
+    private List<ApiPermissionAdminVO> children;
 
 }

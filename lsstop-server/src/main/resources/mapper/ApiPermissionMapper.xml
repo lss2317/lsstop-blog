@@ -10,11 +10,55 @@
         <result property="method" column="request_method" jdbcType="VARCHAR" javaType="java.lang.String"/>
     </resultMap>
 
+    <resultMap id="apiPermissionAdminResult" type="com.lsstop.domain.vo.ApiPermissionAdminVO">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="parentId" column="parent_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="requestUrl" column="request_url" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="requestMethod" column="request_method" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="description" column="description" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="sort" column="sort" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="isEnabled" column="is_enabled" jdbcType="TINYINT" javaType="java.lang.Integer"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
     <select id="selectAllApiPermissions" resultMap="apiPermissionNodeResult">
         select ap.id, ap.parent_id, ap.description, ap.request_url, ap.request_method
         from blog_api_permission ap
         where ap.deleted_at = 0
           and ap.is_enabled = 1
+        order by ap.sort, ap.id
+    </select>
+
+    <select id="selectApiPermissions" resultMap="apiPermissionAdminResult">
+        select ap.id, ap.parent_id, ap.request_url, ap.request_method,
+               ap.description, ap.sort, ap.is_enabled,
+               ap.create_time, ap.update_time
+        from blog_api_permission ap
+        where ap.deleted_at = 0
+        <if test="keyword != null and keyword != ''">
+          and (ap.description like concat('%', #{keyword}, '%')
+               or ap.request_url like concat('%', #{keyword}, '%'))
+        </if>
+        <if test="requestMethod != null and requestMethod != ''">
+          and ap.request_method = #{requestMethod}
+        </if>
+        <if test="isEnabled != null">
+          and ap.is_enabled = #{isEnabled}
+        </if>
+        order by ap.sort, ap.id
+    </select>
+
+    <select id="selectApiPermissionsByIds" resultMap="apiPermissionAdminResult">
+        select ap.id, ap.parent_id, ap.request_url, ap.request_method,
+               ap.description, ap.sort, ap.is_enabled,
+               ap.create_time, ap.update_time
+        from blog_api_permission ap
+        where ap.deleted_at = 0
+          and ap.id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
         order by ap.sort, ap.id
     </select>
 

@@ -543,7 +543,7 @@ public class MenuServiceImpl implements MenuService {
     private void validateButton(AddMenuDTO dto, int parentId) {
         // parentId 必填
         if (parentId == MenuConst.TOP_LEVEL_PARENT_ID) {
-            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.BUTTON_PARENT_REQUIRED);
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), MenuConst.BUTTON_MUST_UNDER_MENU);
         }
         // authMark 必填 + 格式
         if (StringUtils.isBlank(dto.getAuthMark())) {
