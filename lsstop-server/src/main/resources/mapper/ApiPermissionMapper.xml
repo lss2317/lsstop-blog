@@ -2,6 +2,19 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lsstop.mapper.ApiPermissionMapper">
 
+    <resultMap id="apiPermissionEntityResult" type="com.lsstop.domain.entity.ApiPermissionEntity">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="parentId" column="parent_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="requestUrl" column="request_url" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="requestMethod" column="request_method" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="description" column="description" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="sort" column="sort" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="isEnabled" column="is_enabled" jdbcType="TINYINT" javaType="java.lang.Integer"/>
+        <result property="deletedAt" column="deleted_at" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
     <resultMap id="apiPermissionNodeResult" type="com.lsstop.domain.vo.ApiPermissionNodeVO">
         <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result property="parentId" column="parent_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
@@ -60,6 +73,76 @@
             #{id}
         </foreach>
         order by ap.sort, ap.id
+    </select>
+
+    <!-- 新增接口权限 -->
+    <insert id="insertApiPermission" parameterType="com.lsstop.domain.entity.ApiPermissionEntity"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into blog_api_permission (parent_id, request_url, request_method,
+                                         description, sort, is_enabled,
+                                         deleted_at, create_time, update_time)
+        values (#{parentId}, #{requestUrl, jdbcType=VARCHAR},
+                #{requestMethod, jdbcType=VARCHAR}, #{description},
+                #{sort}, #{isEnabled},
+                0, NOW(), NOW())
+    </insert>
+
+    <!-- 更新接口权限 -->
+    <update id="updateApiPermission" parameterType="com.lsstop.domain.entity.ApiPermissionEntity">
+        update blog_api_permission
+        set parent_id      = #{parentId},
+            request_url    = #{requestUrl, jdbcType=VARCHAR},
+            request_method = #{requestMethod, jdbcType=VARCHAR},
+            description    = #{description},
+            sort           = #{sort},
+            is_enabled     = #{isEnabled},
+            update_time    = NOW()
+        where deleted_at = 0
+          and id = #{id}
+    </update>
+
+    <!-- 软删除接口权限 -->
+    <update id="deleteById">
+        update blog_api_permission
+        set deleted_at = #{deletedAt}
+        where deleted_at = 0
+          and id = #{id}
+    </update>
+
+    <!-- 根据ID查询接口权限（校验用） -->
+    <select id="selectApiPermissionById" resultMap="apiPermissionEntityResult">
+        select id, parent_id, request_method
+        from blog_api_permission
+        where deleted_at = 0
+          and id = #{id}
+    </select>
+
+    <!-- 根据ID查询接口权限完整信息（编辑回显用） -->
+    <select id="selectApiPermissionFullById" resultMap="apiPermissionEntityResult">
+        select id, parent_id, request_url, request_method, description, sort, is_enabled
+        from blog_api_permission
+        where deleted_at = 0
+          and id = #{id}
+    </select>
+
+    <!-- 统计指定父级下的子权限数量 -->
+    <select id="countByParentId" resultType="java.lang.Integer">
+        select count(*)
+        from blog_api_permission
+        where deleted_at = 0
+          and parent_id = #{parentId}
+    </select>
+
+    <!-- 校验(requestUrl, requestMethod)全局唯一性 -->
+    <select id="countByUrlAndMethod" resultType="java.lang.Integer">
+        select count(*)
+        from blog_api_permission
+        where deleted_at = 0
+          and request_url = #{requestUrl}
+          and request_method = #{requestMethod}
+        <if test="excludeId != null">
+          and id != #{excludeId}
+        </if>
     </select>
 
 </mapper>

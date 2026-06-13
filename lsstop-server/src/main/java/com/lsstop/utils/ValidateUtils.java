@@ -35,6 +35,11 @@ public class ValidateUtils {
     private static final Pattern ICON_PATTERN = Pattern.compile("^[a-z][a-z0-9]*:[a-zA-Z0-9\\-_]+$");
 
     /**
+     * 接口路径：字母、数字、-、_、/、:、*、.（支持Ant风格通配符）
+     */
+    private static final Pattern REQUEST_URL_PATTERN = Pattern.compile("^[a-zA-Z0-9\\-_/.:*]+$");
+
+    /**
      * 校验路由地址格式
      */
     public static boolean isValidPath(String path) {
@@ -67,6 +72,17 @@ public class ValidateUtils {
      */
     public static boolean isValidIcon(String icon) {
         return icon != null && ICON_PATTERN.matcher(icon).matches();
+    }
+
+    /**
+     * 校验接口路径格式（支持Ant风格通配符，如 /admin/user/list、/front/user/profile/*）
+     * <p>必须以/开头，不允许连续斜杠，允许字母、数字、-、_、/、:、*、.
+     */
+    public static boolean isValidRequestUrl(String requestUrl) {
+        return requestUrl != null
+                && requestUrl.startsWith("/")
+                && !requestUrl.contains("//")
+                && REQUEST_URL_PATTERN.matcher(requestUrl).matches();
     }
 
 }

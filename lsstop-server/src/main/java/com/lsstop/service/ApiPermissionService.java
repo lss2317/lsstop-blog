@@ -1,5 +1,7 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.dto.AddApiPermissionDTO;
+import com.lsstop.domain.dto.UpdateApiPermissionDTO;
 import com.lsstop.domain.vo.ApiPermissionAdminVO;
 import com.lsstop.domain.vo.ApiPermissionNodeVO;
 
@@ -32,5 +34,28 @@ public interface ApiPermissionService {
      */
     List<ApiPermissionAdminVO> listApiPermissions(String keyword, String requestMethod,
                                                    Integer isEnabled);
+
+    /**
+     * 新增接口权限
+     *
+     * @param dto 新增参数
+     */
+    void addApiPermission(AddApiPermissionDTO dto);
+
+    /**
+     * 编辑接口权限
+     * <p>目录↔接口类型不允许互转
+     *
+     * @param dto 编辑参数
+     */
+    void updateApiPermission(UpdateApiPermissionDTO dto);
+
+    /**
+     * 删除接口权限（软删除）
+     * <p>存在子权限时不允许删除，需先删除子权限
+     *
+     * @param id 权限ID
+     */
+    void deleteApiPermission(Integer id);
 
 }

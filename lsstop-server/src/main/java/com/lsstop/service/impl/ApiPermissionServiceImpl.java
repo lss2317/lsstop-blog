@@ -1,11 +1,21 @@
 package com.lsstop.service.impl;
 
+import com.lsstop.constant.ApiPermissionConst;
+import com.lsstop.constant.CommonConst;
 import com.lsstop.constant.RedisConst;
+import com.lsstop.domain.dto.AddApiPermissionDTO;
+import com.lsstop.domain.dto.UpdateApiPermissionDTO;
+import com.lsstop.domain.entity.ApiPermissionEntity;
 import com.lsstop.domain.vo.ApiPermissionAdminVO;
 import com.lsstop.domain.vo.ApiPermissionNodeVO;
+import com.lsstop.enums.RequestMethodEnum;
+import com.lsstop.enums.StatusEnum;
+import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.ApiPermissionMapper;
 import com.lsstop.service.ApiPermissionService;
 import com.lsstop.utils.RedisUtils;
+import com.lsstop.utils.StringUtils;
+import com.lsstop.utils.ValidateUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -50,7 +60,7 @@ public class ApiPermissionServiceImpl implements ApiPermissionService {
 
     @Override
     public List<ApiPermissionAdminVO> listApiPermissions(String keyword, String requestMethod,
-                                                          Integer isEnabled) {
+                                                         Integer isEnabled) {
         List<ApiPermissionAdminVO> flatList = apiPermissionMapper.selectApiPermissions(keyword, requestMethod, isEnabled);
         // 补全缺失的父级，确保搜索命中的子节点不被丢弃
         flatList = fillMissingAdminParents(flatList);
@@ -74,7 +84,7 @@ public class ApiPermissionServiceImpl implements ApiPermissionService {
 
         List<ApiPermissionAdminVO> rootNodes = new ArrayList<>();
         for (ApiPermissionAdminVO node : flatList) {
-            if (node.getParentId() == null || node.getParentId() == 0) {
+            if (node.getParentId() == null || node.getParentId() == ApiPermissionConst.TOP_LEVEL_PARENT_ID) {
                 rootNodes.add(node);
             } else {
                 ApiPermissionAdminVO parent = nodeMap.get(node.getParentId());
@@ -108,7 +118,7 @@ public class ApiPermissionServiceImpl implements ApiPermissionService {
         // 收集所有缺失的父级ID
         Set<Integer> missingIds = result.stream()
                 .map(ApiPermissionAdminVO::getParentId)
-                .filter(p -> p != null && p != 0)
+                .filter(p -> p != null && p != ApiPermissionConst.TOP_LEVEL_PARENT_ID)
                 .filter(p -> !existingIds.contains(p))
                 .collect(Collectors.toSet());
 
@@ -124,7 +134,7 @@ public class ApiPermissionServiceImpl implements ApiPermissionService {
             }
             missingIds.clear();
             for (ApiPermissionAdminVO parent : parents) {
-                if (parent.getParentId() != null && parent.getParentId() != 0
+                if (parent.getParentId() != null && parent.getParentId() != ApiPermissionConst.TOP_LEVEL_PARENT_ID
                         && !existingIds.contains(parent.getParentId())) {
                     missingIds.add(parent.getParentId());
                 }
@@ -162,7 +172,7 @@ public class ApiPermissionServiceImpl implements ApiPermissionService {
 
         List<ApiPermissionNodeVO> rootNodes = new ArrayList<>();
         for (ApiPermissionNodeVO node : flatList) {
-            if (node.getParentId() == null || node.getParentId() == 0) {
+            if (node.getParentId() == null || node.getParentId() == ApiPermissionConst.TOP_LEVEL_PARENT_ID) {
                 rootNodes.add(node);
             } else {
                 ApiPermissionNodeVO parent = nodeMap.get(node.getParentId());
@@ -189,6 +199,249 @@ public class ApiPermissionServiceImpl implements ApiPermissionService {
                 removeEmptyChildren(node.getChildren());
             }
         }
+    }
+
+    @Override
+    public void addApiPermission(AddApiPermissionDTO dto) {
+        dto.setDescription(dto.getDescription() != null ? dto.getDescription().trim() : null);
+        int parentId = dto.getParentId() != null ? dto.getParentId() : ApiPermissionConst.TOP_LEVEL_PARENT_ID;
+        ApiPermissionEntity entity = validateAndBuildEntity(dto, parentId, null);
+        apiPermissionMapper.insertApiPermission(entity);
+        clearApiPermissionCache();
+    }
+
+    @Override
+    public void updateApiPermission(UpdateApiPermissionDTO dto) {
+        // 1. 校验权限是否存在
+        ApiPermissionEntity existing = apiPermissionMapper.selectApiPermissionFullById(dto.getId());
+        if (existing == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, ApiPermissionConst.API_PERMISSION_NOT_FOUND);
+        }
+
+        dto.setDescription(dto.getDescription() != null ? dto.getDescription().trim() : null);
+
+        // 2. 类型不变性校验：目录↔接口不允许互转
+        boolean newIsDirectory = StringUtils.isBlank(dto.getRequestMethod())
+                && StringUtils.isBlank(dto.getRequestUrl());
+        boolean oldIsDirectory = StringUtils.isBlank(existing.getRequestMethod())
+                && StringUtils.isBlank(existing.getRequestUrl());
+        if (newIsDirectory != oldIsDirectory) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(),
+                    ApiPermissionConst.TYPE_IMMUTABLE);
+        }
+
+        // 3. 父级ID归一化
+        int parentId = dto.getParentId() != null ? dto.getParentId() : existing.getParentId();
+
+        // 4. 若parentId变更，校验循环引用
+        if (parentId != existing.getParentId()) {
+            validateNoCircularReference(dto.getId(), parentId);
+        }
+
+        // 5. 校验+构建（复用AddDTO的校验逻辑）
+        AddApiPermissionDTO addDto = toAddDTO(dto);
+        ApiPermissionEntity entity = validateAndBuildEntity(addDto, parentId, dto.getId());
+        entity.setId(dto.getId());
+        apiPermissionMapper.updateApiPermission(entity);
+
+        clearApiPermissionCache();
+    }
+
+    @Override
+    public void deleteApiPermission(Integer id) {
+        ApiPermissionEntity entity = apiPermissionMapper.selectApiPermissionById(id);
+        if (entity == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, ApiPermissionConst.API_PERMISSION_NOT_FOUND);
+        }
+
+        Integer childCount = apiPermissionMapper.countByParentId(id);
+        if (childCount != null && childCount > 0) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), ApiPermissionConst.HAS_CHILDREN);
+        }
+
+        apiPermissionMapper.deleteById(id, System.currentTimeMillis());
+        clearApiPermissionCache();
+    }
+
+    /**
+     * 校验字段格式 + 构建实体
+     *
+     * @param dto       新增参数（新增直接传入，编辑通过 toAddDTO 转换）
+     * @param parentId  父级ID（已归一化）
+     * @param excludeId 排除的权限ID（新增为null，编辑为当前ID）
+     * @return 接口权限实体（不含id）
+     */
+    private ApiPermissionEntity validateAndBuildEntity(AddApiPermissionDTO dto, int parentId,
+                                                       Integer excludeId) {
+        // 校验权限描述
+        if (StringUtils.isBlank(dto.getDescription())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(),
+                    ApiPermissionConst.DESCRIPTION_REQUIRED);
+        }
+
+        // 判断节点类型并校验
+        boolean isDirectory = StringUtils.isBlank(dto.getRequestMethod())
+                && StringUtils.isBlank(dto.getRequestUrl());
+        if (isDirectory) {
+            validateDirectoryNode(parentId);
+        } else {
+            validateApiNode(dto, parentId, excludeId);
+        }
+
+        // 构建实体
+        return buildEntity(dto, parentId);
+    }
+
+    /**
+     * 将UpdateApiPermissionDTO转为AddApiPermissionDTO，复用校验逻辑
+     */
+    private AddApiPermissionDTO toAddDTO(UpdateApiPermissionDTO dto) {
+        AddApiPermissionDTO addDto = new AddApiPermissionDTO();
+        addDto.setParentId(dto.getParentId());
+        addDto.setDescription(dto.getDescription());
+        addDto.setRequestMethod(dto.getRequestMethod());
+        addDto.setRequestUrl(dto.getRequestUrl());
+        addDto.setSort(dto.getSort());
+        addDto.setIsEnabled(dto.getIsEnabled());
+        return addDto;
+    }
+
+    /**
+     * 校验目录节点
+     * <p>非顶级时父级必须是目录
+     */
+    private void validateDirectoryNode(int parentId) {
+        if (parentId != ApiPermissionConst.TOP_LEVEL_PARENT_ID) {
+            validateParentIsDirectory(parentId, ApiPermissionConst.DIRECTORY_MUST_UNDER_DIRECTORY);
+        }
+    }
+
+    /**
+     * 校验接口节点
+     */
+    private void validateApiNode(AddApiPermissionDTO dto, int parentId, Integer excludeId) {
+        // 请求方法校验
+        if (StringUtils.isBlank(dto.getRequestMethod())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(),
+                    ApiPermissionConst.REQUEST_METHOD_REQUIRED);
+        }
+        validateRequestMethod(dto.getRequestMethod());
+
+        // 接口路径校验
+        if (StringUtils.isBlank(dto.getRequestUrl())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(),
+                    ApiPermissionConst.REQUEST_URL_REQUIRED);
+        }
+        validateRequestUrlFormat(dto.getRequestUrl());
+
+        // 非顶级时父级必须是目录
+        if (parentId != ApiPermissionConst.TOP_LEVEL_PARENT_ID) {
+            validateParentIsDirectory(parentId, ApiPermissionConst.API_MUST_UNDER_DIRECTORY);
+        }
+
+        // requestUrl + requestMethod 全局唯一性校验
+        Integer count = apiPermissionMapper.countByUrlAndMethod(
+                dto.getRequestUrl().trim(),
+                dto.getRequestMethod().toUpperCase().trim(), excludeId);
+        if (count != null && count > 0) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(),
+                    ApiPermissionConst.SAME_LEVEL_REQUEST_URL_EXISTS);
+        }
+    }
+
+    /**
+     * 校验请求方法合法性
+     */
+    private void validateRequestMethod(String method) {
+        if (!RequestMethodEnum.isValid(method)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(),
+                    ApiPermissionConst.INVALID_REQUEST_METHOD);
+        }
+    }
+
+    /**
+     * 校验接口路径格式
+     */
+    private void validateRequestUrlFormat(String requestUrl) {
+        if (requestUrl == null || !requestUrl.startsWith("/")) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(),
+                    ApiPermissionConst.REQUEST_URL_MUST_START_WITH_SLASH);
+        }
+        if (!ValidateUtils.isValidRequestUrl(requestUrl)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(),
+                    ApiPermissionConst.REQUEST_URL_FORMAT_INVALID);
+        }
+    }
+
+    /**
+     * 校验父级必须是目录节点
+     *
+     * @param parentId     父级ID
+     * @param errorMessage 校验失败时的错误提示
+     */
+    private void validateParentIsDirectory(int parentId, String errorMessage) {
+        ApiPermissionEntity parent = apiPermissionMapper.selectApiPermissionById(parentId);
+        if (parent == null) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(),
+                    ApiPermissionConst.PARENT_NOT_FOUND);
+        }
+        boolean parentIsDirectory = StringUtils.isBlank(parent.getRequestMethod());
+        if (!parentIsDirectory) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), errorMessage);
+        }
+    }
+
+    /**
+     * 校验循环引用
+     */
+    private void validateNoCircularReference(int id, int parentId) {
+        if (parentId == id) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(),
+                    ApiPermissionConst.CIRCULAR_REFERENCE);
+        }
+        int currentId = parentId;
+        while (currentId != ApiPermissionConst.TOP_LEVEL_PARENT_ID) {
+            ApiPermissionEntity ancestor = apiPermissionMapper.selectApiPermissionById(currentId);
+            if (ancestor == null) {
+                break;
+            }
+            currentId = ancestor.getParentId() != null ? ancestor.getParentId() : ApiPermissionConst.TOP_LEVEL_PARENT_ID;
+            if (currentId == id) {
+                throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(),
+                        ApiPermissionConst.CIRCULAR_REFERENCE);
+            }
+        }
+    }
+
+    /**
+     * 构建实体（新增/编辑共用）
+     * <p>仅负责字段映射和默认值填充，不做任何校验
+     *
+     * @param dto      新增参数（编辑时通过 toAddDTO 转换而来）
+     * @param parentId 父级ID（已归一化）
+     * @return 接口权限实体
+     */
+    private ApiPermissionEntity buildEntity(AddApiPermissionDTO dto, int parentId) {
+        int sort = dto.getSort() != null ? dto.getSort() : ApiPermissionConst.DEFAULT_SORT;
+        int isEnabled = dto.getIsEnabled() != null ? dto.getIsEnabled() : CommonConst.ENABLED;
+        String requestUrl = StringUtils.isBlank(dto.getRequestUrl()) ? null : dto.getRequestUrl().trim();
+        String requestMethod = StringUtils.isBlank(dto.getRequestMethod()) ? null : dto.getRequestMethod().toUpperCase().trim();
+
+        return ApiPermissionEntity.builder()
+                .parentId(parentId)
+                .description(dto.getDescription())
+                .requestUrl(requestUrl)
+                .requestMethod(requestMethod)
+                .sort(sort)
+                .isEnabled(isEnabled)
+                .build();
+    }
+
+    /**
+     * 清理接口权限相关Redis缓存
+     */
+    private void clearApiPermissionCache() {
+        redisUtils.delete(RedisConst.API_PERMISSION_TREE);
     }
 
 }

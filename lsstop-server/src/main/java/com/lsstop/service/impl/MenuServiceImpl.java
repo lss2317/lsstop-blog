@@ -93,7 +93,7 @@ public class MenuServiceImpl implements MenuService {
         Set<String> permissions = new HashSet<>();
         for (MenuVO menu : flatMenus) {
             // menuType=3 为按钮权限，path 存储 API 路径模式
-            if (menu.getMenuType() != null && menu.getMenuType() == 3
+            if (menu.getMenuType() != null && menu.getMenuType() == MenuConst.TYPE_BUTTON
                     && menu.getPath() != null && !menu.getPath().isBlank()) {
                 permissions.add(menu.getPath());
             }
@@ -178,7 +178,7 @@ public class MenuServiceImpl implements MenuService {
         List<T> roots = new ArrayList<>();
         for (T node : flatList) {
             Integer parentId = getParentId.apply(node);
-            if (parentId == null || parentId == 0) {
+            if (parentId == null || parentId == MenuConst.TOP_LEVEL_PARENT_ID) {
                 roots.add(node);
             } else {
                 T parent = nodeMap.get(parentId);
@@ -231,7 +231,7 @@ public class MenuServiceImpl implements MenuService {
         // 收集所有缺失的父级ID
         Set<Integer> missingIds = result.stream()
                 .map(MenuVO::getParentId)
-                .filter(p -> p != null && p != 0)
+                .filter(p -> p != null && p != MenuConst.TOP_LEVEL_PARENT_ID)
                 .filter(p -> !existingIds.contains(p))
                 .collect(Collectors.toSet());
 
@@ -247,7 +247,7 @@ public class MenuServiceImpl implements MenuService {
             }
             missingIds.clear();
             for (MenuVO parent : parents) {
-                if (parent.getParentId() != null && parent.getParentId() != 0
+                if (parent.getParentId() != null && parent.getParentId() != MenuConst.TOP_LEVEL_PARENT_ID
                         && !existingIds.contains(parent.getParentId())) {
                     missingIds.add(parent.getParentId());
                 }
@@ -276,7 +276,7 @@ public class MenuServiceImpl implements MenuService {
         // 收集所有缺失的父级ID
         Set<Integer> missingIds = result.stream()
                 .map(MenuAdminVO::getParentId)
-                .filter(p -> p != null && p != 0)
+                .filter(p -> p != null && p != MenuConst.TOP_LEVEL_PARENT_ID)
                 .filter(p -> !existingIds.contains(p))
                 .collect(Collectors.toSet());
 
@@ -292,7 +292,7 @@ public class MenuServiceImpl implements MenuService {
             }
             missingIds.clear();
             for (MenuAdminVO parent : parents) {
-                if (parent.getParentId() != null && parent.getParentId() != 0
+                if (parent.getParentId() != null && parent.getParentId() != MenuConst.TOP_LEVEL_PARENT_ID
                         && !existingIds.contains(parent.getParentId())) {
                     missingIds.add(parent.getParentId());
                 }
