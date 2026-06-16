@@ -16,6 +16,7 @@ import com.lsstop.domain.vo.TokenVO;
 import com.lsstop.enums.*;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
+import com.lsstop.mapper.UserMapper;
 import com.lsstop.service.AuthService;
 import com.lsstop.service.LoginLogService;
 import com.lsstop.service.WebsiteConfigService;
@@ -54,6 +55,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Resource
     private AuthMapper authMapper;
+
+    @Resource
+    private UserMapper userMapper;
 
     @Resource
     private JwtUtils jwtUtils;
@@ -109,13 +113,13 @@ public class AuthServiceImpl implements AuthService {
             }
 
             // 检查用户是否被禁用
-            UserEntity user = authMapper.selectUserById(userId);
+            UserEntity user = userMapper.selectUserById(userId);
             if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
                 throw new BusinessException(StatusEnum.BLACK_LIST_ERROR, AuthConst.ACCOUNT_DISABLED);
             }
 
             // 更新最后登录时间
-            authMapper.updateLastLoginTime(userId);
+            userMapper.updateLastLoginTime(userId);
 
             // 发送登录成功日志到MQ
             loginLogService.sendLoginLog(userId, LoginTypeEnum.EMAIL.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthActionEnum.LOGIN.getCode(), email, AuthConst.LOGIN_SUCCESS);
@@ -157,13 +161,13 @@ public class AuthServiceImpl implements AuthService {
             userId = userAuth.getUserId();
 
             // 检查用户是否被禁用
-            UserEntity user = authMapper.selectUserById(userId);
+            UserEntity user = userMapper.selectUserById(userId);
             if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
                 throw new BusinessException(StatusEnum.BLACK_LIST_ERROR, AuthConst.ACCOUNT_DISABLED);
             }
 
             // 更新最后登录时间
-            authMapper.updateLastLoginTime(userId);
+            userMapper.updateLastLoginTime(userId);
 
             // 登录成功后删除验证码
             redisUtils.delete(codeKey);
@@ -229,13 +233,13 @@ public class AuthServiceImpl implements AuthService {
             userId = userAuth.getUserId();
 
             // 检查用户是否被禁用
-            UserEntity user = authMapper.selectUserById(userId);
+            UserEntity user = userMapper.selectUserById(userId);
             if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
                 throw new BusinessException(StatusEnum.BLACK_LIST_ERROR, AuthConst.ACCOUNT_DISABLED);
             }
 
             // 更新最后登录时间
-            authMapper.updateLastLoginTime(userId);
+            userMapper.updateLastLoginTime(userId);
 
             // 发送登录成功日志
             loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthActionEnum.LOGIN.getCode(), openId, AuthConst.LOGIN_SUCCESS);
@@ -298,13 +302,13 @@ public class AuthServiceImpl implements AuthService {
             userId = userAuth.getUserId();
 
             // 检查用户是否被禁用
-            UserEntity user = authMapper.selectUserById(userId);
+            UserEntity user = userMapper.selectUserById(userId);
             if (user == null || AuthConst.USER_STATUS_DISABLED.equals(user.getStatus())) {
                 throw new BusinessException(StatusEnum.BLACK_LIST_ERROR, AuthConst.ACCOUNT_DISABLED);
             }
 
             // 更新最后登录时间
-            authMapper.updateLastLoginTime(userId);
+            userMapper.updateLastLoginTime(userId);
 
             // 发送登录成功日志
             loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), source.getCode(), LoginResultEnum.SUCCESS.getCode(), AuthActionEnum.LOGIN.getCode(), uid, AuthConst.LOGIN_SUCCESS);
@@ -331,7 +335,7 @@ public class AuthServiceImpl implements AuthService {
         String userId = userAuth.getUserId();
 
         // 查询用户资料
-        UserProfileEntity userProfileEntity = authMapper.selectProfileById(userId);
+        UserProfileEntity userProfileEntity = userMapper.selectProfileById(userId);
         LoginVO loginVO = userProfileEntity.asViewObject(LoginVO.class);
 
         // 根据来源生成不同有效期的Token（内部自动生成sessionId）
@@ -567,7 +571,7 @@ public class AuthServiceImpl implements AuthService {
                 .status(AuthConst.USER_STATUS_NORMAL)
                 .lastLoginTime(LocalDateTime.now())
                 .build();
-        authMapper.insertUser(user);
+        userMapper.insertUser(user);
 
         // 创建用户认证信息
         String encryptedPassword = PasswordUtils.encrypt(password);
@@ -587,7 +591,7 @@ public class AuthServiceImpl implements AuthService {
                 .nickname(defaultNickname)
                 .avatar(defaultAvatar)
                 .build();
-        authMapper.insertUserProfile(userProfile);
+        userMapper.insertUserProfile(userProfile);
 
         // 删除验证码
         redisUtils.delete(codeKey);

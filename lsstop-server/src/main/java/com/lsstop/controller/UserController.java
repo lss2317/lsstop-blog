@@ -9,12 +9,15 @@ import com.lsstop.domain.dto.ChangeEmailDTO;
 import com.lsstop.domain.dto.ChangePasswordDTO;
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
 import com.lsstop.domain.vo.AdminUserInfoVO;
+import com.lsstop.domain.vo.UserPageVO;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.domain.vo.UserRecentCommentVO;
 import com.lsstop.enums.OperationModuleEnum;
 import com.lsstop.enums.OperationTypeEnum;
+import com.lsstop.enums.StatusEnum;
+import com.lsstop.exception.BusinessException;
 import com.lsstop.service.AuthService;
 import com.lsstop.service.CommentService;
 import com.lsstop.service.UserService;
@@ -224,6 +227,38 @@ public class UserController {
         String userId = (String) request.getAttribute("userId");
         authService.unbindWeibo(userId);
         return Result.success();
+    }
+
+    /**
+     * 获取用户管理列表（分页）
+     *
+     * @param current  当前页码
+     * @param size     每页条数
+     * @param userId   用户ID（精确匹配）
+     * @param nickname 昵称（模糊搜索）
+     * @param email    邮箱（模糊搜索）
+     * @param status   状态（0-禁用 1-正常）
+     * @return 用户列表及总数
+     */
+    @GetMapping("/admin/user/list")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<UserPageVO> listUser(@RequestParam Integer current,
+                                       @RequestParam Integer size,
+                                       @RequestParam(required = false) String userId,
+                                       @RequestParam(required = false) String nickname,
+                                       @RequestParam(required = false) String email,
+                                       @RequestParam(required = false) Integer status) {
+        if (current < 1) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.INVALID_PAGE_PARAM);
+        }
+        if (size < 1) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), CommentConst.INVALID_PAGE_PARAM);
+        }
+        UserPageVO pageVO = new UserPageVO(
+                userService.listUsers(current, size, userId, nickname, email, status),
+                current, size, userService.countUserTotal(userId, nickname, email, status)
+        );
+        return Result.success(pageVO);
     }
 
     /**

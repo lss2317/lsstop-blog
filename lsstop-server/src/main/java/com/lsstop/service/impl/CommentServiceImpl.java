@@ -14,8 +14,8 @@ import com.lsstop.enums.CommentTypeEnum;
 import com.lsstop.enums.IllegalPolicyEnum;
 import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
-import com.lsstop.mapper.AuthMapper;
 import com.lsstop.mapper.CommentMapper;
+import com.lsstop.mapper.UserMapper;
 import com.lsstop.service.CommentService;
 import com.lsstop.service.EmailService;
 import com.lsstop.service.WebsiteConfigService;
@@ -45,7 +45,7 @@ public class CommentServiceImpl implements CommentService {
     private CommentMapper commentMapper;
 
     @Resource
-    private AuthMapper authMapper;
+    private UserMapper userMapper;
 
     @Resource
     private RedisUtils redisUtils;
@@ -92,7 +92,7 @@ public class CommentServiceImpl implements CommentService {
         }
 
         // 查询用户资料并组装返回数据
-        UserProfileEntity userProfile = authMapper.selectProfileById(comment.getUserId());
+        UserProfileEntity userProfile = userMapper.selectProfileById(comment.getUserId());
         AddCommentVO vo = comment.asViewObject(AddCommentVO.class);
         if (userProfile != null) {
             vo.setAvatar(userProfile.getAvatar());

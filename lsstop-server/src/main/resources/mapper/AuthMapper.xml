@@ -10,15 +10,6 @@
         <result property="credential" column="credential" jdbcType="VARCHAR" javaType="java.lang.String"/>
     </resultMap>
 
-    <!-- 用户资料ResultMap -->
-    <resultMap id="UserProfileResultMap" type="com.lsstop.domain.entity.UserProfileEntity">
-        <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="nickname" column="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="avatar" column="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="website" column="website" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="intro" column="intro" jdbcType="VARCHAR" javaType="java.lang.String"/>
-    </resultMap>
-
     <!-- 根据标识和登录类型查询用户认证信息 -->
     <select id="selectByIdentifierAndType" resultMap="UserAuthResultMap">
         SELECT user_id, login_type, identifier, credential
@@ -27,45 +18,6 @@
           AND login_type = #{loginType}
           AND deleted_at = 0
     </select>
-
-    <!-- 用户基础信息ResultMap -->
-    <resultMap id="UserResultMap" type="com.lsstop.domain.entity.UserEntity">
-        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
-        <result property="userUid" column="user_uid" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="status" column="status" jdbcType="INTEGER" javaType="java.lang.Integer"/>
-        <result property="deletedAt" column="deleted_at" jdbcType="BIGINT" javaType="java.lang.Long"/>
-        <result property="lastLoginTime" column="last_login_time" jdbcType="TIMESTAMP"
-                javaType="java.time.LocalDateTime"/>
-        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
-        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
-    </resultMap>
-
-    <!-- 根据用户ID查询用户资料 -->
-    <select id="selectProfileById" parameterType="java.lang.String" resultMap="UserProfileResultMap">
-        SELECT user_id,
-               nickname,
-               avatar,
-               website,
-               intro
-        FROM blog_user_profile
-        WHERE user_id = #{userId}
-          AND deleted_at = 0
-    </select>
-
-    <!-- 根据用户ID查询用户基础信息 -->
-    <select id="selectUserById" parameterType="java.lang.String" resultMap="UserResultMap">
-        SELECT id, user_uid, status, deleted_at, last_login_time, create_time, update_time
-        FROM blog_user
-        WHERE user_uid = #{userId}
-          AND deleted_at = 0
-    </select>
-
-    <!-- 更新用户最后登录时间 -->
-    <update id="updateLastLoginTime" parameterType="java.lang.String">
-        UPDATE blog_user
-        SET last_login_time = NOW()
-        WHERE user_uid = #{userId}
-    </update>
 
     <!-- 根据用户ID查询用户邮箱 -->
     <select id="selectEmailByUserId" parameterType="java.lang.String" resultType="java.lang.String">
@@ -86,83 +38,11 @@
           AND deleted_at = 0
     </update>
 
-    <!-- 插入用户基础信息 -->
-    <insert id="insertUser" parameterType="com.lsstop.domain.entity.UserEntity">
-        INSERT INTO blog_user (user_uid, status, last_login_time, deleted_at, create_time, update_time)
-        VALUES (#{userUid}, #{status}, #{lastLoginTime}, 0, NOW(), NOW())
-    </insert>
-
     <!-- 插入用户认证信息 -->
     <insert id="insertUserAuth" parameterType="com.lsstop.domain.entity.UserAuthEntity">
         INSERT INTO blog_user_auth (user_id, login_type, identifier, credential, deleted_at, create_time, update_time)
         VALUES (#{userId}, #{loginType}, #{identifier}, #{credential}, 0, NOW(), NOW())
     </insert>
-
-    <!-- 插入用户资料信息 -->
-    <insert id="insertUserProfile" parameterType="com.lsstop.domain.entity.UserProfileEntity">
-        INSERT INTO blog_user_profile (user_id, nickname, avatar, deleted_at, create_time, update_time)
-        VALUES (#{userId}, #{nickname}, #{avatar}, 0, NOW(), NOW())
-    </insert>
-
-    <!-- 用户主页详情ResultMap -->
-    <resultMap id="UserHomeResultMap" type="com.lsstop.domain.vo.UserProfileVO">
-        <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="nickname" column="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="avatar" column="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="website" column="website" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="intro" column="intro" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="email" column="email" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="qqBound" column="qq_bound" jdbcType="BOOLEAN" javaType="java.lang.Boolean"/>
-        <result property="weiboBound" column="weibo_bound" jdbcType="BOOLEAN" javaType="java.lang.Boolean"/>
-        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
-    </resultMap>
-
-    <!-- 查询用户主页详情 -->
-    <select id="selectUserHomeDetail" parameterType="java.lang.String" resultMap="UserHomeResultMap">
-        SELECT p.user_id,
-               p.nickname,
-               p.avatar,
-               p.website,
-               p.intro,
-               email_auth.identifier                      AS email,
-               IF(qq_auth.id IS NOT NULL, TRUE, FALSE)    AS qq_bound,
-               IF(weibo_auth.id IS NOT NULL, TRUE, FALSE) AS weibo_bound,
-               u.create_time
-        FROM blog_user_profile p
-                 INNER JOIN blog_user u ON u.user_uid = p.user_id AND u.deleted_at = 0
-                 LEFT JOIN blog_user_auth email_auth
-                           ON email_auth.user_id = p.user_id AND email_auth.login_type = 1 AND email_auth.deleted_at = 0
-                 LEFT JOIN blog_user_auth qq_auth
-                           ON qq_auth.user_id = p.user_id AND qq_auth.login_type = 2 AND qq_auth.deleted_at = 0
-                 LEFT JOIN blog_user_auth weibo_auth
-                           ON weibo_auth.user_id = p.user_id AND weibo_auth.login_type = 3 AND weibo_auth.deleted_at = 0
-        WHERE p.user_id = #{userId}
-          AND p.deleted_at = 0
-    </select>
-
-    <!-- 用户公开主页详情ResultMap -->
-    <resultMap id="UserPublicHomeResultMap" type="com.lsstop.domain.vo.UserPublicProfileVO">
-        <result property="userId" column="user_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="nickname" column="nickname" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="avatar" column="avatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="website" column="website" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="intro" column="intro" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
-    </resultMap>
-
-    <!-- 查询用户公开主页详情 -->
-    <select id="selectUserPublicHomeDetail" parameterType="java.lang.String" resultMap="UserPublicHomeResultMap">
-        SELECT p.user_id,
-               p.nickname,
-               p.avatar,
-               p.website,
-               p.intro,
-               u.create_time
-        FROM blog_user_profile p
-                 INNER JOIN blog_user u ON u.user_uid = p.user_id AND u.deleted_at = 0
-        WHERE p.user_id = #{userId}
-          AND p.deleted_at = 0
-    </select>
 
     <!-- 更新用户登录标识 -->
     <update id="updateIdentifier">
@@ -171,26 +51,6 @@
             update_time = NOW()
         WHERE user_id = #{userId}
           AND login_type = #{loginType}
-          AND deleted_at = 0
-    </update>
-
-    <!-- 更新用户头像 -->
-    <update id="updateAvatar">
-        UPDATE blog_user_profile
-        SET avatar      = #{avatar},
-            update_time = NOW()
-        WHERE user_id = #{userId}
-          AND deleted_at = 0
-    </update>
-
-    <!-- 更新用户资料信息 -->
-    <update id="updateUserInfo">
-        UPDATE blog_user_profile
-        SET nickname    = #{nickname},
-            website     = #{website},
-            intro       = #{intro},
-            update_time = NOW()
-        WHERE user_id = #{userId}
           AND deleted_at = 0
     </update>
 

@@ -2,10 +2,13 @@ package com.lsstop.service;
 
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
 import com.lsstop.domain.vo.AdminUserInfoVO;
+import com.lsstop.domain.vo.UserManageVO;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.domain.vo.UserInfoVO;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 /**
  * 用户服务接口
@@ -63,5 +66,29 @@ public interface UserService {
      * @return 后台用户信息
      */
     AdminUserInfoVO getAdminUserInfo(String userId);
+
+    /**
+     * 分页查询用户管理列表
+     *
+     * @param current  当前页码
+     * @param size     每页数量
+     * @param userId   用户ID（精确匹配）
+     * @param nickname 昵称（模糊搜索）
+     * @param email    邮箱（模糊搜索）
+     * @param status   状态（0-禁用 1-正常）
+     * @return 用户列表
+     */
+    List<UserManageVO> listUsers(Integer current, Integer size, String userId, String nickname, String email, Integer status);
+
+    /**
+     * 统计用户总数
+     *
+     * @param userId   用户ID（精确匹配）
+     * @param nickname 昵称（模糊搜索）
+     * @param email    邮箱（模糊搜索）
+     * @param status   状态（0-禁用 1-正常）
+     * @return 用户总数
+     */
+    Integer countUserTotal(String userId, String nickname, String email, Integer status);
 
 }

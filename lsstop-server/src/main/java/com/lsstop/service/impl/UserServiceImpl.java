@@ -7,6 +7,8 @@ import com.lsstop.domain.dto.UpdateUserInfoDTO;
 import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.vo.AdminUserInfoVO;
 import com.lsstop.domain.vo.UserInfoVO;
+import com.lsstop.domain.vo.UserManageRoleVO;
+import com.lsstop.domain.vo.UserManageVO;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.enums.FileFolderEnum;
@@ -16,6 +18,7 @@ import com.lsstop.mapper.AuthMapper;
 import com.lsstop.mapper.CommentMapper;
 import com.lsstop.mapper.LikeMapper;
 import com.lsstop.mapper.LoginLogMapper;
+import com.lsstop.mapper.UserMapper;
 import com.lsstop.service.CosService;
 import com.lsstop.service.UserService;
 import com.lsstop.utils.RedisUtils;
@@ -23,6 +26,11 @@ import com.lsstop.utils.StringUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 用户服务实现类
@@ -46,6 +54,9 @@ public class UserServiceImpl implements UserService {
     private LoginLogMapper loginLogMapper;
 
     @Resource
+    private UserMapper userMapper;
+
+    @Resource
     private RedisUtils redisUtils;
 
     @Resource
@@ -66,7 +77,7 @@ public class UserServiceImpl implements UserService {
             return cachedUser;
         }
         // 缓存不存在，查询数据库
-        UserProfileEntity userProfile = authMapper.selectProfileById(userId);
+        UserProfileEntity userProfile = userMapper.selectProfileById(userId);
         if (userProfile == null) {
             throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
         }
@@ -95,7 +106,7 @@ public class UserServiceImpl implements UserService {
             return cachedUser;
         }
         // 缓存不存在，查询数据库
-        UserPublicProfileVO userPublicProfileVO = authMapper.selectUserPublicHomeDetail(userId);
+        UserPublicProfileVO userPublicProfileVO = userMapper.selectUserPublicHomeDetail(userId);
         if (userPublicProfileVO == null) {
             throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
         }
@@ -128,7 +139,7 @@ public class UserServiceImpl implements UserService {
             return cachedUser;
         }
         // 缓存不存在，查询数据库
-        UserProfileVO userProfileVO = authMapper.selectUserHomeDetail(userId);
+        UserProfileVO userProfileVO = userMapper.selectUserHomeDetail(userId);
         if (userProfileVO == null) {
             throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
         }
@@ -163,7 +174,7 @@ public class UserServiceImpl implements UserService {
         String avatarUrl = cosService.uploadImage(file, FileFolderEnum.AVATAR.getFolder());
         try {
             // 更新数据库
-            int rows = authMapper.updateAvatar(userId, avatarUrl);
+            int rows = userMapper.updateAvatar(userId, avatarUrl);
             if (rows == 0) {
                 throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
             }
@@ -205,7 +216,7 @@ public class UserServiceImpl implements UserService {
             intro = null;
         }
         // 更新数据库
-        int rows = authMapper.updateUserInfo(userId, nickname, website, intro);
+        int rows = userMapper.updateUserInfo(userId, nickname, website, intro);
         if (rows == 0) {
             throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
         }
@@ -222,7 +233,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public AdminUserInfoVO getAdminUserInfo(String userId) {
         // 查询用户资料
-        UserProfileEntity userProfile = authMapper.selectProfileById(userId);
+        UserProfileEntity userProfile = userMapper.selectProfileById(userId);
         if (userProfile == null) {
             throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
         }
@@ -242,6 +253,50 @@ public class UserServiceImpl implements UserService {
         redisUtils.delete(RedisConst.USER_INFO + userId);
         redisUtils.delete(RedisConst.USER_HOME_ME + userId);
         redisUtils.delete(RedisConst.USER_HOME_PUBLIC + userId);
+    }
+
+    /**
+     * 分页查询用户管理列表
+     *
+     * @param current  当前页码
+     * @param size     每页数量
+     * @param userId   用户ID（精确匹配）
+     * @param nickname 昵称（模糊搜索）
+     * @param email    邮箱（模糊搜索）
+     * @param status   状态（0-禁用 1-正常）
+     * @return 用户列表
+     */
+    @Override
+    public List<UserManageVO> listUsers(Integer current, Integer size, String userId, String nickname, String email, Integer status) {
+        int offset = (current - 1) * size;
+        List<UserManageVO> users = userMapper.selectUserList(offset, size, userId, nickname, email, status);
+        if (users.isEmpty()) {
+            return users;
+        }
+        // 批量查询角色并分组
+        List<String> userIds = users.stream().map(UserManageVO::getUserId).toList();
+        List<UserManageRoleVO> allRoles = userMapper.selectRolesByUserIds(userIds);
+        Map<String, List<UserManageRoleVO>> rolesByUserId = allRoles.stream()
+                .collect(Collectors.groupingBy(UserManageRoleVO::getUserId));
+        // 组装角色列表
+        for (UserManageVO user : users) {
+            user.setRoles(rolesByUserId.getOrDefault(user.getUserId(), Collections.emptyList()));
+        }
+        return users;
+    }
+
+    /**
+     * 统计用户总数
+     *
+     * @param userId   用户ID（精确匹配）
+     * @param nickname 昵称（模糊搜索）
+     * @param email    邮箱（模糊搜索）
+     * @param status   状态（0-禁用 1-正常）
+     * @return 用户总数
+     */
+    @Override
+    public Integer countUserTotal(String userId, String nickname, String email, Integer status) {
+        return userMapper.countUserTotal(userId, nickname, email, status);
     }
 
 }

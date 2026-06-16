@@ -1,10 +1,6 @@
 package com.lsstop.mapper;
 
 import com.lsstop.domain.entity.UserAuthEntity;
-import com.lsstop.domain.entity.UserEntity;
-import com.lsstop.domain.entity.UserProfileEntity;
-import com.lsstop.domain.vo.UserProfileVO;
-import com.lsstop.domain.vo.UserPublicProfileVO;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -26,29 +22,6 @@ public interface AuthMapper {
     UserAuthEntity selectByIdentifierAndType(@Param("identifier") String identifier, @Param("loginType") Integer loginType);
 
     /**
-     * 根据用户ID查询用户资料
-     *
-     * @param userId 用户ID
-     * @return 用户资料信息
-     */
-    UserProfileEntity selectProfileById(@Param("userId") String userId);
-
-    /**
-     * 根据用户ID查询用户基础信息
-     *
-     * @param userId 用户ID
-     * @return 用户基础信息
-     */
-    UserEntity selectUserById(@Param("userId") String userId);
-
-    /**
-     * 更新用户最后登录时间
-     *
-     * @param userId 用户ID
-     */
-    void updateLastLoginTime(@Param("userId") String userId);
-
-    /**
      * 根据用户ID查询用户邮箱（邮箱登录方式）
      *
      * @param userId 用户ID
@@ -67,44 +40,12 @@ public interface AuthMapper {
     int updateCredential(@Param("identifier") String identifier, @Param("loginType") Integer loginType, @Param("credential") String credential);
 
     /**
-     * 插入用户基础信息
-     *
-     * @param user 用户基础信息
-     * @return 插入行数
-     */
-    int insertUser(UserEntity user);
-
-    /**
      * 插入用户认证信息
      *
      * @param userAuth 用户认证信息
      * @return 插入行数
      */
     int insertUserAuth(UserAuthEntity userAuth);
-
-    /**
-     * 插入用户资料信息
-     *
-     * @param userProfile 用户资料信息
-     * @return 插入行数
-     */
-    int insertUserProfile(UserProfileEntity userProfile);
-
-    /**
-     * 查询用户主页详情（包含基本信息、绑定状态、注册时间）
-     *
-     * @param userId 用户ID
-     * @return 用户主页详情
-     */
-    UserProfileVO selectUserHomeDetail(@Param("userId") String userId);
-
-    /**
-     * 查询用户公开主页详情（不包含敏感信息）
-     *
-     * @param userId 用户ID
-     * @return 用户公开主页详情
-     */
-    UserPublicProfileVO selectUserPublicHomeDetail(@Param("userId") String userId);
 
     /**
      * 更新用户登录标识（如邮箱）
@@ -115,27 +56,6 @@ public interface AuthMapper {
      * @return 更新行数
      */
     int updateIdentifier(@Param("userId") String userId, @Param("loginType") Integer loginType, @Param("newIdentifier") String newIdentifier);
-
-    /**
-     * 更新用户头像
-     *
-     * @param userId 用户ID
-     * @param avatar 头像URL
-     * @return 更新行数
-     */
-    int updateAvatar(@Param("userId") String userId, @Param("avatar") String avatar);
-
-    /**
-     * 更新用户资料信息
-     *
-     * @param userId   用户ID
-     * @param nickname 昵称
-     * @param website  个人网站
-     * @param intro    个人简介
-     * @return 更新行数
-     */
-    int updateUserInfo(@Param("userId") String userId, @Param("nickname") String nickname,
-                       @Param("website") String website, @Param("intro") String intro);
 
     /**
      * 根据用户ID查询邮箱认证信息
