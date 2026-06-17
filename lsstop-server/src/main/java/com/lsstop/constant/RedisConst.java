@@ -244,12 +244,6 @@ public class RedisConst {
     public static final String USER_MENU_IDS = PREFIX + "user:menu:ids:";
 
     /**
-     * 用户API权限模式缓存（Set<String>，格式：METHOD:/uri/pattern）
-     * <p>基于菜单按钮 menuType=3 的 path 字段
-     */
-    public static final String USER_API_PERMISSIONS = PREFIX + "user:api:permissions:";
-
-    /**
      * 用户有效接口权限缓存（Set<String>，格式：METHOD:/uri/pattern）
      * <p>基于 blog_api_permission 三表体系计算：角色授予 ∪ 用户额外授予 - 用户额外排除
      */
@@ -265,11 +259,6 @@ public class RedisConst {
      * <p>用于判断当前请求是否受权限控制
      */
     public static final String REGISTERED_API_PERMISSIONS = PREFIX + "registered:api:permissions";
-
-    /**
-     * 全局按钮权限规则缓存（系统所有 menuType=3 的 path）
-     */
-    public static final String ALL_API_PERMISSIONS = PREFIX + "all:api:permissions";
 
     /**
      * 全量菜单权限树缓存（用于权限配置弹窗）

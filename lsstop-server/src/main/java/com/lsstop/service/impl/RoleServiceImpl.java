@@ -293,7 +293,6 @@ public class RoleServiceImpl implements RoleService {
         List<String> cacheKeys = new ArrayList<>();
         for (String userId : userIds) {
             cacheKeys.add(RedisConst.USER_MENU_TREE + userId);
-            cacheKeys.add(RedisConst.USER_API_PERMISSIONS + userId);
             cacheKeys.add(RedisConst.USER_EFFECTIVE_API_PERMISSIONS + userId);
             cacheKeys.add(RedisConst.USER_MENU_IDS + userId);
             cacheKeys.add(RedisConst.USER_API_PERMISSION_IDS + userId);

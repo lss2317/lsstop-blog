@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,57 +89,6 @@ public class MenuServiceImpl implements MenuService {
         List<Integer> menuIds = menuMapper.selectMenuIdsByUserId(userId);
         redisUtils.set(cacheKey, menuIds, RedisConst.EXPIRE_ONE_DAY);
         return menuIds;
-    }
-
-    /**
-     * 获取用户的API权限模式集合
-     * <p>从menuType=3的按钮权限中提取path字段，格式：METHOD:/uri/pattern
-     *
-     * @param userId 用户uid
-     * @return API权限模式集合
-     */
-    @Override
-    public Set<String> getUserApiPermissions(String userId) {
-        String cacheKey = RedisConst.USER_API_PERMISSIONS + userId;
-        // 先从缓存获取
-        Set<String> cachedPermissions = redisUtils.getSet(cacheKey, String.class);
-        if (cachedPermissions != null) {
-            return cachedPermissions;
-        }
-        // 缓存不存在，从菜单树中提取
-        List<MenuVO> flatMenus = menuMapper.selectMenusByUserId(userId);
-        Set<String> permissions = new HashSet<>();
-        for (MenuVO menu : flatMenus) {
-            // menuType=3 为按钮权限，path 存储 API 路径模式
-            if (menu.getMenuType() != null && menu.getMenuType() == MenuConst.TYPE_BUTTON
-                    && menu.getPath() != null && !menu.getPath().isBlank()) {
-                permissions.add(menu.getPath());
-            }
-        }
-        // 写入缓存，过期时间1天
-        redisUtils.set(cacheKey, permissions, RedisConst.EXPIRE_ONE_DAY);
-        return permissions;
-    }
-
-    /**
-     * 获取系统所有按钮权限规则
-     *
-     * @return 全局按钮权限 path 集合
-     */
-    @Override
-    public Set<String> getAllApiPermissions() {
-        String cacheKey = RedisConst.ALL_API_PERMISSIONS;
-        // 先从缓存获取
-        Set<String> cachedPermissions = redisUtils.getSet(cacheKey, String.class);
-        if (cachedPermissions != null) {
-            return cachedPermissions;
-        }
-        // 缓存不存在，查询数据库
-        List<String> paths = menuMapper.selectAllButtonPaths();
-        Set<String> permissions = new HashSet<>(paths);
-        // 写入缓存，过期时间1天
-        redisUtils.set(cacheKey, permissions, RedisConst.EXPIRE_ONE_DAY);
-        return permissions;
     }
 
     /**
@@ -386,7 +334,7 @@ public class MenuServiceImpl implements MenuService {
         int parentId = dto.getParentId() != null ? dto.getParentId() : MenuConst.TOP_LEVEL_PARENT_ID;
         MenuEntity entity = validateAndBuildAddEntity(dto, parentId);
         menuMapper.insertMenu(entity);
-        clearMenuCache(entity.getMenuType());
+        clearMenuCache();
     }
 
     /**
@@ -427,7 +375,7 @@ public class MenuServiceImpl implements MenuService {
         menuMapper.updateMenu(entity);
 
         // 5. 清理Redis缓存
-        clearMenuCache(menuTypeCode);
+        clearMenuCache();
     }
 
     /**
@@ -454,7 +402,7 @@ public class MenuServiceImpl implements MenuService {
         menuMapper.deleteById(id, System.currentTimeMillis());
 
         // 4. 清理Redis缓存
-        clearMenuCache(menu.getMenuType());
+        clearMenuCache();
     }
 
     /**
@@ -486,10 +434,8 @@ public class MenuServiceImpl implements MenuService {
     /**
      * 清理菜单相关Redis缓存
      * <p>新增菜单后，清除受影响的缓存，下次查询时自动重建
-     *
-     * @param menuTypeCode 菜单类型编码
      */
-    private void clearMenuCache(int menuTypeCode) {
+    private void clearMenuCache() {
         // 全量菜单权限树缓存（任何菜单变更都影响）
         redisUtils.delete(RedisConst.MENU_PERMISSION_TREE);
         // 全量接口权限树缓存（任何菜单变更都影响）
@@ -498,13 +444,6 @@ public class MenuServiceImpl implements MenuService {
         redisUtils.deleteByPrefix(RedisConst.USER_MENU_TREE);
         // 按用户的菜单ID列表缓存
         redisUtils.deleteByPrefix(RedisConst.USER_MENU_IDS);
-
-        if (menuTypeCode == MenuConst.TYPE_BUTTON) {
-            // 全局按钮权限规则缓存
-            redisUtils.delete(RedisConst.ALL_API_PERMISSIONS);
-            // 按用户的API权限缓存
-            redisUtils.deleteByPrefix(RedisConst.USER_API_PERMISSIONS);
-        }
     }
 
     /**
