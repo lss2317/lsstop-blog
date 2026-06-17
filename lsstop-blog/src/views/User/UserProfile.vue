@@ -231,7 +231,7 @@
               v-model="editForm.nickname"
               class="edit-input"
               placeholder="请输入昵称"
-              maxlength="30"
+              maxlength="20"
             />
           </div>
           <div class="edit-form-item">
