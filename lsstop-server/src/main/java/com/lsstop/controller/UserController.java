@@ -20,6 +20,8 @@ import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.service.AuthService;
 import com.lsstop.service.CommentService;
+import com.lsstop.service.ApiPermissionService;
+import com.lsstop.service.MenuService;
 import com.lsstop.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,6 +53,12 @@ public class UserController {
 
     @Resource
     private CommentService commentService;
+
+    @Resource
+    private MenuService menuService;
+
+    @Resource
+    private ApiPermissionService apiPermissionService;
 
     /**
      * 获取当前登录用户信息
@@ -272,6 +280,30 @@ public class UserController {
     public Result<AdminUserInfoVO> getAdminUserInfo(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         return Result.success(userService.getAdminUserInfo(userId));
+    }
+
+    /**
+     * 获取用户有效菜单权限ID列表
+     *
+     * @param userId 用户ID
+     * @return 菜单ID列表
+     */
+    @GetMapping("/admin/user/menu-permission")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<List<Integer>> getUserMenuPermission(@RequestParam String userId) {
+        return Result.success(menuService.getUserMenuIds(userId));
+    }
+
+    /**
+     * 获取用户有效接口权限ID列表
+     *
+     * @param userId 用户ID
+     * @return 接口权限ID列表
+     */
+    @GetMapping("/admin/user/api-permission")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<List<Integer>> getUserApiPermission(@RequestParam String userId) {
+        return Result.success(apiPermissionService.getUserEffectiveApiPermissionIds(userId));
     }
 
 }

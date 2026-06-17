@@ -27,6 +27,14 @@ public interface MenuMapper {
     List<MenuVO> selectMenusByUserId(@Param("userId") String userId);
 
     /**
+     * 查询用户拥有的菜单ID列表（角色授权 + 用户个性化调整）
+     *
+     * @param userId 用户uid
+     * @return 菜单ID列表
+     */
+    List<Integer> selectMenuIdsByUserId(@Param("userId") String userId);
+
+    /**
      * 查询系统所有启用的按钮权限的 path（menuType=3）
      * <p>用于拦截器判断接口是否受权限管控
      *

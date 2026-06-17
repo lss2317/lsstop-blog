@@ -6,6 +6,7 @@ import com.lsstop.domain.dto.AddRoleDTO;
 import com.lsstop.domain.dto.UpdateRoleApiPermissionDTO;
 import com.lsstop.domain.dto.UpdateRoleDTO;
 import com.lsstop.domain.dto.UpdateRoleMenuDTO;
+import com.lsstop.domain.vo.RoleOptionVO;
 import com.lsstop.domain.vo.RoleVO;
 import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
@@ -79,6 +80,8 @@ public class RoleServiceImpl implements RoleService {
             throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST, RoleConst.ROLE_CODE_EXISTS);
         }
         roleMapper.insertRole(dto);
+        // 清除角色选项缓存
+        redisUtils.delete(RedisConst.ROLE_OPTIONS);
     }
 
     /**
@@ -99,6 +102,8 @@ public class RoleServiceImpl implements RoleService {
             throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST, RoleConst.ROLE_CODE_EXISTS);
         }
         roleMapper.updateRole(dto);
+        // 清除角色选项缓存
+        redisUtils.delete(RedisConst.ROLE_OPTIONS);
         // 清除拥有该角色的用户的菜单缓存（启用/禁用状态变更时需刷新）
         clearRoleUserCache(dto.getId());
     }
@@ -121,6 +126,8 @@ public class RoleServiceImpl implements RoleService {
             throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), RoleConst.ROLE_HAS_USERS);
         }
         roleMapper.deleteById(id, System.currentTimeMillis());
+        // 清除角色选项缓存
+        redisUtils.delete(RedisConst.ROLE_OPTIONS);
         // 清除拥有该角色的用户的菜单缓存
         clearRoleUserCache(id);
     }
@@ -256,6 +263,24 @@ public class RoleServiceImpl implements RoleService {
     }
 
     /**
+     * 获取所有启用角色（仅返回ID和名称，用于下拉选项）
+     * <p>优先从缓存获取，缓存未命中时查询数据库并写入缓存
+     *
+     * @return 角色选项列表
+     */
+    @Override
+    public List<RoleOptionVO> listAllRoleOptions() {
+        String cacheKey = RedisConst.ROLE_OPTIONS;
+        List<RoleOptionVO> cached = redisUtils.getList(cacheKey, RoleOptionVO.class);
+        if (cached != null) {
+            return cached;
+        }
+        List<RoleOptionVO> list = roleMapper.selectAllRoleOptions();
+        redisUtils.set(cacheKey, list, RedisConst.EXPIRE_ONE_DAY);
+        return list;
+    }
+
+    /**
      * 清除拥有指定角色的用户的菜单缓存
      *
      * @param roleId 角色ID
@@ -270,6 +295,8 @@ public class RoleServiceImpl implements RoleService {
             cacheKeys.add(RedisConst.USER_MENU_TREE + userId);
             cacheKeys.add(RedisConst.USER_API_PERMISSIONS + userId);
             cacheKeys.add(RedisConst.USER_EFFECTIVE_API_PERMISSIONS + userId);
+            cacheKeys.add(RedisConst.USER_MENU_IDS + userId);
+            cacheKeys.add(RedisConst.USER_API_PERMISSION_IDS + userId);
         }
         redisUtils.delete(cacheKeys);
     }

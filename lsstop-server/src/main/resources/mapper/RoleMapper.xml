@@ -173,4 +173,13 @@
         </foreach>
     </update>
 
+    <!-- 查询所有启用角色（仅返回ID和名称，用于下拉选项） -->
+    <select id="selectAllRoleOptions" resultType="com.lsstop.domain.vo.RoleOptionVO">
+        select id, role_name
+        from blog_role
+        where deleted_at = 0
+          and is_enabled = 1
+        order by role_name, id
+    </select>
+
 </mapper>

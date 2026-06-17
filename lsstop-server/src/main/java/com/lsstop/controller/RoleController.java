@@ -10,6 +10,7 @@ import com.lsstop.domain.dto.UpdateRoleDTO;
 import com.lsstop.domain.dto.UpdateRoleMenuDTO;
 import com.lsstop.domain.vo.ApiPermissionNodeVO;
 import com.lsstop.domain.vo.MenuPermissionVO;
+import com.lsstop.domain.vo.RoleOptionVO;
 import com.lsstop.domain.vo.RolePageVO;
 import com.lsstop.enums.OperationModuleEnum;
 import com.lsstop.enums.OperationTypeEnum;
@@ -197,5 +198,16 @@ public class RoleController {
     public Result<Void> updateRoleApiPermission(@RequestBody @Validated UpdateRoleApiPermissionDTO dto) {
         roleService.updateRoleApiPermission(dto);
         return Result.success();
+    }
+
+    /**
+     * 获取所有启用角色（仅返回ID和名称，用于下拉选项）
+     *
+     * @return 角色选项列表
+     */
+    @GetMapping("/admin/role/options")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<List<RoleOptionVO>> listAllRoleOptions() {
+        return Result.success(roleService.listAllRoleOptions());
     }
 }

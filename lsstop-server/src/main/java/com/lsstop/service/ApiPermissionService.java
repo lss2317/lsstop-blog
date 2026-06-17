@@ -70,6 +70,14 @@ public interface ApiPermissionService {
     Set<String> getUserEffectiveApiPermissions(String userId);
 
     /**
+     * 获取用户有效接口权限ID列表
+     *
+     * @param userId 用户uid
+     * @return 接口权限ID列表
+     */
+    List<Integer> getUserEffectiveApiPermissionIds(String userId);
+
+    /**
      * 获取系统全量已注册接口权限模式
      * <p>用于判断当前请求是否受权限控制；未注册的 URL 默认放行
      * <p>返回格式如：GET:/admin/article/list、DELETE:/admin/article/*

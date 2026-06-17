@@ -111,6 +111,14 @@ public interface ApiPermissionMapper {
     List<ApiPermissionEntity> selectUserEffectiveApiPermissions(@Param("userId") String userId);
 
     /**
+     * 查询用户有效接口权限ID列表（角色授予 ∪ 用户额外授予 - 用户额外排除）
+     *
+     * @param userId 用户uid
+     * @return 接口权限ID列表
+     */
+    List<Integer> selectUserEffectiveApiPermissionIds(@Param("userId") String userId);
+
+    /**
      * 查询系统所有启用的接口权限模式（用于判断 URL 是否受控）
      * <p>仅返回接口节点（request_url IS NOT NULL），不含目录
      *

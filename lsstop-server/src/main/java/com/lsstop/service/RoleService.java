@@ -4,6 +4,7 @@ import com.lsstop.domain.dto.AddRoleDTO;
 import com.lsstop.domain.dto.UpdateRoleApiPermissionDTO;
 import com.lsstop.domain.dto.UpdateRoleDTO;
 import com.lsstop.domain.dto.UpdateRoleMenuDTO;
+import com.lsstop.domain.vo.RoleOptionVO;
 import com.lsstop.domain.vo.RoleVO;
 
 import java.util.List;
@@ -92,4 +93,11 @@ public interface RoleService {
      * @param dto 修改角色接口权限参数
      */
     void updateRoleApiPermission(UpdateRoleApiPermissionDTO dto);
+
+    /**
+     * 获取所有启用角色（仅返回ID和名称，用于下拉选项）
+     *
+     * @return 角色选项列表
+     */
+    List<RoleOptionVO> listAllRoleOptions();
 }

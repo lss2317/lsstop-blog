@@ -26,6 +26,14 @@ public interface MenuService {
     List<MenuVO> getUserMenuTree(String userId);
 
     /**
+     * 获取用户拥有的菜单ID列表
+     *
+     * @param userId 用户uid
+     * @return 菜单ID列表
+     */
+    List<Integer> getUserMenuIds(String userId);
+
+    /**
      * 获取用户的API权限模式集合
      * <p>返回格式如：POST:/admin/article、DELETE:/admin/article/*
      *

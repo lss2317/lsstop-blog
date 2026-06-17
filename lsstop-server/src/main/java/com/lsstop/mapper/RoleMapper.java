@@ -2,6 +2,7 @@ package com.lsstop.mapper;
 
 import com.lsstop.domain.dto.AddRoleDTO;
 import com.lsstop.domain.dto.UpdateRoleDTO;
+import com.lsstop.domain.vo.RoleOptionVO;
 import com.lsstop.domain.vo.RoleVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -152,4 +153,11 @@ public interface RoleMapper {
     void batchSoftDeleteRoleApiPermission(@Param("roleId") Integer roleId,
                                            @Param("apiPermissionIds") List<Integer> apiPermissionIds,
                                            @Param("deletedAt") Long deletedAt);
+
+    /**
+     * 查询所有启用角色（仅返回ID和名称，用于下拉选项）
+     *
+     * @return 角色选项列表
+     */
+    List<RoleOptionVO> selectAllRoleOptions();
 }

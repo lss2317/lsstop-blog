@@ -446,6 +446,7 @@ public class ApiPermissionServiceImpl implements ApiPermissionService {
         redisUtils.delete(RedisConst.REGISTERED_API_PERMISSIONS);
         // 权限变更可能影响所有用户，清除所有用户有效权限缓存
         redisUtils.deleteByPrefix(RedisConst.USER_EFFECTIVE_API_PERMISSIONS);
+        redisUtils.deleteByPrefix(RedisConst.USER_API_PERMISSION_IDS);
     }
 
     @Override
@@ -467,6 +468,18 @@ public class ApiPermissionServiceImpl implements ApiPermissionService {
         // 写入缓存，过期时间1天
         redisUtils.set(cacheKey, permissions, RedisConst.EXPIRE_ONE_DAY);
         return permissions;
+    }
+
+    @Override
+    public List<Integer> getUserEffectiveApiPermissionIds(String userId) {
+        String cacheKey = RedisConst.USER_API_PERMISSION_IDS + userId;
+        List<Integer> cached = redisUtils.getList(cacheKey, Integer.class);
+        if (cached != null) {
+            return cached;
+        }
+        List<Integer> ids = apiPermissionMapper.selectUserEffectiveApiPermissionIds(userId);
+        redisUtils.set(cacheKey, ids, RedisConst.EXPIRE_ONE_DAY);
+        return ids;
     }
 
     @Override

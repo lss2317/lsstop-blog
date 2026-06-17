@@ -74,6 +74,25 @@ public class MenuServiceImpl implements MenuService {
     }
 
     /**
+     * 获取用户拥有的菜单ID列表
+     * <p>优先从缓存获取，缓存未命中时查询数据库并写入缓存
+     *
+     * @param userId 用户uid
+     * @return 菜单ID列表
+     */
+    @Override
+    public List<Integer> getUserMenuIds(String userId) {
+        String cacheKey = RedisConst.USER_MENU_IDS + userId;
+        List<Integer> cached = redisUtils.getList(cacheKey, Integer.class);
+        if (cached != null) {
+            return cached;
+        }
+        List<Integer> menuIds = menuMapper.selectMenuIdsByUserId(userId);
+        redisUtils.set(cacheKey, menuIds, RedisConst.EXPIRE_ONE_DAY);
+        return menuIds;
+    }
+
+    /**
      * 获取用户的API权限模式集合
      * <p>从menuType=3的按钮权限中提取path字段，格式：METHOD:/uri/pattern
      *
@@ -477,6 +496,8 @@ public class MenuServiceImpl implements MenuService {
         redisUtils.delete(RedisConst.API_PERMISSION_TREE);
         // 按用户的菜单树缓存（不确定影响哪些用户，全部清除）
         redisUtils.deleteByPrefix(RedisConst.USER_MENU_TREE);
+        // 按用户的菜单ID列表缓存
+        redisUtils.deleteByPrefix(RedisConst.USER_MENU_IDS);
 
         if (menuTypeCode == MenuConst.TYPE_BUTTON) {
             // 全局按钮权限规则缓存

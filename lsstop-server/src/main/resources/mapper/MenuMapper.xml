@@ -66,6 +66,41 @@
         order by m.sort, m.id
     </select>
 
+    <!-- 查询用户拥有的菜单ID列表 -->
+    <select id="selectMenuIdsByUserId" resultType="java.lang.Integer">
+        select m.id
+        from blog_menu m
+        where m.deleted_at = 0
+          and m.is_enabled = 1
+          and (
+                m.id in (
+                    select rm.menu_id
+                    from blog_role_menu rm
+                             inner join blog_user_role ur on rm.role_id = ur.role_id
+                        and ur.deleted_at = 0
+                             inner join blog_role r on rm.role_id = r.id
+                        and r.deleted_at = 0
+                        and r.is_enabled = 1
+                    where rm.deleted_at = 0
+                      and ur.user_id = #{userId}
+                )
+                or m.id in (
+                    select um.menu_id
+                    from blog_user_menu um
+                    where um.deleted_at = 0
+                      and um.user_id = #{userId}
+                      and um.type = 1
+                )
+          )
+          and m.id not in (
+              select um.menu_id
+              from blog_user_menu um
+              where um.deleted_at = 0
+                and um.user_id = #{userId}
+                and um.type = 2
+          )
+    </select>
+
     <resultMap id="menuPermissionResult" type="com.lsstop.domain.vo.MenuPermissionVO">
         <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result property="parentId" column="parent_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
