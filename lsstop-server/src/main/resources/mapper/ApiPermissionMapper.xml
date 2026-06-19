@@ -219,6 +219,54 @@
           )
     </select>
 
+    <!-- 查询用户通过角色继承的接口权限ID列表 -->
+    <select id="selectRoleApiPermissionIdsByUserId" resultType="java.lang.Integer">
+        select rap.api_permission_id
+        from blog_role_api_permission rap
+                 inner join blog_user_role ur on rap.role_id = ur.role_id
+            and ur.deleted_at = 0
+                 inner join blog_role r on rap.role_id = r.id
+            and r.deleted_at = 0
+            and r.is_enabled = 1
+                 inner join blog_api_permission ap on rap.api_permission_id = ap.id
+            and ap.deleted_at = 0
+            and ap.is_enabled = 1
+        where rap.deleted_at = 0
+          and ur.user_id = #{userId}
+    </select>
+
+    <!-- 查询用户指定类型的接口权限调整ID列表 -->
+    <select id="selectUserApiPermissionIdsByType" resultType="java.lang.Integer">
+        select uap.api_permission_id
+        from blog_user_api_permission uap
+        where uap.deleted_at = 0
+          and uap.user_id = #{userId}
+          and uap.type = #{type}
+    </select>
+
+    <!-- 批量新增用户接口权限关联（已存在活跃记录时幂等更新） -->
+    <insert id="batchInsertUserApiPermission">
+        insert into blog_user_api_permission (user_id, api_permission_id, type, deleted_at, create_time, update_time)
+        values
+        <foreach collection="apiPermissionIds" item="apiPermissionId" separator=",">
+            (#{userId}, #{apiPermissionId}, #{type}, 0, NOW(), NOW())
+        </foreach>
+        on duplicate key update deleted_at = 0, update_time = NOW()
+    </insert>
+
+    <!-- 批量软删除用户指定类型的接口权限关联 -->
+    <update id="batchSoftDeleteUserApiPermission">
+        update blog_user_api_permission
+        set deleted_at = #{deletedAt}
+        where user_id = #{userId}
+          and deleted_at = 0
+          and type = #{type}
+          and api_permission_id in
+        <foreach collection="apiPermissionIds" item="apiPermissionId" open="(" separator="," close=")">
+            #{apiPermissionId}
+        </foreach>
+    </update>
+
     <!-- 查询系统所有启用的接口权限模式（用于判断 URL 是否受控） -->
     <select id="selectAllEnabledApiPatterns" resultMap="apiPermissionEntityResult">
         select ap.id, ap.request_url, ap.request_method

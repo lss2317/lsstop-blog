@@ -7,7 +7,9 @@ import com.lsstop.constant.CommentConst;
 import com.lsstop.domain.dto.BindCodeDTO;
 import com.lsstop.domain.dto.ChangeEmailDTO;
 import com.lsstop.domain.dto.ChangePasswordDTO;
+import com.lsstop.domain.dto.UpdateUserApiPermissionDTO;
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
+import com.lsstop.domain.dto.UpdateUserMenuDTO;
 import com.lsstop.domain.vo.AdminUserInfoVO;
 import com.lsstop.domain.vo.UserPageVO;
 import com.lsstop.domain.vo.UserProfileVO;
@@ -29,6 +31,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -295,6 +298,21 @@ public class UserController {
     }
 
     /**
+     * 修改用户菜单权限
+     * <p>接收全量菜单ID列表，后端与现有权限做差集计算后更新
+     *
+     * @param dto 修改用户菜单权限参数
+     * @return 操作结果
+     */
+    @PutMapping("/admin/user/menu-permission")
+    @AccessLimit(seconds = 60, maxCount = 30)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "修改用户菜单权限")
+    public Result<Void> updateUserMenuPermission(@RequestBody @Validated UpdateUserMenuDTO dto) {
+        userService.updateUserMenuPermission(dto);
+        return Result.success();
+    }
+
+    /**
      * 获取用户有效接口权限ID列表
      *
      * @param userId 用户ID
@@ -304,6 +322,21 @@ public class UserController {
     @AccessLimit(seconds = 60, maxCount = 60)
     public Result<List<Integer>> getUserApiPermission(@RequestParam String userId) {
         return Result.success(apiPermissionService.getUserEffectiveApiPermissionIds(userId));
+    }
+
+    /**
+     * 修改用户接口权限
+     * <p>接收全量接口权限ID列表，后端与角色接口权限做差集计算后更新
+     *
+     * @param dto 修改用户接口权限参数
+     * @return 操作结果
+     */
+    @PutMapping("/admin/user/api-permission")
+    @AccessLimit(seconds = 60, maxCount = 30)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "修改用户接口权限")
+    public Result<Void> updateUserApiPermission(@RequestBody @Validated UpdateUserApiPermissionDTO dto) {
+        userService.updateUserApiPermission(dto);
+        return Result.success();
     }
 
 }

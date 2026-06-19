@@ -75,8 +75,23 @@ public class FileController {
      */
     @PostMapping("/front/chat/image")
     @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.FILE, type = OperationTypeEnum.UPLOAD, description = "上传聊天室图片")
     public Result<String> uploadChatImage(@RequestParam("file") MultipartFile file) {
         String url = cosService.uploadImage(file, FileFolderEnum.CHAT.getFolder());
+        return Result.success(url);
+    }
+
+    /**
+     * 上传用户头像
+     *
+     * @param file 头像文件
+     * @return 头像访问URL
+     */
+    @PostMapping("/admin/file/avatar")
+    @AccessLimit(seconds = 60, maxCount = 30)
+    @OperationLog(module = OperationModuleEnum.FILE, type = OperationTypeEnum.UPLOAD, description = "上传用户头像")
+    public Result<String> uploadAvatar(@RequestParam("file") MultipartFile file) {
+        String url = cosService.uploadImage(file, FileFolderEnum.AVATAR.getFolder());
         return Result.success(url);
     }
 }

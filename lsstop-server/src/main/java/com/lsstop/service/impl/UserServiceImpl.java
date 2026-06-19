@@ -2,8 +2,11 @@ package com.lsstop.service.impl;
 
 import com.lsstop.constant.AuthConst;
 import com.lsstop.constant.CommonConst;
+import com.lsstop.constant.MenuConst;
 import com.lsstop.constant.RedisConst;
+import com.lsstop.domain.dto.UpdateUserApiPermissionDTO;
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
+import com.lsstop.domain.dto.UpdateUserMenuDTO;
 import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.vo.AdminUserInfoVO;
 import com.lsstop.domain.vo.UserInfoVO;
@@ -14,10 +17,12 @@ import com.lsstop.domain.vo.UserPublicProfileVO;
 import com.lsstop.enums.FileFolderEnum;
 import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
+import com.lsstop.mapper.ApiPermissionMapper;
 import com.lsstop.mapper.AuthMapper;
 import com.lsstop.mapper.CommentMapper;
 import com.lsstop.mapper.LikeMapper;
 import com.lsstop.mapper.LoginLogMapper;
+import com.lsstop.mapper.MenuMapper;
 import com.lsstop.mapper.UserMapper;
 import com.lsstop.service.CosService;
 import com.lsstop.service.UserService;
@@ -25,11 +30,15 @@ import com.lsstop.utils.RedisUtils;
 import com.lsstop.utils.StringUtils;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +70,12 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private CosService cosService;
+
+    @Resource
+    private MenuMapper menuMapper;
+
+    @Resource
+    private ApiPermissionMapper apiPermissionMapper;
 
     /**
      * 根据用户ID获取用户资料
@@ -225,6 +240,133 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * 修改用户菜单权限（逐类型差集更新）
+     * <p>管理员提交用户最终应看到的菜单ID集合，后端与角色菜单做差集：
+     * type=1（额外授予）= new − role，type=2（额外排除）= role − new
+     *
+     * @param dto 修改用户菜单权限参数
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateUserMenuPermission(UpdateUserMenuDTO dto) {
+        String userId = dto.getUserId();
+        // 校验用户是否存在
+        UserProfileEntity userProfile = userMapper.selectProfileById(userId);
+        if (userProfile == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
+        }
+
+        Set<Integer> newSet = new HashSet<>(dto.getMenuIds());
+        // 查询角色菜单
+        List<Integer> roleMenuIds = menuMapper.selectRoleMenuIdsByUserId(userId);
+        Set<Integer> roleSet = new HashSet<>(roleMenuIds != null ? roleMenuIds : Collections.emptySet());
+
+        // 计算 type=1（额外授予）：new − role
+        Set<Integer> grants = new HashSet<>(newSet);
+        grants.removeAll(roleSet);
+
+        // 计算 type=2（额外排除）：role − new
+        Set<Integer> excludes = new HashSet<>(roleSet);
+        excludes.removeAll(newSet);
+
+        long now = System.currentTimeMillis();
+        // 逐类型差集更新
+        syncUserMenuDiffs(userId, grants, MenuConst.USER_MENU_TYPE_GRANT, now);
+        syncUserMenuDiffs(userId, excludes, MenuConst.USER_MENU_TYPE_EXCLUDE, now);
+
+        // 清除用户菜单缓存
+        clearUserMenuCache(userId);
+    }
+
+    /**
+     * 同步用户菜单调整记录的差集
+     *
+     * @param userId    用户ID
+     * @param desired   目标菜单ID集合
+     * @param type      调整类型：1-额外授予 2-额外排除
+     * @param deletedAt 删除时间戳
+     */
+    private void syncUserMenuDiffs(String userId, Set<Integer> desired, int type, long deletedAt) {
+        List<Integer> current = menuMapper.selectUserMenuIdsByType(userId, type);
+        Set<Integer> currentSet = new HashSet<>(current != null ? current : Collections.emptySet());
+
+        // 计算新增的（目标有，当前无）
+        Set<Integer> toInsert = new HashSet<>(desired);
+        toInsert.removeAll(currentSet);
+
+        // 计算软删除的（当前有，目标无）
+        Set<Integer> toSoftDelete = new HashSet<>(currentSet);
+        toSoftDelete.removeAll(desired);
+
+        if (!toInsert.isEmpty()) {
+            menuMapper.batchInsertUserMenu(userId, new ArrayList<>(toInsert), type);
+        }
+        if (!toSoftDelete.isEmpty()) {
+            menuMapper.batchSoftDeleteUserMenu(userId, new ArrayList<>(toSoftDelete), type, deletedAt);
+        }
+    }
+
+    /**
+     * 修改用户接口权限（逐类型差集更新）
+     * <p>管理员提交用户最终应看到的接口权限ID集合，后端与角色接口权限做差集：
+     * type=1（额外授予）= new − role，type=2（额外排除）= role − new
+     *
+     * @param dto 修改用户接口权限参数
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateUserApiPermission(UpdateUserApiPermissionDTO dto) {
+        String userId = dto.getUserId();
+        // 校验用户是否存在
+        UserProfileEntity userProfile = userMapper.selectProfileById(userId);
+        if (userProfile == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
+        }
+
+        Set<Integer> newSet = new HashSet<>(dto.getApiIds());
+        // 查询角色接口权限
+        List<Integer> roleApiIds = apiPermissionMapper.selectRoleApiPermissionIdsByUserId(userId);
+        Set<Integer> roleSet = new HashSet<>(roleApiIds != null ? roleApiIds : Collections.emptySet());
+
+        // 计算 type=1（额外授予）：new − role
+        Set<Integer> grants = new HashSet<>(newSet);
+        grants.removeAll(roleSet);
+
+        // 计算 type=2（额外排除）：role − new
+        Set<Integer> excludes = new HashSet<>(roleSet);
+        excludes.removeAll(newSet);
+
+        long now = System.currentTimeMillis();
+        // 逐类型差集更新
+        syncUserApiDiffs(userId, grants, MenuConst.USER_MENU_TYPE_GRANT, now);
+        syncUserApiDiffs(userId, excludes, MenuConst.USER_MENU_TYPE_EXCLUDE, now);
+
+        // 清除用户接口权限缓存
+        clearUserApiPermissionCache(userId);
+    }
+
+    /**
+     * 同步用户接口权限调整记录的差集
+     */
+    private void syncUserApiDiffs(String userId, Set<Integer> desired, int type, long deletedAt) {
+        List<Integer> current = apiPermissionMapper.selectUserApiPermissionIdsByType(userId, type);
+        Set<Integer> currentSet = new HashSet<>(current != null ? current : Collections.emptySet());
+
+        Set<Integer> toInsert = new HashSet<>(desired);
+        toInsert.removeAll(currentSet);
+
+        Set<Integer> toSoftDelete = new HashSet<>(currentSet);
+        toSoftDelete.removeAll(desired);
+
+        if (!toInsert.isEmpty()) {
+            apiPermissionMapper.batchInsertUserApiPermission(userId, new ArrayList<>(toInsert), type);
+        }
+        if (!toSoftDelete.isEmpty()) {
+            apiPermissionMapper.batchSoftDeleteUserApiPermission(userId, new ArrayList<>(toSoftDelete), type, deletedAt);
+        }
+    }
+
+    /**
      * 获取后台当前登录用户信息
      *
      * @param userId 用户ID
@@ -253,6 +395,24 @@ public class UserServiceImpl implements UserService {
         redisUtils.delete(RedisConst.USER_INFO + userId);
         redisUtils.delete(RedisConst.USER_HOME_ME + userId);
         redisUtils.delete(RedisConst.USER_HOME_PUBLIC + userId);
+    }
+
+    /**
+     * 清除用户菜单相关缓存
+     *
+     * @param userId 用户ID
+     */
+    private void clearUserMenuCache(String userId) {
+        redisUtils.delete(RedisConst.USER_MENU_TREE + userId);
+        redisUtils.delete(RedisConst.USER_MENU_IDS + userId);
+    }
+
+    /**
+     * 清除用户接口权限相关缓存
+     */
+    private void clearUserApiPermissionCache(String userId) {
+        redisUtils.delete(RedisConst.USER_EFFECTIVE_API_PERMISSIONS + userId);
+        redisUtils.delete(RedisConst.USER_API_PERMISSION_IDS + userId);
     }
 
     /**

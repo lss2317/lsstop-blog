@@ -1,6 +1,8 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.dto.UpdateUserApiPermissionDTO;
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
+import com.lsstop.domain.dto.UpdateUserMenuDTO;
 import com.lsstop.domain.vo.AdminUserInfoVO;
 import com.lsstop.domain.vo.UserManageVO;
 import com.lsstop.domain.vo.UserProfileVO;
@@ -58,6 +60,22 @@ public interface UserService {
      * @param dto    更新用户信息参数
      */
     void updateUserInfo(String userId, UpdateUserInfoDTO dto);
+
+    /**
+     * 修改用户菜单权限（差量更新）
+     * <p>接收全量菜单ID列表，后端与现有权限做差集计算后更新
+     *
+     * @param dto 修改用户菜单权限参数
+     */
+    void updateUserMenuPermission(UpdateUserMenuDTO dto);
+
+    /**
+     * 修改用户接口权限（差量更新）
+     * <p>接收全量接口权限ID列表，后端与角色接口权限做差集计算后更新
+     *
+     * @param dto 修改用户接口权限参数
+     */
+    void updateUserApiPermission(UpdateUserApiPermissionDTO dto);
 
     /**
      * 获取后台当前登录用户信息

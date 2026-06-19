@@ -99,6 +99,16 @@ public class MenuConst {
     public static final int TYPE_LINK = 5;
 
     /**
+     * 用户菜单调整类型-额外授予
+     */
+    public static final int USER_MENU_TYPE_GRANT = 1;
+
+    /**
+     * 用户菜单调整类型-额外排除
+     */
+    public static final int USER_MENU_TYPE_EXCLUDE = 2;
+
+    /**
      * 顶级菜单parentId
      */
     public static final int TOP_LEVEL_PARENT_ID = 0;

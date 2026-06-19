@@ -35,6 +35,47 @@ public interface MenuMapper {
     List<Integer> selectMenuIdsByUserId(@Param("userId") String userId);
 
     /**
+     * 查询用户通过角色继承的菜单ID列表（仅角色授权，不含用户个性化调整）
+     *
+     * @param userId 用户uid
+     * @return 菜单ID列表
+     */
+    List<Integer> selectRoleMenuIdsByUserId(@Param("userId") String userId);
+
+    /**
+     * 查询用户指定类型的菜单调整ID列表
+     *
+     * @param userId 用户uid
+     * @param type   调整类型：1-额外授予 2-额外排除
+     * @return 菜单ID列表
+     */
+    List<Integer> selectUserMenuIdsByType(@Param("userId") String userId, @Param("type") Integer type);
+
+    /**
+     * 批量新增用户菜单关联（已存在活跃记录时幂等更新）
+     *
+     * @param userId  用户ID
+     * @param menuIds 菜单ID列表
+     * @param type    调整类型：1-额外授予 2-额外排除
+     */
+    void batchInsertUserMenu(@Param("userId") String userId,
+                              @Param("menuIds") List<Integer> menuIds,
+                              @Param("type") Integer type);
+
+    /**
+     * 批量软删除用户指定类型的菜单关联
+     *
+     * @param userId    用户ID
+     * @param menuIds   菜单ID列表
+     * @param type      调整类型：1-额外授予 2-额外排除
+     * @param deletedAt 删除时间戳
+     */
+    void batchSoftDeleteUserMenu(@Param("userId") String userId,
+                                  @Param("menuIds") List<Integer> menuIds,
+                                  @Param("type") Integer type,
+                                  @Param("deletedAt") Long deletedAt);
+
+    /**
      * 根据ID列表批量查询菜单（用于补全祖先目录）
      *
      * @param ids 菜单ID列表

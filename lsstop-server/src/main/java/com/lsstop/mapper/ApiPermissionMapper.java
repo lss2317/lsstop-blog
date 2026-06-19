@@ -119,6 +119,48 @@ public interface ApiPermissionMapper {
     List<Integer> selectUserEffectiveApiPermissionIds(@Param("userId") String userId);
 
     /**
+     * 查询用户通过角色继承的接口权限ID列表（仅角色授权，不含用户个性化调整）
+     *
+     * @param userId 用户uid
+     * @return 接口权限ID列表
+     */
+    List<Integer> selectRoleApiPermissionIdsByUserId(@Param("userId") String userId);
+
+    /**
+     * 查询用户指定类型的接口权限调整ID列表
+     *
+     * @param userId 用户uid
+     * @param type   调整类型：1-额外授予 2-额外排除
+     * @return 接口权限ID列表
+     */
+    List<Integer> selectUserApiPermissionIdsByType(@Param("userId") String userId,
+                                                     @Param("type") Integer type);
+
+    /**
+     * 批量新增用户接口权限关联（已存在活跃记录时幂等更新）
+     *
+     * @param userId           用户ID
+     * @param apiPermissionIds 接口权限ID列表
+     * @param type             调整类型：1-额外授予 2-额外排除
+     */
+    void batchInsertUserApiPermission(@Param("userId") String userId,
+                                       @Param("apiPermissionIds") List<Integer> apiPermissionIds,
+                                       @Param("type") Integer type);
+
+    /**
+     * 批量软删除用户指定类型的接口权限关联
+     *
+     * @param userId           用户ID
+     * @param apiPermissionIds 接口权限ID列表
+     * @param type             调整类型：1-额外授予 2-额外排除
+     * @param deletedAt        删除时间戳
+     */
+    void batchSoftDeleteUserApiPermission(@Param("userId") String userId,
+                                           @Param("apiPermissionIds") List<Integer> apiPermissionIds,
+                                           @Param("type") Integer type,
+                                           @Param("deletedAt") Long deletedAt);
+
+    /**
      * 查询系统所有启用的接口权限模式（用于判断 URL 是否受控）
      * <p>仅返回接口节点（request_url IS NOT NULL），不含目录
      *
