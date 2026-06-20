@@ -1,6 +1,8 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.dto.AddUserDTO;
 import com.lsstop.domain.dto.UpdateUserApiPermissionDTO;
+import com.lsstop.domain.dto.UpdateUserDTO;
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
 import com.lsstop.domain.dto.UpdateUserMenuDTO;
 import com.lsstop.domain.vo.AdminUserInfoVO;
@@ -60,6 +62,20 @@ public interface UserService {
      * @param dto    更新用户信息参数
      */
     void updateUserInfo(String userId, UpdateUserInfoDTO dto);
+
+    /**
+     * 后台新增用户
+     *
+     * @param dto 新增用户参数
+     */
+    void addUser(AddUserDTO dto);
+
+    /**
+     * 后台更新用户
+     *
+     * @param dto 更新用户参数
+     */
+    void updateUser(UpdateUserDTO dto);
 
     /**
      * 修改用户菜单权限（差量更新）

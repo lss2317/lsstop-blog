@@ -438,8 +438,6 @@ public class MenuServiceImpl implements MenuService {
     private void clearMenuCache() {
         // 全量菜单权限树缓存（任何菜单变更都影响）
         redisUtils.delete(RedisConst.MENU_PERMISSION_TREE);
-        // 全量接口权限树缓存（任何菜单变更都影响）
-        redisUtils.delete(RedisConst.API_PERMISSION_TREE);
         // 按用户的菜单树缓存（不确定影响哪些用户，全部清除）
         redisUtils.deleteByPrefix(RedisConst.USER_MENU_TREE);
         // 按用户的菜单ID列表缓存

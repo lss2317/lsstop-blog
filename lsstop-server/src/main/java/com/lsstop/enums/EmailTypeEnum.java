@@ -36,7 +36,12 @@ public enum EmailTypeEnum {
     /**
      * 留言审核通过通知
      */
-    MESSAGE_REVIEW_PASS("留言审核通过", "【%s】您的留言已通过审核", "email/message-review-pass");
+    MESSAGE_REVIEW_PASS("留言审核通过", "【%s】您的留言已通过审核", "email/message-review-pass"),
+
+    /**
+     * 账号开通通知
+     */
+    WELCOME("账号开通通知", "【%s】您的账号已开通", "email/welcome");
 
     /**
      * 描述

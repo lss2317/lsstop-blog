@@ -4,17 +4,25 @@ import com.lsstop.constant.AuthConst;
 import com.lsstop.constant.CommonConst;
 import com.lsstop.constant.MenuConst;
 import com.lsstop.constant.RedisConst;
+import com.lsstop.domain.dto.AddUserDTO;
 import com.lsstop.domain.dto.UpdateUserApiPermissionDTO;
+import com.lsstop.domain.dto.UpdateUserDTO;
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
 import com.lsstop.domain.dto.UpdateUserMenuDTO;
+import com.lsstop.domain.dto.EmailDTO;
+import com.lsstop.domain.entity.UserAuthEntity;
+import com.lsstop.domain.entity.UserEntity;
 import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.vo.AdminUserInfoVO;
+import com.lsstop.domain.vo.RoleOptionVO;
 import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.domain.vo.UserManageRoleVO;
 import com.lsstop.domain.vo.UserManageVO;
 import com.lsstop.domain.vo.UserProfileVO;
 import com.lsstop.domain.vo.UserPublicProfileVO;
+import com.lsstop.enums.EmailTypeEnum;
 import com.lsstop.enums.FileFolderEnum;
+import com.lsstop.enums.LoginTypeEnum;
 import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.ApiPermissionMapper;
@@ -23,20 +31,32 @@ import com.lsstop.mapper.CommentMapper;
 import com.lsstop.mapper.LikeMapper;
 import com.lsstop.mapper.LoginLogMapper;
 import com.lsstop.mapper.MenuMapper;
+import com.lsstop.mapper.RoleMapper;
 import com.lsstop.mapper.UserMapper;
 import com.lsstop.service.CosService;
 import com.lsstop.service.UserService;
+import com.lsstop.utils.PasswordUtils;
 import com.lsstop.utils.RedisUtils;
 import com.lsstop.utils.StringUtils;
+import com.lsstop.utils.UserUidUtils;
+import com.lsstop.utils.ValidateUtils;
+import com.lsstop.service.WebsiteConfigService;
+import com.lsstop.constant.RabbitMQConst;
 import jakarta.annotation.Resource;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -76,6 +96,15 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private ApiPermissionMapper apiPermissionMapper;
+
+    @Resource
+    private RoleMapper roleMapper;
+
+    @Resource
+    private RabbitTemplate rabbitTemplate;
+
+    @Resource
+    private WebsiteConfigService websiteConfigService;
 
     /**
      * 根据用户ID获取用户资料
@@ -237,6 +266,196 @@ public class UserServiceImpl implements UserService {
         }
         // 清除用户相关缓存
         clearUserCache(userId);
+    }
+
+    /**
+     * 后台新增用户
+     *
+     * @param dto 新增用户参数
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void addUser(AddUserDTO dto) {
+        String email = dto.getEmail().trim().toLowerCase(Locale.ROOT);
+
+        // 1. 校验邮箱是否已被注册
+        UserAuthEntity existingAuth = authMapper.selectByIdentifierAndType(email, LoginTypeEnum.EMAIL.getCode());
+        if (existingAuth != null) {
+            throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST, AuthConst.EMAIL_ALREADY_REGISTERED);
+        }
+
+        // 2. 校验密码格式
+        String password = PasswordUtils.validateAndTrim(dto.getPassword());
+
+        // 3. 校验个人网站格式
+        String website = ValidateUtils.validateWebsite(dto.getWebsite());
+
+        // 4. 处理个人简介
+        String intro = ValidateUtils.validateIntro(dto.getIntro());
+
+        // 5. 校验状态值
+        ValidateUtils.validateStatus(dto.getStatus());
+
+        // 6. 校验角色ID是否存在且启用
+        List<Integer> enabledRoleIds = roleMapper.selectAllRoleOptions()
+                .stream()
+                .map(RoleOptionVO::getId)
+                .toList();
+        for (Integer roleId : dto.getRoleIds()) {
+            if (!enabledRoleIds.contains(roleId)) {
+                throw new BusinessException(StatusEnum.PARAM_ERROR, AuthConst.ROLE_NOT_FOUND_OR_DISABLED);
+            }
+        }
+
+        // 7. 生成用户ID
+        String userId = UserUidUtils.generate();
+
+        // 8. 创建用户基础信息（blog_user）
+        UserEntity user = UserEntity.builder()
+                .userUid(userId)
+                .status(dto.getStatus())
+                .lastLoginTime(LocalDateTime.now())
+                .build();
+        userMapper.insertUser(user);
+
+        // 9. 创建用户认证信息（blog_user_auth）
+        String encryptedPassword = PasswordUtils.encrypt(password);
+        UserAuthEntity userAuth = UserAuthEntity.builder()
+                .userId(userId)
+                .loginType(LoginTypeEnum.EMAIL.getCode())
+                .identifier(email)
+                .credential(encryptedPassword)
+                .build();
+        authMapper.insertUserAuth(userAuth);
+
+        // 10. 创建用户资料信息（blog_user_profile）
+        String nickname = dto.getNickname().trim();
+        String avatar = dto.getAvatar();
+        if (avatar == null || avatar.isBlank()) {
+            avatar = websiteConfigService.getWebsiteConfig().getDefaultUserAvatar();
+        }
+        UserProfileEntity userProfile = UserProfileEntity.builder()
+                .userId(userId)
+                .nickname(nickname)
+                .avatar(avatar)
+                .website(website)
+                .intro(intro)
+                .build();
+        userMapper.insertUserProfile(userProfile);
+
+        // 11. 分配角色（blog_user_role）
+        userMapper.batchInsertUserRole(userId, dto.getRoleIds());
+
+        // 12. 发送账号开通通知邮件
+        Map<String, Object> emailParams = new HashMap<>();
+        emailParams.put("nickname", nickname);
+        emailParams.put("email", email);
+        emailParams.put("password", password);
+        EmailDTO emailDTO = EmailDTO.builder()
+                .to(email)
+                .type(EmailTypeEnum.WELCOME)
+                .params(emailParams)
+                .build();
+        rabbitTemplate.convertAndSend(RabbitMQConst.BLOG_EXCHANGE, RabbitMQConst.EMAIL_ROUTING_KEY, emailDTO);
+
+        // 13. 清理相关缓存
+        redisUtils.delete(RedisConst.TOTAL_USER_COUNT);
+        String todayKey = RedisConst.TODAY_USER_COUNT + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        Long val = redisUtils.increment(todayKey);
+        if (val != null && val == 1L) {
+            redisUtils.expire(todayKey, RedisConst.EXPIRE_ONE_DAY * 2);
+        }
+    }
+
+    /**
+     * 后台更新用户
+     *
+     * @param dto 更新用户参数
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateUser(UpdateUserDTO dto) {
+        String userId = dto.getUserId();
+
+        // 1. 校验用户是否存在
+        UserProfileEntity userProfile = userMapper.selectProfileById(userId);
+        if (userProfile == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
+        }
+
+        // 2. 如果邮箱变更，校验新邮箱是否已被其他账号使用
+        String email = dto.getEmail().trim().toLowerCase(Locale.ROOT);
+        String currentEmail = authMapper.selectEmailByUserId(userId);
+        if (!email.equals(currentEmail)) {
+            UserAuthEntity existingAuth = authMapper.selectByIdentifierAndType(email, LoginTypeEnum.EMAIL.getCode());
+            if (existingAuth != null) {
+                throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST, AuthConst.EMAIL_ALREADY_REGISTERED);
+            }
+        }
+
+        // 3. 校验网站、简介、状态（复用 ValidateUtils）
+        String website = ValidateUtils.validateWebsite(dto.getWebsite());
+        String intro = ValidateUtils.validateIntro(dto.getIntro());
+        ValidateUtils.validateStatus(dto.getStatus());
+
+        // 4. 校验角色ID是否存在且启用
+        List<Integer> enabledRoleIds = roleMapper.selectAllRoleOptions()
+                .stream()
+                .map(RoleOptionVO::getId)
+                .toList();
+        for (Integer roleId : dto.getRoleIds()) {
+            if (!enabledRoleIds.contains(roleId)) {
+                throw new BusinessException(StatusEnum.PARAM_ERROR, AuthConst.ROLE_NOT_FOUND_OR_DISABLED);
+            }
+        }
+
+        // 5. 处理头像
+        String avatar = dto.getAvatar();
+        if (avatar == null || avatar.isBlank()) {
+            avatar = websiteConfigService.getWebsiteConfig().getDefaultUserAvatar();
+        }
+
+        // 6. 更新用户状态（blog_user）
+        int statusRows = userMapper.updateUserStatus(userId, dto.getStatus());
+        if (statusRows == 0) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
+        }
+
+        // 7. 更新用户资料（blog_user_profile）
+        String nickname = dto.getNickname().trim();
+        int profileRows = userMapper.updateUserProfile(userId, nickname, avatar, website, intro);
+        if (profileRows == 0) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
+        }
+
+        // 8. 如果邮箱变更，更新认证信息（blog_user_auth）
+        if (!email.equals(currentEmail)) {
+            authMapper.updateIdentifier(userId, LoginTypeEnum.EMAIL.getCode(), email);
+        }
+
+        // 9. 差量更新角色（blog_user_role）
+        List<Integer> currentRoleIds = userMapper.selectRoleIdsByUserId(userId);
+        Set<Integer> currentSet = new HashSet<>(currentRoleIds != null ? currentRoleIds : Collections.emptySet());
+        Set<Integer> newSet = new HashSet<>(dto.getRoleIds());
+
+        // 计算需要新增的
+        Set<Integer> toAdd = new HashSet<>(newSet);
+        toAdd.removeAll(currentSet);
+        if (!toAdd.isEmpty()) {
+            userMapper.batchInsertUserRole(userId, new ArrayList<>(toAdd));
+        }
+
+        // 计算需要软删除的
+        Set<Integer> toRemove = new HashSet<>(currentSet);
+        toRemove.removeAll(newSet);
+        if (!toRemove.isEmpty()) {
+            userMapper.batchSoftDeleteUserRole(userId, new ArrayList<>(toRemove), System.currentTimeMillis());
+        }
+
+        // 10. 清除用户相关缓存
+        clearUserCache(userId);
+        clearUserMenuCache(userId);
+        clearUserApiPermissionCache(userId);
     }
 
     /**

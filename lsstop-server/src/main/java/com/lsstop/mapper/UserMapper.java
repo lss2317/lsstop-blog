@@ -95,6 +95,29 @@ public interface UserMapper {
                        @Param("website") String website, @Param("intro") String intro);
 
     /**
+     * 更新用户资料信息（含头像）
+     *
+     * @param userId   用户ID
+     * @param nickname 昵称
+     * @param avatar   头像URL
+     * @param website  个人网站
+     * @param intro    个人简介
+     * @return 更新行数
+     */
+    int updateUserProfile(@Param("userId") String userId, @Param("nickname") String nickname,
+                           @Param("avatar") String avatar, @Param("website") String website,
+                           @Param("intro") String intro);
+
+    /**
+     * 更新用户状态
+     *
+     * @param userId 用户ID
+     * @param status 状态（0-禁用 1-正常）
+     * @return 更新行数
+     */
+    int updateUserStatus(@Param("userId") String userId, @Param("status") Integer status);
+
+    /**
      * 分页查询用户管理列表
      *
      * @param offset   偏移量
@@ -133,4 +156,31 @@ public interface UserMapper {
      * @return 用户角色列表（包含 userId 用于分组）
      */
     List<UserManageRoleVO> selectRolesByUserIds(@Param("userIds") List<String> userIds);
+
+    /**
+     * 批量插入用户角色关联（已存在活跃记录时幂等更新）
+     *
+     * @param userId  用户ID
+     * @param roleIds 角色ID列表
+     */
+    void batchInsertUserRole(@Param("userId") String userId, @Param("roleIds") List<Integer> roleIds);
+
+    /**
+     * 查询用户当前有效角色ID列表
+     *
+     * @param userId 用户ID
+     * @return 角色ID列表
+     */
+    List<Integer> selectRoleIdsByUserId(@Param("userId") String userId);
+
+    /**
+     * 批量软删除用户角色关联
+     *
+     * @param userId    用户ID
+     * @param roleIds   角色ID列表
+     * @param deletedAt 删除时间戳
+     */
+    void batchSoftDeleteUserRole(@Param("userId") String userId,
+                                  @Param("roleIds") List<Integer> roleIds,
+                                  @Param("deletedAt") Long deletedAt);
 }

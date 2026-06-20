@@ -4,10 +4,12 @@ import com.lsstop.annotation.AccessLimit;
 import com.lsstop.annotation.OperationLog;
 import com.lsstop.common.Result;
 import com.lsstop.constant.CommentConst;
+import com.lsstop.domain.dto.AddUserDTO;
 import com.lsstop.domain.dto.BindCodeDTO;
 import com.lsstop.domain.dto.ChangeEmailDTO;
 import com.lsstop.domain.dto.ChangePasswordDTO;
 import com.lsstop.domain.dto.UpdateUserApiPermissionDTO;
+import com.lsstop.domain.dto.UpdateUserDTO;
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
 import com.lsstop.domain.dto.UpdateUserMenuDTO;
 import com.lsstop.domain.vo.AdminUserInfoVO;
@@ -237,6 +239,33 @@ public class UserController {
     public Result<Void> unbindWeibo(HttpServletRequest request) {
         String userId = (String) request.getAttribute("userId");
         authService.unbindWeibo(userId);
+        return Result.success();
+    }
+
+    /**
+     * 后台新增用户
+     *
+     * @param dto 新增用户参数
+     */
+    @PostMapping("/admin/user/add")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.ADD, description = "新增用户")
+    public Result<Void> addUser(@RequestBody @Validated AddUserDTO dto) {
+        userService.addUser(dto);
+        return Result.success();
+    }
+
+    /**
+     * 后台更新用户
+     *
+     * @param dto 更新用户参数
+     * @return 操作结果
+     */
+    @PutMapping("/admin/user/update")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "更新用户")
+    public Result<Void> updateUser(@RequestBody @Validated UpdateUserDTO dto) {
+        userService.updateUser(dto);
         return Result.success();
     }
 

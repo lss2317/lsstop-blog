@@ -81,8 +81,18 @@
 
     <!-- 插入用户资料信息 -->
     <insert id="insertUserProfile" parameterType="com.lsstop.domain.entity.UserProfileEntity">
-        INSERT INTO blog_user_profile (user_id, nickname, avatar, deleted_at, create_time, update_time)
-        VALUES (#{userId}, #{nickname}, #{avatar}, 0, NOW(), NOW())
+        INSERT INTO blog_user_profile (user_id, nickname, avatar, website, intro, deleted_at, create_time, update_time)
+        VALUES (#{userId}, #{nickname}, #{avatar}, #{website}, #{intro}, 0, NOW(), NOW())
+    </insert>
+
+    <!-- 批量插入用户角色关联（已存在活跃记录时幂等更新） -->
+    <insert id="batchInsertUserRole">
+        INSERT INTO blog_user_role (user_id, role_id, deleted_at, create_time, update_time)
+        VALUES
+        <foreach collection="roleIds" item="roleId" separator=",">
+            (#{userId}, #{roleId}, 0, NOW(), NOW())
+        </foreach>
+        ON DUPLICATE KEY UPDATE deleted_at = 0, update_time = NOW()
     </insert>
 
     <!-- 查询用户主页详情 -->
@@ -139,6 +149,27 @@
             intro       = #{intro},
             update_time = NOW()
         WHERE user_id = #{userId}
+          AND deleted_at = 0
+    </update>
+
+    <!-- 更新用户资料（含头像） -->
+    <update id="updateUserProfile">
+        UPDATE blog_user_profile
+        SET nickname    = #{nickname},
+            avatar      = #{avatar},
+            website     = #{website},
+            intro       = #{intro},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+          AND deleted_at = 0
+    </update>
+
+    <!-- 更新用户状态 -->
+    <update id="updateUserStatus">
+        UPDATE blog_user
+        SET status      = #{status},
+            update_time = NOW()
+        WHERE user_uid = #{userId}
           AND deleted_at = 0
     </update>
 
@@ -243,5 +274,25 @@
             #{userId}
         </foreach>
     </select>
+
+    <!-- 查询用户当前有效角色ID列表 -->
+    <select id="selectRoleIdsByUserId" resultType="java.lang.Integer">
+        SELECT role_id
+        FROM blog_user_role
+        WHERE deleted_at = 0
+          AND user_id = #{userId}
+    </select>
+
+    <!-- 批量软删除用户角色关联 -->
+    <update id="batchSoftDeleteUserRole">
+        UPDATE blog_user_role
+        SET deleted_at = #{deletedAt}
+        WHERE user_id = #{userId}
+          AND deleted_at = 0
+          AND role_id IN
+        <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+    </update>
 
 </mapper>

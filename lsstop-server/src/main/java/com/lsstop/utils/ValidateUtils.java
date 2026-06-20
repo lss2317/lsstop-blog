@@ -1,5 +1,9 @@
 package com.lsstop.utils;
 
+import com.lsstop.constant.AuthConst;
+import com.lsstop.enums.StatusEnum;
+import com.lsstop.exception.BusinessException;
+
 import java.util.regex.Pattern;
 
 /**
@@ -85,4 +89,43 @@ public class ValidateUtils {
                 && REQUEST_URL_PATTERN.matcher(requestUrl).matches();
     }
 
+    /**
+     * 校验用户状态值，仅允许 0（禁用）或 1（正常）
+     */
+    public static void validateStatus(Integer status) {
+        if (!AuthConst.USER_STATUS_NORMAL.equals(status)
+                && !AuthConst.USER_STATUS_DISABLED.equals(status)) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR, AuthConst.STATUS_INVALID);
+        }
+    }
+
+    /**
+     * 校验并处理个人网站，为空时返回 null，格式错误抛出异常
+     *
+     * @param website 原始网站 URL
+     * @return trim 后的 URL，或 null
+     */
+    public static String validateWebsite(String website) {
+        if (website == null || website.isBlank()) {
+            return null;
+        }
+        String trimmed = website.trim();
+        if (!StringUtils.isValidUrl(trimmed)) {
+            throw new BusinessException(AuthConst.WEBSITE_FORMAT_INVALID);
+        }
+        return trimmed;
+    }
+
+    /**
+     * 校验并处理个人简介，为空时返回 null
+     *
+     * @param intro 原始简介文本
+     * @return trim 后的简介，或 null
+     */
+    public static String validateIntro(String intro) {
+        if (intro == null || intro.isBlank()) {
+            return null;
+        }
+        return intro.trim();
+    }
 }

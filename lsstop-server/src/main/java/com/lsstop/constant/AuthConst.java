@@ -39,6 +39,11 @@ public class AuthConst {
     public static final Integer USER_STATUS_DISABLED = 0;
 
     /**
+     * 状态值无效
+     */
+    public static final String STATUS_INVALID = "状态值无效";
+
+    /**
      * 账号或密码错误
      */
     public static final String ACCOUNT_OR_PASSWORD_ERROR = "账号或密码错误";
@@ -172,6 +177,11 @@ public class AuthConst {
      * 个人网站格式不正确
      */
     public static final String WEBSITE_FORMAT_INVALID = "个人网站格式不正确";
+
+    /**
+     * 角色不存在或已禁用
+     */
+    public static final String ROLE_NOT_FOUND_OR_DISABLED = "角色不存在或已禁用";
 
     /**
      * 旧密码错误
