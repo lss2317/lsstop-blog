@@ -267,6 +267,14 @@
         </foreach>
     </update>
 
+    <!-- 软删除用户所有接口权限调整记录（删除用户时使用） -->
+    <update id="deleteAllByUserId">
+        update blog_user_api_permission
+        set deleted_at = #{deletedAt}
+        where user_id = #{userId}
+          and deleted_at = 0
+    </update>
+
     <!-- 查询系统所有启用的接口权限模式（用于判断 URL 是否受控） -->
     <select id="selectAllEnabledApiPatterns" resultMap="apiPermissionEntityResult">
         select ap.id, ap.request_url, ap.request_method

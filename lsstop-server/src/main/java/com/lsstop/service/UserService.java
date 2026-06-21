@@ -125,4 +125,11 @@ public interface UserService {
      */
     Integer countUserTotal(String userId, String nickname, String email, Integer status);
 
+    /**
+     * 删除用户（软删除）
+     *
+     * @param userId 用户ID
+     */
+    void deleteUser(String userId);
+
 }

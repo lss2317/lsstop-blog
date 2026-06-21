@@ -694,6 +694,36 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
+     * 后台重置用户密码
+     *
+     * @param dto 重置密码请求参数
+     */
+    @Override
+    public void adminResetPassword(AdminResetPasswordDTO dto) {
+        String userId = dto.getUserId();
+        String newPassword = PasswordUtils.validateAndTrim(dto.getPassword());
+
+        // 校验用户是否存在
+        UserAuthEntity userAuth = authMapper.selectEmailAuthByUserId(userId);
+        if (userAuth == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
+        }
+
+        // 检查新密码是否与旧密码相同
+        if (PasswordUtils.verify(newPassword, userAuth.getCredential())) {
+            throw new BusinessException(AuthConst.NEW_PASSWORD_SAME_AS_OLD);
+        }
+
+        // 加密新密码并更新
+        String encryptedPassword = PasswordUtils.encrypt(newPassword);
+        authMapper.updateCredentialByUserId(userId, encryptedPassword);
+
+        // 清除该用户所有会话（重置密码后强制所有设备重新登录）
+        redisUtils.deleteByPrefix(RedisConst.FRONT_REFRESH_TOKEN + userId + ":");
+        redisUtils.deleteByPrefix(RedisConst.ADMIN_REFRESH_TOKEN + userId + ":");
+    }
+
+    /**
      * 绑定QQ
      *
      * @param userId 用户ID

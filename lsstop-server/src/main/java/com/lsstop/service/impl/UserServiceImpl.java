@@ -382,6 +382,8 @@ public class UserServiceImpl implements UserService {
         if (userProfile == null) {
             throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
         }
+        UserEntity user = userMapper.selectUserById(userId);
+        Integer oldStatus = user != null ? user.getStatus() : null;
 
         // 2. 如果邮箱变更，校验新邮箱是否已被其他账号使用
         String email = dto.getEmail().trim().toLowerCase(Locale.ROOT);
@@ -456,6 +458,14 @@ public class UserServiceImpl implements UserService {
         clearUserCache(userId);
         clearUserMenuCache(userId);
         clearUserApiPermissionCache(userId);
+
+        // 11. 禁用或改邮箱时强制下线
+        boolean statusChanged = oldStatus != null && AuthConst.USER_STATUS_DISABLED.equals(dto.getStatus());
+        boolean emailChanged = !email.equals(currentEmail);
+        if (statusChanged || emailChanged) {
+            redisUtils.deleteByPrefix(RedisConst.FRONT_REFRESH_TOKEN + userId + ":");
+            redisUtils.deleteByPrefix(RedisConst.ADMIN_REFRESH_TOKEN + userId + ":");
+        }
     }
 
     /**
@@ -676,6 +686,57 @@ public class UserServiceImpl implements UserService {
     @Override
     public Integer countUserTotal(String userId, String nickname, String email, Integer status) {
         return userMapper.countUserTotal(userId, nickname, email, status);
+    }
+
+    /**
+     * 删除用户（软删除）
+     * <p>软删除用户的 blog_user、blog_user_profile、blog_user_auth、blog_user_role，并清除所有相关缓存</p>
+     *
+     * @param userId 用户ID
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteUser(String userId) {
+        // 1. 校验用户是否存在
+        UserEntity user = userMapper.selectUserById(userId);
+        if (user == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
+        }
+
+        long now = System.currentTimeMillis();
+
+        // 2. 软删除 blog_user
+        userMapper.deleteUserByUserId(userId, now);
+
+        // 3. 软删除 blog_user_profile
+        userMapper.deleteUserProfileByUserId(userId, now);
+
+        // 4. 软删除 blog_user_auth（三种登录方式）
+        authMapper.deleteByUserIdAndType(userId, LoginTypeEnum.EMAIL.getCode());
+        authMapper.deleteByUserIdAndType(userId, LoginTypeEnum.QQ.getCode());
+        authMapper.deleteByUserIdAndType(userId, LoginTypeEnum.WEIBO.getCode());
+
+        // 5. 软删除 blog_user_role
+        List<Integer> roleIds = userMapper.selectRoleIdsByUserId(userId);
+        if (roleIds != null && !roleIds.isEmpty()) {
+            userMapper.batchSoftDeleteUserRole(userId, roleIds, now);
+        }
+
+        // 6. 软删除 blog_user_menu（用户个性化菜单调整）
+        menuMapper.deleteAllByUserId(userId, now);
+
+        // 7. 软删除 blog_user_api_permission（用户个性化接口权限调整）
+        apiPermissionMapper.deleteAllByUserId(userId, now);
+
+        // 8. 清除所有缓存
+        clearUserCache(userId);
+        clearUserMenuCache(userId);
+        clearUserApiPermissionCache(userId);
+        redisUtils.delete(RedisConst.TOTAL_USER_COUNT);
+
+        // 9. 清除所有会话（删除用户后强制下线）
+        redisUtils.deleteByPrefix(RedisConst.FRONT_REFRESH_TOKEN + userId + ":");
+        redisUtils.deleteByPrefix(RedisConst.ADMIN_REFRESH_TOKEN + userId + ":");
     }
 
 }

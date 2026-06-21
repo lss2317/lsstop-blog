@@ -161,6 +161,14 @@ public interface ApiPermissionMapper {
                                            @Param("deletedAt") Long deletedAt);
 
     /**
+     * 软删除用户所有接口权限调整记录（删除用户时使用）
+     *
+     * @param userId    用户ID
+     * @param deletedAt 删除时间戳
+     */
+    void deleteAllByUserId(@Param("userId") String userId, @Param("deletedAt") Long deletedAt);
+
+    /**
      * 查询系统所有启用的接口权限模式（用于判断 URL 是否受控）
      * <p>仅返回接口节点（request_url IS NOT NULL），不含目录
      *

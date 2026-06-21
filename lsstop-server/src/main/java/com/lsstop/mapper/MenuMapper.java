@@ -76,6 +76,14 @@ public interface MenuMapper {
                                   @Param("deletedAt") Long deletedAt);
 
     /**
+     * 软删除用户所有菜单调整记录（删除用户时使用）
+     *
+     * @param userId    用户ID
+     * @param deletedAt 删除时间戳
+     */
+    void deleteAllByUserId(@Param("userId") String userId, @Param("deletedAt") Long deletedAt);
+
+    /**
      * 根据ID列表批量查询菜单（用于补全祖先目录）
      *
      * @param ids 菜单ID列表

@@ -5,6 +5,7 @@ import com.lsstop.annotation.OperationLog;
 import com.lsstop.common.Result;
 import com.lsstop.constant.CommentConst;
 import com.lsstop.domain.dto.AddUserDTO;
+import com.lsstop.domain.dto.AdminResetPasswordDTO;
 import com.lsstop.domain.dto.BindCodeDTO;
 import com.lsstop.domain.dto.ChangeEmailDTO;
 import com.lsstop.domain.dto.ChangePasswordDTO;
@@ -30,6 +31,7 @@ import com.lsstop.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -365,6 +367,34 @@ public class UserController {
     @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "修改用户接口权限")
     public Result<Void> updateUserApiPermission(@RequestBody @Validated UpdateUserApiPermissionDTO dto) {
         userService.updateUserApiPermission(dto);
+        return Result.success();
+    }
+
+    /**
+     * 删除用户
+     *
+     * @param userId 用户ID
+     * @return 操作结果
+     */
+    @DeleteMapping("/admin/user/delete/{userId}")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.DELETE, description = "删除用户")
+    public Result<Void> deleteUser(@PathVariable String userId) {
+        userService.deleteUser(userId);
+        return Result.success();
+    }
+
+    /**
+     * 后台重置用户密码
+     *
+     * @param dto 重置密码请求参数
+     * @return 操作结果
+     */
+    @PutMapping("/admin/user/reset-password")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "重置用户密码")
+    public Result<Void> resetPassword(@RequestBody @Validated AdminResetPasswordDTO dto) {
+        authService.adminResetPassword(dto);
         return Result.success();
     }
 

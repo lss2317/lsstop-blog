@@ -1,5 +1,6 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.dto.AdminResetPasswordDTO;
 import com.lsstop.domain.dto.BindCodeDTO;
 import com.lsstop.domain.dto.ChangeEmailDTO;
 import com.lsstop.domain.dto.ChangePasswordDTO;
@@ -143,5 +144,12 @@ public interface AuthService {
      * @param userId 用户ID
      */
     void unbindWeibo(String userId);
+
+    /**
+     * 后台重置用户密码
+     *
+     * @param dto 重置密码请求参数
+     */
+    void adminResetPassword(AdminResetPasswordDTO dto);
 
 }

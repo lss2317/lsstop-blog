@@ -183,4 +183,20 @@ public interface UserMapper {
     void batchSoftDeleteUserRole(@Param("userId") String userId,
                                   @Param("roleIds") List<Integer> roleIds,
                                   @Param("deletedAt") Long deletedAt);
+
+    /**
+     * 软删除用户基础信息
+     *
+     * @param userId    用户ID
+     * @param deletedAt 删除时间戳
+     */
+    int deleteUserByUserId(@Param("userId") String userId, @Param("deletedAt") Long deletedAt);
+
+    /**
+     * 软删除用户资料
+     *
+     * @param userId    用户ID
+     * @param deletedAt 删除时间戳
+     */
+    int deleteUserProfileByUserId(@Param("userId") String userId, @Param("deletedAt") Long deletedAt);
 }

@@ -5,25 +5,24 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * 修改密码请求参数
+ * 后台重置用户密码请求参数
  *
  * @author lishusheng
- * @date 2026/03/16
+ * @date 2026/06/21
  */
 @Data
-public class ChangePasswordDTO {
+public class AdminResetPasswordDTO {
 
     /**
-     * 旧密码
+     * 用户ID
      */
-    @NotBlank(message = "旧密码不能为空")
-    private String oldPassword;
+    @NotBlank(message = "用户ID不能为空")
+    private String userId;
 
     /**
      * 新密码
      */
     @NotBlank(message = "新密码不能为空")
     @Size(min = 6, max = 20, message = "密码长度为6-20位")
-    private String newPassword;
-
+    private String password;
 }

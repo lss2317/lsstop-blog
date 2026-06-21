@@ -149,6 +149,14 @@
         </foreach>
     </update>
 
+    <!-- 软删除用户所有菜单调整记录（删除用户时使用） -->
+    <update id="deleteAllByUserId">
+        update blog_user_menu
+        set deleted_at = #{deletedAt}
+        where user_id = #{userId}
+          and deleted_at = 0
+    </update>
+
     <resultMap id="menuPermissionResult" type="com.lsstop.domain.vo.MenuPermissionVO">
         <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result property="parentId" column="parent_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>

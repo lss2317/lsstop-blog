@@ -295,4 +295,22 @@
         </foreach>
     </update>
 
+    <!-- 软删除用户基础信息 -->
+    <update id="deleteUserByUserId">
+        UPDATE blog_user
+        SET deleted_at = #{deletedAt},
+            update_time = NOW()
+        WHERE user_uid = #{userId}
+          AND deleted_at = 0
+    </update>
+
+    <!-- 软删除用户资料 -->
+    <update id="deleteUserProfileByUserId">
+        UPDATE blog_user_profile
+        SET deleted_at = #{deletedAt},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+          AND deleted_at = 0
+    </update>
+
 </mapper>
