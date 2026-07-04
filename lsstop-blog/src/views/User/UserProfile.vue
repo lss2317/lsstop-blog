@@ -1740,6 +1740,14 @@ const confirmUnbind = async () => {
     width: 100%;
   }
 }
+
+/* 移动端弹框垂直居中 */
+@media (max-width: 960px) {
+  .edit-dialog {
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+}
 </style>
 
 <!-- 夜间模式样式 -->

@@ -74,8 +74,13 @@ ul {
 }
 * {
   font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Lato, Roboto, 'PingFang SC',
-    'Microsoft YaHei', sans-serif;
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'DFPKingGothicGB-Regular', sans-serif;
+  text-size-adjust: none;
+}
+
+.v-application {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'DFPKingGothicGB-Regular', sans-serif;
 }
 
 /* 主题切换过渡 */

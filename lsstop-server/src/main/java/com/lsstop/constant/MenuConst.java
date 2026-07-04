@@ -176,7 +176,7 @@ public class MenuConst {
     /**
      * name格式错误
      */
-    public static final String NAME_FORMAT_INVALID = "路由标识必须为PascalCase，以大写字母开头";
+    public static final String NAME_FORMAT_INVALID = "路由标识格式不正确，必须为大写字母开头的驼峰命名，如 ArticleList";
 
     /**
      * component格式错误
