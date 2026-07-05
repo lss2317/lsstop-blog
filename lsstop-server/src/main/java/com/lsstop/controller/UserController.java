@@ -8,6 +8,7 @@ import com.lsstop.domain.dto.AddUserDTO;
 import com.lsstop.domain.dto.AdminResetPasswordDTO;
 import com.lsstop.domain.dto.BindCodeDTO;
 import com.lsstop.domain.dto.ChangeEmailDTO;
+import com.lsstop.domain.dto.AdminUpdateProfileDTO;
 import com.lsstop.domain.dto.ChangePasswordDTO;
 import com.lsstop.domain.dto.UpdateUserApiPermissionDTO;
 import com.lsstop.domain.dto.UpdateUserDTO;
@@ -395,6 +396,38 @@ public class UserController {
     @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "重置用户密码")
     public Result<Void> resetPassword(@RequestBody @Validated AdminResetPasswordDTO dto) {
         authService.adminResetPassword(dto);
+        return Result.success();
+    }
+
+    /**
+     * 后台修改当前登录用户密码（需旧密码验证）
+     *
+     * @param request 请求对象（拦截器已验证token并存入userId）
+     * @param dto     修改密码参数
+     * @return 操作结果
+     */
+    @PutMapping("/admin/user/change-password")
+    @AccessLimit(seconds = 60, maxCount = 5)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "后台修改密码")
+    public Result<Void> adminChangePassword(HttpServletRequest request, @RequestBody @Validated ChangePasswordDTO dto) {
+        String userId = (String) request.getAttribute("userId");
+        authService.changePassword(userId, dto);
+        return Result.success();
+    }
+
+    /**
+     * 后台个人中心更新个人资料
+     *
+     * @param request 请求对象（拦截器已验证token并存入userId）
+     * @param dto     更新资料参数
+     * @return 操作结果
+     */
+    @PutMapping("/admin/user/profile")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "后台更新个人资料")
+    public Result<Void> updateProfile(HttpServletRequest request, @RequestBody @Validated AdminUpdateProfileDTO dto) {
+        String userId = (String) request.getAttribute("userId");
+        userService.updateProfile(userId, dto);
         return Result.success();
     }
 

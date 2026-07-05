@@ -2,6 +2,7 @@ package com.lsstop.mapper;
 
 import com.lsstop.domain.entity.UserEntity;
 import com.lsstop.domain.entity.UserProfileEntity;
+import com.lsstop.domain.vo.RoleBrief;
 import com.lsstop.domain.vo.UserManageRoleVO;
 import com.lsstop.domain.vo.UserManageVO;
 import com.lsstop.domain.vo.UserProfileVO;
@@ -172,6 +173,14 @@ public interface UserMapper {
      * @return 角色ID列表
      */
     List<Integer> selectRoleIdsByUserId(@Param("userId") String userId);
+
+    /**
+     * 查询单个用户的角色简要信息
+     *
+     * @param userId 用户ID
+     * @return 角色简要信息列表
+     */
+    List<RoleBrief> selectRolesByUserId(@Param("userId") String userId);
 
     /**
      * 批量软删除用户角色关联

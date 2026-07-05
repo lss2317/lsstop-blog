@@ -1,5 +1,6 @@
 package com.lsstop.domain.vo;
 
+import com.lsstop.domain.BaseData;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
  * @date 2026/03/10
  */
 @Data
-public class UserProfileVO {
+public class UserProfileVO implements BaseData {
 
     /**
      * 用户id

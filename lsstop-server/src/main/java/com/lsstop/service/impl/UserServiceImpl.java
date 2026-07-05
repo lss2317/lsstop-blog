@@ -5,6 +5,7 @@ import com.lsstop.constant.CommonConst;
 import com.lsstop.constant.MenuConst;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.dto.AddUserDTO;
+import com.lsstop.domain.dto.AdminUpdateProfileDTO;
 import com.lsstop.domain.dto.UpdateUserApiPermissionDTO;
 import com.lsstop.domain.dto.UpdateUserDTO;
 import com.lsstop.domain.dto.UpdateUserInfoDTO;
@@ -14,6 +15,7 @@ import com.lsstop.domain.entity.UserAuthEntity;
 import com.lsstop.domain.entity.UserEntity;
 import com.lsstop.domain.entity.UserProfileEntity;
 import com.lsstop.domain.vo.AdminUserInfoVO;
+import com.lsstop.domain.vo.RoleBrief;
 import com.lsstop.domain.vo.RoleOptionVO;
 import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.domain.vo.UserManageRoleVO;
@@ -265,6 +267,36 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
         }
         // 清除用户相关缓存
+        clearUserCache(userId);
+    }
+
+    /**
+     * 后台个人中心更新个人资料
+     *
+     * @param userId 用户ID
+     * @param dto    更新资料参数
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateProfile(String userId, AdminUpdateProfileDTO dto) {
+        // 校验用户是否存在
+        UserProfileEntity userProfile = userMapper.selectProfileById(userId);
+        if (userProfile == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
+        }
+
+        // 校验个人网站与简介格式
+        String website = ValidateUtils.validateWebsite(dto.getWebsite());
+        String intro = ValidateUtils.validateIntro(dto.getIntro());
+
+        // 更新用户资料
+        String nickname = dto.getNickname().trim();
+        int profileRows = userMapper.updateUserInfo(userId, nickname, website, intro);
+        if (profileRows == 0) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
+        }
+
+        // 清除用户缓存
         clearUserCache(userId);
     }
 
@@ -603,15 +635,15 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public AdminUserInfoVO getAdminUserInfo(String userId) {
-        // 查询用户资料
-        UserProfileEntity userProfile = userMapper.selectProfileById(userId);
-        if (userProfile == null) {
+        // 查询用户基本信息
+        UserProfileVO profile = userMapper.selectUserHomeDetail(userId);
+        if (profile == null) {
             throw new BusinessException(StatusEnum.NOT_FOUND, AuthConst.USER_NOT_FOUND);
         }
-        AdminUserInfoVO vo = userProfile.asViewObject(AdminUserInfoVO.class);
-        // 查询用户邮箱
-        String email = authMapper.selectEmailByUserId(userId);
-        vo.setEmail(email);
+        AdminUserInfoVO vo = profile.asViewObject(AdminUserInfoVO.class);
+        // 查询用户角色列表
+        List<RoleBrief> roles = userMapper.selectRolesByUserId(userId);
+        vo.setRoles(roles);
         return vo;
     }
 

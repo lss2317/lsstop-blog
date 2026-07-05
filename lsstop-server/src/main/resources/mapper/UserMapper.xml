@@ -283,6 +283,21 @@
           AND user_id = #{userId}
     </select>
 
+    <!-- 角色简要信息ResultMap -->
+    <resultMap id="RoleBriefResultMap" type="com.lsstop.domain.vo.RoleBrief">
+        <result property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="roleName" column="role_name" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    </resultMap>
+
+    <!-- 查询单个用户的角色简要信息 -->
+    <select id="selectRolesByUserId" resultMap="RoleBriefResultMap">
+        SELECT r.id, r.role_name
+        FROM blog_user_role ur
+                 INNER JOIN blog_role r ON r.id = ur.role_id AND r.deleted_at = 0
+        WHERE ur.deleted_at = 0
+          AND ur.user_id = #{userId}
+    </select>
+
     <!-- 批量软删除用户角色关联 -->
     <update id="batchSoftDeleteUserRole">
         UPDATE blog_user_role
