@@ -416,6 +416,22 @@ public class UserController {
     }
 
     /**
+     * 后台修改当前登录用户邮箱
+     *
+     * @param request 请求对象（拦截器已验证token并存入userId）
+     * @param dto     修改邮箱参数
+     * @return 操作结果
+     */
+    @PutMapping("/admin/user/email")
+    @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "后台修改邮箱")
+    public Result<Void> adminChangeEmail(HttpServletRequest request, @RequestBody @Validated ChangeEmailDTO dto) {
+        String userId = (String) request.getAttribute("userId");
+        authService.changeEmail(userId, dto);
+        return Result.success();
+    }
+
+    /**
      * 后台个人中心更新个人资料
      *
      * @param request 请求对象（拦截器已验证token并存入userId）

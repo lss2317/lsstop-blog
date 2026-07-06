@@ -23,7 +23,7 @@ public class SendCodeDTO {
 
     /**
      * 验证码用途
-     * 1-登录 2-注册 3-找回密码
+     * 1-登录 2-注册 3-找回密码 4-修改邮箱
      */
     @NotNull(message = "验证码用途不能为空")
     private Integer purpose;

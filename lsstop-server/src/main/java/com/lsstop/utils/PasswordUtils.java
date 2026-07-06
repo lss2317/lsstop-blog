@@ -34,9 +34,9 @@ public class PasswordUtils {
     private static final int SALT_LENGTH = 16;
 
     /**
-     * 迭代次数（越高越安全，但越慢）
+     * 迭代次数（个人博客场景 210,000 次足够抵御离线暴力破解）
      */
-    private static final int ITERATIONS = 65536;
+    private static final int ITERATIONS = 210000;
 
     /**
      * 密钥长度（位）
@@ -44,7 +44,12 @@ public class PasswordUtils {
     private static final int KEY_LENGTH = 256;
 
     /**
-     * 分隔符（用于分隔盐值和哈希值）
+     * 当前密码格式版本号（用于未来算法升级识别）
+     */
+    private static final String VERSION = "v1";
+
+    /**
+     * 分隔符（用于分隔版本、盐值和哈希值）
      */
     private static final String SEPARATOR = "$";
 
@@ -54,6 +59,19 @@ public class PasswordUtils {
     private static final String SEPARATOR_REGEX = "\\$";
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    /**
+     * SecretKeyFactory 单例（线程安全，避免重复创建）
+     */
+    private static final SecretKeyFactory SECRET_KEY_FACTORY;
+
+    static {
+        try {
+            SECRET_KEY_FACTORY = SecretKeyFactory.getInstance(ALGORITHM);
+        } catch (NoSuchAlgorithmException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     private PasswordUtils() {
         // 私有构造函数，防止实例化
@@ -93,11 +111,11 @@ public class PasswordUtils {
     /**
      * 加密密码
      * <p>
-     * 返回格式：Base64(salt)$Base64(hash)
+     * 返回格式：v1$Base64(salt)$Base64(hash)
      * </p>
      *
      * @param password 明文密码
-     * @return 加密后的密码字符串（包含盐值）
+     * @return 加密后的密码字符串（包含版本号和盐值）
      */
     public static String encrypt(String password) {
         byte[] salt = generateSalt();
@@ -106,13 +124,13 @@ public class PasswordUtils {
         String saltBase64 = Base64.getEncoder().encodeToString(salt);
         String hashBase64 = Base64.getEncoder().encodeToString(hash);
 
-        return saltBase64 + SEPARATOR + hashBase64;
+        return VERSION + SEPARATOR + saltBase64 + SEPARATOR + hashBase64;
     }
 
     /**
      * 验证密码
      *
-     * @param password        明文密码
+     * @param password          明文密码
      * @param encryptedPassword 加密后的密码
      * @return true-密码匹配，false-密码不匹配
      */
@@ -121,15 +139,21 @@ public class PasswordUtils {
             return false;
         }
 
-        String[] parts = encryptedPassword.split(SEPARATOR_REGEX, 2);
-        if (parts.length != 2) {
+        String[] parts = encryptedPassword.split(SEPARATOR_REGEX, 3);
+        if (parts.length != 3) {
             log.debug("加密密码格式无效");
             return false;
         }
 
+        // 校验版本号，仅支持 v1
+        if (!VERSION.equals(parts[0])) {
+            log.debug("不支持的密码格式版本: {}", parts[0]);
+            return false;
+        }
+
         try {
-            byte[] salt = Base64.getDecoder().decode(parts[0]);
-            byte[] expectedHash = Base64.getDecoder().decode(parts[1]);
+            byte[] salt = Base64.getDecoder().decode(parts[1]);
+            byte[] expectedHash = Base64.getDecoder().decode(parts[2]);
             byte[] actualHash = hash(password.toCharArray(), salt);
 
             return slowEquals(expectedHash, actualHash);
@@ -161,9 +185,8 @@ public class PasswordUtils {
         PBEKeySpec spec = null;
         try {
             spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_LENGTH);
-            SecretKeyFactory factory = SecretKeyFactory.getInstance(ALGORITHM);
-            return factory.generateSecret(spec).getEncoded();
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            return SECRET_KEY_FACTORY.generateSecret(spec).getEncoded();
+        } catch (InvalidKeySpecException e) {
             log.error("密码哈希失败: {}", e.getMessage());
             throw new RuntimeException("密码加密失败", e);
         } finally {

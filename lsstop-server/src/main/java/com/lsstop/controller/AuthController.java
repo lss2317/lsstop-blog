@@ -205,6 +205,19 @@ public class AuthController {
     }
 
     /**
+     * 后台发送邮箱验证码
+     *
+     * @param dto 发送验证码请求参数
+     * @return 操作结果
+     */
+    @PostMapping("/admin/auth/code")
+    @AccessLimit(seconds = 60, maxCount = 5)
+    public Result<Void> adminSendCode(@RequestBody @Validated SendCodeDTO dto) {
+        authService.sendCode(dto);
+        return Result.success();
+    }
+
+    /**
      * 后台微博登录
      *
      * @param dto 微博登录参数
