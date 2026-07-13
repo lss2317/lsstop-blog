@@ -279,6 +279,7 @@
           and a.status = 1
           and a.article_title like concat('%', #{keyword}, '%')
         order by a.view_count desc, a.create_time desc
+        limit 20
     </select>
 
     <select id="searchByContent" resultMap="articleSearchContentVoResult">
@@ -293,6 +294,7 @@
           and a.status = 1
           and a.article_content like concat('%', #{keyword}, '%')
         order by a.view_count desc, a.create_time desc
+        limit 20
     </select>
 
 </mapper>

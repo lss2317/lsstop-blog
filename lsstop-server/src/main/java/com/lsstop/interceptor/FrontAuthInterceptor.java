@@ -66,7 +66,7 @@ public class FrontAuthInterceptor implements HandlerInterceptor {
     private void unauthorized(HttpServletResponse response) throws Exception {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(Result.failure(StatusEnum.TOKEN_EXPIRED).asJsonString());
+        response.getWriter().write(Result.failure(StatusEnum.NOT_LOGIN).asJsonString());
     }
 
     private void tokenExpired(HttpServletResponse response) throws Exception {

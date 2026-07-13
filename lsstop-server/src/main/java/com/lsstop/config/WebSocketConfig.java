@@ -26,6 +26,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(chatWebSocketHandler, "/ws/chat")
                 .addInterceptors(webSocketAuthInterceptor)
-                .setAllowedOrigins("*");
+                .setAllowedOrigins("https://lsstop.cn", "http://localhost:99");
     }
 }

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -156,7 +157,7 @@ public class PasswordUtils {
             byte[] expectedHash = Base64.getDecoder().decode(parts[2]);
             byte[] actualHash = hash(password.toCharArray(), salt);
 
-            return slowEquals(expectedHash, actualHash);
+            return MessageDigest.isEqual(expectedHash, actualHash);
         } catch (IllegalArgumentException e) {
             log.debug("解码加密密码失败: {}", e.getMessage());
             return false;
@@ -194,23 +195,5 @@ public class PasswordUtils {
                 spec.clearPassword();
             }
         }
-    }
-
-    /**
-     * 时间恒定的字节数组比较（防止时序攻击）
-     *
-     * @param a 字节数组a
-     * @param b 字节数组b
-     * @return true-相等，false-不相等
-     */
-    private static boolean slowEquals(byte[] a, byte[] b) {
-        if (a.length != b.length) {
-            return false;
-        }
-        int diff = 0;
-        for (int i = 0; i < a.length; i++) {
-            diff |= a[i] ^ b[i];
-        }
-        return diff == 0;
     }
 }
