@@ -1,7 +1,9 @@
 package com.lsstop.utils;
 
 import com.alibaba.fastjson2.JSON;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
@@ -90,25 +92,50 @@ public class RedisUtils {
     }
 
     /**
+     * SCAN 单批次数量，避免单次返回过多元素
+     */
+    private static final long SCAN_COUNT = 500L;
+
+    /**
      * 根据前缀删除键
+     * <p>使用 SCAN 游标分批扫描并删除，避免 KEYS 命令阻塞 Redis 单线程
      *
      * @param prefix 键前缀
      */
     public void deleteByPrefix(String prefix) {
-        Set<String> keys = redisTemplate.keys(prefix + "*");
-        if (keys != null && !keys.isEmpty()) {
-            redisTemplate.delete(keys);
+        ScanOptions options = ScanOptions.scanOptions().match(prefix + "*").count(SCAN_COUNT).build();
+        List<String> batch = new ArrayList<>();
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                batch.add(cursor.next());
+                // 累积一批后删除，降低单次删除的数据量
+                if (batch.size() >= SCAN_COUNT) {
+                    redisTemplate.delete(batch);
+                    batch.clear();
+                }
+            }
+        }
+        if (!batch.isEmpty()) {
+            redisTemplate.delete(batch);
         }
     }
 
     /**
      * 根据模式获取所有键
+     * <p>使用 SCAN 游标分批扫描，避免 KEYS 命令阻塞 Redis 单线程
      *
      * @param pattern 模式（如 "prefix:*"）
      * @return 键集合
      */
     public Set<String> keys(String pattern) {
-        return redisTemplate.keys(pattern);
+        Set<String> keys = new HashSet<>();
+        ScanOptions options = ScanOptions.scanOptions().match(pattern).count(SCAN_COUNT).build();
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                keys.add(cursor.next());
+            }
+        }
+        return keys;
     }
 
     /**

@@ -47,7 +47,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
         String userId = getUserId(session);
         if (userId != null) {
-            SESSION_POOL.computeIfAbsent(userId, k -> ConcurrentHashMap.newKeySet()).add(session);
+            // 使用 compute 将 add 纳入原子块，避免与 removeSession 移除空集合的并发窗口导致 session 丢失
+            SESSION_POOL.compute(userId, (k, sessions) -> {
+                if (sessions == null) {
+                    sessions = ConcurrentHashMap.newKeySet();
+                }
+                sessions.add(session);
+                return sessions;
+            });
             log.info("用户 {} 连接聊天室，当前在线人数: {}", userId, SESSION_POOL.size());
             broadcastOnlineCount();
         }
