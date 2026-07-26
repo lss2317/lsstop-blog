@@ -4,6 +4,7 @@ import { LikeTypeEnum } from '@/constants/likeType';
 import { toggleLike as toggleLikeApi, getUserLike } from '@/apis/like';
 import useUserInfoStore from '@/stores/modules/userInfo';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
+import { getErrorMessage } from '@/utils/error';
 
 /**
  * 点赞状态集中管理 Store
@@ -72,9 +73,7 @@ const useLikeStore = defineStore('like', () => {
         type,
       });
     } catch (error) {
-      // 请求失败，显示错误信息
-      console.error(error);
-      snackbarStore.error('点赞失败，请稍后重试');
+      snackbarStore.error(getErrorMessage(error, '点赞失败，请稍后重试'));
       // 请求失败时返回 null，让调用方知道失败了
       return null;
     } finally {

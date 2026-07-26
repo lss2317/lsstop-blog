@@ -20,6 +20,10 @@ spring:
     password: your-password
     # 数据库驱动
     driver-class-name: com.mysql.cj.jdbc.Driver
+    # HikariCP 连接池
+    hikari:
+      # 连接最大存活时间，需小于 MySQL 的 wait_timeout，避免使用到已被 MySQL 关闭的空闲连接
+      max-lifetime: 1740000
   # Redis 配置
   data:
     redis:
