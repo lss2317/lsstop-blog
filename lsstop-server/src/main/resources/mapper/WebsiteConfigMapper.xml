@@ -14,6 +14,7 @@
         <result column="github_url" property="githubUrl" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result column="gitee_url" property="giteeUrl" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result column="default_user_avatar" property="defaultUserAvatar" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result column="register_default_role_id" property="registerDefaultRoleId" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result column="enable_comment_review" property="enableCommentReview" jdbcType="TINYINT" javaType="java.lang.Integer"/>
         <result column="enable_message_review" property="enableMessageReview" jdbcType="TINYINT" javaType="java.lang.Integer"/>
         <result column="websocket_url" property="websocketUrl" jdbcType="VARCHAR" javaType="java.lang.String"/>
@@ -38,6 +39,7 @@
                github_url,
                gitee_url,
                default_user_avatar,
+               register_default_role_id,
                enable_comment_review,
                enable_message_review,
                websocket_url,
@@ -64,6 +66,7 @@
             github_url = #{githubUrl},
             gitee_url = #{giteeUrl},
             default_user_avatar = #{defaultUserAvatar},
+            register_default_role_id = #{registerDefaultRoleId},
             enable_comment_review = #{enableCommentReview},
             enable_message_review = #{enableMessageReview},
             websocket_url = #{websocketUrl},

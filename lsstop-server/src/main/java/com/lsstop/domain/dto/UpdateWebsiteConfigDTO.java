@@ -1,6 +1,5 @@
 package com.lsstop.domain.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -66,7 +65,6 @@ public class UpdateWebsiteConfigDTO {
      */
     @NotNull(message = "博客创建时间不能为空")
     @PastOrPresent(message = "博客创建时间不能晚于当前时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime siteStartTime;
 
     /**
@@ -88,11 +86,18 @@ public class UpdateWebsiteConfigDTO {
     private String giteeUrl;
 
     /**
-     * 访客默认头像
+     * 用户默认头像
      */
-    @NotBlank(message = "访客默认头像不能为空")
-    @Size(max = 255, message = "访客默认头像地址不能超过255个字符")
+    @NotBlank(message = "用户默认头像不能为空")
+    @Size(max = 255, message = "用户默认头像地址不能超过255个字符")
     private String defaultUserAvatar;
+
+    /**
+     * 用户注册时默认分配的角色ID
+     */
+    @NotNull(message = "用户默认角色不能为空")
+    @Min(value = 1, message = "用户默认角色不正确")
+    private Integer registerDefaultRoleId;
 
     /**
      * 评论审核（1：是，0：否）

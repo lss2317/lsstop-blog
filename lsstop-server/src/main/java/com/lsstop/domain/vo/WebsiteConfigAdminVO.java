@@ -69,6 +69,11 @@ public class WebsiteConfigAdminVO {
     private String defaultUserAvatar;
 
     /**
+     * 用户注册时默认分配的角色ID
+     */
+    private Integer registerDefaultRoleId;
+
+    /**
      * 评论审核（1：是，0：否）
      */
     private Integer enableCommentReview;

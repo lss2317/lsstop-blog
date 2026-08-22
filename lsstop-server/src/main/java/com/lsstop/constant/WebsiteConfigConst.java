@@ -35,4 +35,9 @@ public class WebsiteConfigConst {
      * WebSocket地址格式不正确
      */
     public static final String WEBSOCKET_URL_INVALID = "WebSocket地址格式不正确，请输入localhost:8080或wss://example.com";
+
+    /**
+     * 用户默认角色不存在或已禁用
+     */
+    public static final String REGISTER_DEFAULT_ROLE_INVALID = "用户默认角色不存在或已禁用";
 }

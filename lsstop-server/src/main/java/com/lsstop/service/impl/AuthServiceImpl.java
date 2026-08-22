@@ -7,15 +7,19 @@ import com.lsstop.config.OAuthConfig;
 import com.lsstop.constant.AuthConst;
 import com.lsstop.constant.RabbitMQConst;
 import com.lsstop.constant.RedisConst;
+import com.lsstop.constant.WebsiteConfigConst;
 import com.lsstop.domain.dto.*;
 import com.lsstop.domain.entity.UserAuthEntity;
 import com.lsstop.domain.entity.UserEntity;
 import com.lsstop.domain.entity.UserProfileEntity;
+import com.lsstop.domain.entity.WebsiteConfigEntity;
 import com.lsstop.domain.vo.LoginVO;
+import com.lsstop.domain.vo.RoleVO;
 import com.lsstop.domain.vo.TokenVO;
 import com.lsstop.enums.*;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.AuthMapper;
+import com.lsstop.mapper.RoleMapper;
 import com.lsstop.mapper.UserMapper;
 import com.lsstop.service.AuthService;
 import com.lsstop.service.LoginLogService;
@@ -39,6 +43,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -58,6 +63,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Resource
     private UserMapper userMapper;
+
+    @Resource
+    private RoleMapper roleMapper;
 
     @Resource
     private JwtUtils jwtUtils;
@@ -562,6 +570,13 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(StatusEnum.USERNAME_OR_EMAIL_EXIST, AuthConst.EMAIL_ALREADY_REGISTERED);
         }
 
+        // 注册前确认网站配置中的默认角色仍然存在且处于启用状态
+        WebsiteConfigEntity websiteConfig = websiteConfigService.getWebsiteConfig();
+        RoleVO registerDefaultRole = websiteConfig == null ? null : roleMapper.selectRoleById(websiteConfig.getRegisterDefaultRoleId());
+        if (registerDefaultRole == null || !Integer.valueOf(1).equals(registerDefaultRole.getIsEnabled())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR, WebsiteConfigConst.REGISTER_DEFAULT_ROLE_INVALID);
+        }
+
         // 生成用户ID
         String userId = UserUidUtils.generate();
 
@@ -585,13 +600,16 @@ public class AuthServiceImpl implements AuthService {
 
         // 创建用户资料信息
         String defaultNickname = blogConfig.getDefaultNicknamePrefix() + userId.substring(0, 6);
-        String defaultAvatar = websiteConfigService.getWebsiteConfig().getDefaultUserAvatar();
+        String defaultAvatar = websiteConfig.getDefaultUserAvatar();
         UserProfileEntity userProfile = UserProfileEntity.builder()
                 .userId(userId)
                 .nickname(defaultNickname)
                 .avatar(defaultAvatar)
                 .build();
         userMapper.insertUserProfile(userProfile);
+
+        // 为新注册用户分配网站配置中的默认角色
+        userMapper.batchInsertUserRole(userId, List.of(websiteConfig.getRegisterDefaultRoleId()));
 
         // 删除验证码
         redisUtils.delete(codeKey);

@@ -4,9 +4,11 @@ import com.lsstop.constant.RedisConst;
 import com.lsstop.constant.WebsiteConfigConst;
 import com.lsstop.domain.dto.UpdateWebsiteConfigDTO;
 import com.lsstop.domain.entity.WebsiteConfigEntity;
+import com.lsstop.domain.vo.RoleVO;
 import com.lsstop.domain.vo.VisitStatsVO;
 import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
+import com.lsstop.mapper.RoleMapper;
 import com.lsstop.mapper.UniqueViewMapper;
 import com.lsstop.mapper.WebsiteConfigMapper;
 import com.lsstop.service.WebsiteConfigService;
@@ -36,6 +38,9 @@ public class WebsiteConfigServiceImpl implements WebsiteConfigService {
     private WebsiteConfigMapper websiteConfigMapper;
 
     @Resource
+    private RoleMapper roleMapper;
+
+    @Resource
     private UniqueViewMapper uniqueViewMapper;
 
     @Resource
@@ -50,7 +55,8 @@ public class WebsiteConfigServiceImpl implements WebsiteConfigService {
     public WebsiteConfigEntity getWebsiteConfig() {
         // 优先从Redis获取
         WebsiteConfigEntity config = redisUtils.get(RedisConst.WEBSITE_CONFIG, WebsiteConfigEntity.class);
-        if (config != null) {
+        // 新增配置字段后，旧缓存可能缺少默认角色；此时回源数据库并覆盖旧缓存
+        if (config != null && config.getRegisterDefaultRoleId() != null) {
             return config;
         }
         // Redis中没有，查询DB
@@ -72,6 +78,12 @@ public class WebsiteConfigServiceImpl implements WebsiteConfigService {
         WebsiteConfigEntity existingConfig = websiteConfigMapper.getWebsiteConfig();
         if (existingConfig == null || !Objects.equals(existingConfig.getId(), dto.getId())) {
             throw new BusinessException(StatusEnum.NOT_FOUND, WebsiteConfigConst.WEBSITE_CONFIG_NOT_FOUND);
+        }
+
+        // 用户默认角色必须存在且处于启用状态，避免新用户注册后无法获得有效权限
+        RoleVO registerDefaultRole = roleMapper.selectRoleById(dto.getRegisterDefaultRoleId());
+        if (registerDefaultRole == null || !Integer.valueOf(1).equals(registerDefaultRole.getIsEnabled())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR, WebsiteConfigConst.REGISTER_DEFAULT_ROLE_INVALID);
         }
 
         // QQ链接为可选项，有值时必须是有效的HTTP或HTTPS地址
