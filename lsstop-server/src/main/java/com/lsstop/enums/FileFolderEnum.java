@@ -13,7 +13,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum FileFolderEnum {
 
-    AVATAR("avatar", "头像"),
+    AVATAR("avatar", "用户头像"),
+    WEBSITE_AVATAR("website-avatar", "网站配置头像"),
     ARTICLE("article", "文章图片"),
     ALBUM("album", "相册"),
     TALK("talk", "说说"),

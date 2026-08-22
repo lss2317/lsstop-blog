@@ -1,18 +1,27 @@
 package com.lsstop.service.impl;
 
 import com.lsstop.constant.RedisConst;
+import com.lsstop.constant.WebsiteConfigConst;
+import com.lsstop.domain.dto.UpdateWebsiteConfigDTO;
 import com.lsstop.domain.entity.WebsiteConfigEntity;
 import com.lsstop.domain.vo.VisitStatsVO;
+import com.lsstop.enums.StatusEnum;
+import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.UniqueViewMapper;
 import com.lsstop.mapper.WebsiteConfigMapper;
 import com.lsstop.service.WebsiteConfigService;
 import com.lsstop.utils.RedisUtils;
 import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
+import static com.lsstop.utils.StringUtils.isValidUrl;
+import static com.lsstop.utils.StringUtils.isValidWebSocketUrl;
 
 /**
  * 网站配置服务实现类
@@ -51,6 +60,57 @@ public class WebsiteConfigServiceImpl implements WebsiteConfigService {
             redisUtils.set(RedisConst.WEBSITE_CONFIG, config, RedisConst.EXPIRE_ONE_DAY);
         }
         return config;
+    }
+
+    /**
+     * 更新网站配置并清除缓存
+     *
+     * @param dto 网站配置更新参数
+     */
+    @Override
+    public void updateWebsiteConfig(UpdateWebsiteConfigDTO dto) {
+        WebsiteConfigEntity existingConfig = websiteConfigMapper.getWebsiteConfig();
+        if (existingConfig == null || !Objects.equals(existingConfig.getId(), dto.getId())) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, WebsiteConfigConst.WEBSITE_CONFIG_NOT_FOUND);
+        }
+
+        // QQ链接为可选项，有值时必须是有效的HTTP或HTTPS地址
+        if (StringUtils.isNotBlank(dto.getQqUrl()) && !isValidUrl(dto.getQqUrl())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR, WebsiteConfigConst.QQ_URL_INVALID);
+        }
+
+        // GitHub链接为可选项，有值时必须是有效的HTTP或HTTPS地址
+        if (StringUtils.isNotBlank(dto.getGithubUrl()) && !isValidUrl(dto.getGithubUrl())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR, WebsiteConfigConst.GITHUB_URL_INVALID);
+        }
+
+        // Gitee链接为可选项，有值时必须是有效的HTTP或HTTPS地址
+        if (StringUtils.isNotBlank(dto.getGiteeUrl()) && !isValidUrl(dto.getGiteeUrl())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR, WebsiteConfigConst.GITEE_URL_INVALID);
+        }
+
+        // WebSocket基础地址为可选项，有值时校验协议、主机和端口格式
+        if (StringUtils.isNotBlank(dto.getWebsocketUrl()) && !isValidWebSocketUrl(dto.getWebsocketUrl())) {
+            throw new BusinessException(StatusEnum.PARAM_ERROR, WebsiteConfigConst.WEBSOCKET_URL_INVALID
+            );
+        }
+
+        // 博主头像不是必填项，未传或仅包含空白字符时保留原配置
+        String siteAvatar = StringUtils.trimToNull(dto.getSiteAvatar());
+        dto.setSiteAvatar(siteAvatar == null ? existingConfig.getSiteAvatar() : siteAvatar);
+
+        // 展示用短文本去除首尾空白，可选地址统一将空字符串转换为null
+        dto.setSiteName(StringUtils.trim(dto.getSiteName()));
+        dto.setSiteAuthor(StringUtils.trim(dto.getSiteAuthor()));
+        dto.setSiteIntro(StringUtils.trim(dto.getSiteIntro()));
+        dto.setDefaultUserAvatar(StringUtils.trim(dto.getDefaultUserAvatar()));
+        dto.setQqUrl(StringUtils.trimToNull(dto.getQqUrl()));
+        dto.setGithubUrl(StringUtils.trimToNull(dto.getGithubUrl()));
+        dto.setGiteeUrl(StringUtils.trimToNull(dto.getGiteeUrl()));
+        dto.setWebsocketUrl(StringUtils.trimToNull(dto.getWebsocketUrl()));
+
+        websiteConfigMapper.updateWebsiteConfig(dto);
+        redisUtils.delete(RedisConst.WEBSITE_CONFIG);
     }
 
     /**

@@ -1,15 +1,23 @@
 package com.lsstop.controller;
 
 import com.lsstop.annotation.AccessLimit;
+import com.lsstop.annotation.OperationLog;
 import com.lsstop.common.Result;
+import com.lsstop.domain.dto.UpdateWebsiteConfigDTO;
 import com.lsstop.domain.entity.WebsiteConfigEntity;
 import com.lsstop.domain.vo.VisitStatsVO;
+import com.lsstop.domain.vo.WebsiteConfigAdminVO;
 import com.lsstop.domain.vo.WebsiteConfigVO;
+import com.lsstop.enums.OperationModuleEnum;
+import com.lsstop.enums.OperationTypeEnum;
 import com.lsstop.service.WebsiteConfigService;
 import com.lsstop.utils.IpUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -34,6 +42,32 @@ public class WebsiteConfigController {
     public Result<WebsiteConfigVO> getWebsiteConfig() {
         WebsiteConfigEntity websiteConfig = websiteConfigService.getWebsiteConfig();
         return Result.success(websiteConfig.asViewObject(WebsiteConfigVO.class));
+    }
+
+    /**
+     * 获取网站配置后台管理信息
+     *
+     * @return 网站配置后台管理信息
+     */
+    @GetMapping("/admin/setting/info")
+    @AccessLimit(seconds = 60, maxCount = 60)
+    public Result<WebsiteConfigAdminVO> getAdminWebsiteConfig() {
+        WebsiteConfigEntity websiteConfig = websiteConfigService.getWebsiteConfig();
+        return Result.success(websiteConfig.asViewObject(WebsiteConfigAdminVO.class));
+    }
+
+    /**
+     * 更新网站配置
+     *
+     * @param dto 网站配置更新参数
+     * @return 操作结果
+     */
+    @PutMapping("/admin/setting/update")
+    @AccessLimit(seconds = 60, maxCount = 20)
+    @OperationLog(module = OperationModuleEnum.WEBSITE_CONFIG, type = OperationTypeEnum.UPDATE, description = "更新网站配置")
+    public Result<Void> updateAdminWebsiteConfig(@RequestBody @Validated UpdateWebsiteConfigDTO dto) {
+        websiteConfigService.updateWebsiteConfig(dto);
+        return Result.success();
     }
 
     /**

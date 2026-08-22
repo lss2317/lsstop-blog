@@ -52,5 +52,28 @@
         limit 1
     </select>
 
+    <update id="updateWebsiteConfig">
+        update blog_website_config
+        set site_avatar = #{siteAvatar},
+            site_name = #{siteName},
+            site_author = #{siteAuthor},
+            site_intro = #{siteIntro},
+            about = #{about},
+            site_start_time = #{siteStartTime},
+            qq_url = #{qqUrl},
+            github_url = #{githubUrl},
+            gitee_url = #{giteeUrl},
+            default_user_avatar = #{defaultUserAvatar},
+            enable_comment_review = #{enableCommentReview},
+            enable_message_review = #{enableMessageReview},
+            websocket_url = #{websocketUrl},
+            enable_comment_email_notice = #{enableCommentEmailNotice},
+            enable_comment_review_notice = #{enableCommentReviewNotice},
+            enable_message_review_notice = #{enableMessageReviewNotice},
+            comment_illegal_policy = #{commentIllegalPolicy},
+            message_illegal_policy = #{messageIllegalPolicy},
+            update_time = now()
+        where id = #{id}
+    </update>
 
 </mapper>

@@ -154,14 +154,53 @@ public class StringUtils {
             return false;
         }
         String trimmedUrl = url.trim();
-        if (!trimmedUrl.startsWith("http://") && !trimmedUrl.startsWith("https://")) {
-            return false;
-        }
         try {
             URI uri = URI.create(trimmedUrl);
+            String scheme = uri.getScheme();
+            if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+                return false;
+            }
             // 检查host是否存在且不为空
             String host = uri.getHost();
             return host != null && !host.isBlank();
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    /**
+     * 校验WebSocket基础地址是否合法
+     * <p>支持 ws://、wss://，也支持省略协议的主机地址，例如 localhost:8080</p>
+     *
+     * @param url WebSocket基础地址
+     * @return true-合法，false-不合法
+     */
+    public static boolean isValidWebSocketUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return false;
+        }
+
+        String trimmedUrl = url.trim();
+        boolean hasWebSocketScheme = trimmedUrl.regionMatches(true, 0, "ws://", 0, 5)
+                || trimmedUrl.regionMatches(true, 0, "wss://", 0, 6);
+        if (!hasWebSocketScheme && trimmedUrl.contains("://")) {
+            return false;
+        }
+
+        String normalizedUrl = hasWebSocketScheme ? trimmedUrl : "ws://" + trimmedUrl;
+        try {
+            URI uri = URI.create(normalizedUrl);
+            String scheme = uri.getScheme();
+            if (!"ws".equalsIgnoreCase(scheme) && !"wss".equalsIgnoreCase(scheme)) {
+                return false;
+            }
+
+            int port = uri.getPort();
+            return uri.getHost() != null
+                    && !uri.getHost().isBlank()
+                    && (port == -1 || port > 0 && port <= 65535)
+                    && uri.getUserInfo() == null
+                    && uri.getFragment() == null;
         } catch (IllegalArgumentException e) {
             return false;
         }

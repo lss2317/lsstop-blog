@@ -1,5 +1,6 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.dto.UpdateWebsiteConfigDTO;
 import com.lsstop.domain.entity.WebsiteConfigEntity;
 import com.lsstop.domain.vo.VisitStatsVO;
 
@@ -17,6 +18,13 @@ public interface WebsiteConfigService {
      * @return 网站配置实体对象
      */
     WebsiteConfigEntity getWebsiteConfig();
+
+    /**
+     * 更新网站配置
+     *
+     * @param dto 网站配置更新参数
+     */
+    void updateWebsiteConfig(UpdateWebsiteConfigDTO dto);
 
     /**
      * 上报访问并获取访问统计
