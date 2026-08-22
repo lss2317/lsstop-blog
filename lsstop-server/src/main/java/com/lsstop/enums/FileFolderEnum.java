@@ -14,7 +14,7 @@ import lombok.Getter;
 public enum FileFolderEnum {
 
     AVATAR("avatar", "用户头像"),
-    WEBSITE_AVATAR("website-avatar", "网站配置头像"),
+    WEBSITE_CONFIG("website-config", "网站配置图片"),
     ARTICLE("article", "文章图片"),
     ALBUM("album", "相册"),
     TALK("talk", "说说"),

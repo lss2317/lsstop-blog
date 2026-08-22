@@ -96,16 +96,16 @@ public class FileController {
     }
 
     /**
-     * 上传网站配置头像
+     * 上传网站配置图片
      *
-     * @param file 头像文件
-     * @return 头像访问URL
+     * @param file 图片文件
+     * @return 图片访问URL
      */
-    @PostMapping("/admin/file/website-avatar")
+    @PostMapping("/admin/file/website-config")
     @AccessLimit(seconds = 60, maxCount = 30)
-    @OperationLog(module = OperationModuleEnum.FILE, type = OperationTypeEnum.UPLOAD, description = "上传网站配置头像")
-    public Result<String> uploadWebsiteAvatar(@RequestParam("file") MultipartFile file) {
-        String url = cosService.uploadImage(file, FileFolderEnum.WEBSITE_AVATAR.getFolder());
+    @OperationLog(module = OperationModuleEnum.FILE, type = OperationTypeEnum.UPLOAD, description = "上传网站配置图片")
+    public Result<String> uploadWebsiteConfigImage(@RequestParam("file") MultipartFile file) {
+        String url = cosService.uploadImage(file, FileFolderEnum.WEBSITE_CONFIG.getFolder());
         return Result.success(url);
     }
 }
