@@ -37,9 +37,9 @@ public enum StatusEnum {
     NOT_LOGIN(401, "请先登录", HttpStatus.UNAUTHORIZED),
 
     /**
-     * 没有权限
+     * 操作权限不足
      */
-    NO_PERMISSION(403, "没有权限", HttpStatus.FORBIDDEN),
+    NO_PERMISSION(403, "当前账号暂无此操作权限，如需使用请联系管理员", HttpStatus.FORBIDDEN),
 
     /**
      * 请求频繁

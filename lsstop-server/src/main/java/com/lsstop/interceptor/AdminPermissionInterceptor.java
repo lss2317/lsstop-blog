@@ -19,7 +19,7 @@ import java.util.Set;
  * <p>执行顺序在 AdminAuthInterceptor 之后，依赖其设置的 userId 属性
  * <p>校验策略：
  * <ul>
- *   <li>当前请求未在接口权限表中注册 → 放行（未纳入管控）</li>
+ *   <li>当前请求未在接口权限表中注册 → 403（默认拒绝）</li>
  *   <li>当前请求已注册且用户拥有匹配权限 → 放行</li>
  *   <li>当前请求已注册但用户无匹配权限 → 403</li>
  * </ul>
@@ -56,8 +56,10 @@ public class AdminPermissionInterceptor implements HandlerInterceptor {
         // 1. 获取全局已注册权限，判断当前 URL 是否受控
         Set<String> registeredPermissions = apiPermissionService.getAllRegisteredApiPermissions();
         if (!hasMatch(requestMethod, requestUri, registeredPermissions)) {
-            // URL 未纳入权限管控，放行
-            return true;
+            // 后台接口必须显式登记权限，避免新增或禁用权限后被默认放行
+            log.error("后台接口未登记或未启用，拒绝访问: userId={}, {} {}", userId, requestMethod, requestUri);
+            forbidden(response);
+            return false;
         }
 
         // 2. URL 受控，检查用户是否拥有匹配权限
