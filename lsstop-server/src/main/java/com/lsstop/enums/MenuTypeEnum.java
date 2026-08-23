@@ -1,5 +1,7 @@
 package com.lsstop.enums;
 
+import com.lsstop.enums.base.EnumLookup;
+import com.lsstop.enums.base.ValueEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,7 +13,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum MenuTypeEnum {
+public enum MenuTypeEnum implements ValueEnum<String> {
 
     /**
      * 目录
@@ -48,6 +50,11 @@ public enum MenuTypeEnum {
      */
     private final String name;
 
+    @Override
+    public String getValue() {
+        return name;
+    }
+
     /**
      * 根据前端字符串获取数据库数值
      *
@@ -55,13 +62,8 @@ public enum MenuTypeEnum {
      * @return 数据库数值，未匹配返回 null
      */
     public static Integer toCode(String name) {
-        if (name == null) return null;
-        for (MenuTypeEnum e : values()) {
-            if (e.name.equals(name)) {
-                return e.code;
-            }
-        }
-        return null;
+        MenuTypeEnum menuType = EnumLookup.getOrNull(MenuTypeEnum.class, name);
+        return menuType == null ? null : menuType.getCode();
     }
 
 }

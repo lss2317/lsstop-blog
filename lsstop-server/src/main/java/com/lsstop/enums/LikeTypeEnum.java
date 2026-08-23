@@ -1,5 +1,7 @@
 package com.lsstop.enums;
 
+import com.lsstop.enums.base.EnumLookup;
+import com.lsstop.enums.base.ValueEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,7 +13,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum LikeTypeEnum {
+public enum LikeTypeEnum implements ValueEnum<Integer> {
 
     TALK(1, "说说"),
     ARTICLE(2, "文章"),
@@ -27,6 +29,11 @@ public enum LikeTypeEnum {
      */
     private final String desc;
 
+    @Override
+    public Integer getValue() {
+        return type;
+    }
+
     /**
      * 根据类型码获取枚举
      *
@@ -34,14 +41,6 @@ public enum LikeTypeEnum {
      * @return 枚举值，不存在返回null
      */
     public static LikeTypeEnum of(Integer type) {
-        if (type == null) {
-            return null;
-        }
-        for (LikeTypeEnum value : values()) {
-            if (value.type.equals(type)) {
-                return value;
-            }
-        }
-        return null;
+        return EnumLookup.getOrNull(LikeTypeEnum.class, type);
     }
 }

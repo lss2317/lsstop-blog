@@ -1,5 +1,7 @@
 package com.lsstop.enums;
 
+import com.lsstop.enums.base.EnumLookup;
+import com.lsstop.enums.base.ValueEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,7 +13,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum FileFolderEnum {
+public enum FileFolderEnum implements ValueEnum<String> {
 
     AVATAR("avatar", "用户头像"),
     WEBSITE_CONFIG("website-config", "网站配置图片"),
@@ -30,6 +32,11 @@ public enum FileFolderEnum {
      */
     private final String desc;
 
+    @Override
+    public String getValue() {
+        return folder;
+    }
+
     /**
      * 根据文件夹名称获取枚举
      *
@@ -37,15 +44,7 @@ public enum FileFolderEnum {
      * @return 枚举值，不存在返回null
      */
     public static FileFolderEnum of(String folder) {
-        if (folder == null || folder.isEmpty()) {
-            return null;
-        }
-        for (FileFolderEnum value : values()) {
-            if (value.folder.equals(folder)) {
-                return value;
-            }
-        }
-        return null;
+        return EnumLookup.getOrNull(FileFolderEnum.class, folder);
     }
 
     /**
@@ -55,6 +54,6 @@ public enum FileFolderEnum {
      * @return 是否有效
      */
     public static boolean isValid(String folder) {
-        return of(folder) != null;
+        return EnumLookup.contains(FileFolderEnum.class, folder);
     }
 }

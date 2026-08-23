@@ -1,5 +1,7 @@
 package com.lsstop.enums;
 
+import com.lsstop.enums.base.EnumLookup;
+import com.lsstop.enums.base.ValueEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,7 +13,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum LoginResultEnum {
+public enum LoginResultEnum implements ValueEnum<Integer> {
 
     /**
      * 登录成功
@@ -33,6 +35,11 @@ public enum LoginResultEnum {
      */
     private final String desc;
 
+    @Override
+    public Integer getValue() {
+        return code;
+    }
+
     /**
      * 根据code获取枚举
      *
@@ -40,15 +47,7 @@ public enum LoginResultEnum {
      * @return 登录结果枚举
      */
     public static LoginResultEnum getByCode(Integer code) {
-        if (code == null) {
-            return null;
-        }
-        for (LoginResultEnum result : values()) {
-            if (result.getCode().equals(code)) {
-                return result;
-            }
-        }
-        return null;
+        return EnumLookup.getOrNull(LoginResultEnum.class, code);
     }
 
 }

@@ -1,5 +1,7 @@
 package com.lsstop.enums;
 
+import com.lsstop.enums.base.EnumLookup;
+import com.lsstop.enums.base.ValueEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,7 +13,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum IllegalPolicyEnum {
+public enum IllegalPolicyEnum implements ValueEnum<Integer> {
 
     BLOCK(0, "拦截"),
     REVIEW(1, "转审核"),
@@ -27,6 +29,11 @@ public enum IllegalPolicyEnum {
      */
     private final String desc;
 
+    @Override
+    public Integer getValue() {
+        return code;
+    }
+
     /**
      * 根据策略码获取枚举
      *
@@ -34,14 +41,6 @@ public enum IllegalPolicyEnum {
      * @return 枚举值，不存在返回null
      */
     public static IllegalPolicyEnum of(Integer code) {
-        if (code == null) {
-            return null;
-        }
-        for (IllegalPolicyEnum value : values()) {
-            if (value.code.equals(code)) {
-                return value;
-            }
-        }
-        return null;
+        return EnumLookup.getOrNull(IllegalPolicyEnum.class, code);
     }
 }

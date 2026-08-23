@@ -1,5 +1,7 @@
 package com.lsstop.enums;
 
+import com.lsstop.enums.base.EnumLookup;
+import com.lsstop.enums.base.ValueEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,7 +13,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum CommentTypeEnum {
+public enum CommentTypeEnum implements ValueEnum<Integer> {
 
     ARTICLE(1, "文章"),
     FRIEND_LINK(2, "友链"),
@@ -27,6 +29,11 @@ public enum CommentTypeEnum {
      */
     private final String desc;
 
+    @Override
+    public Integer getValue() {
+        return type;
+    }
+
     /**
      * 根据类型码获取枚举
      *
@@ -34,14 +41,6 @@ public enum CommentTypeEnum {
      * @return 枚举值，不存在返回null
      */
     public static CommentTypeEnum of(Integer type) {
-        if (type == null) {
-            return null;
-        }
-        for (CommentTypeEnum value : values()) {
-            if (value.type.equals(type)) {
-                return value;
-            }
-        }
-        return null;
+        return EnumLookup.getOrNull(CommentTypeEnum.class, type);
     }
 }

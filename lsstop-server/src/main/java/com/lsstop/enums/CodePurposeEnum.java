@@ -1,5 +1,7 @@
 package com.lsstop.enums;
 
+import com.lsstop.enums.base.EnumLookup;
+import com.lsstop.enums.base.ValueEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,7 +13,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum CodePurposeEnum {
+public enum CodePurposeEnum implements ValueEnum<Integer> {
 
     /**
      * 邮箱验证码登录
@@ -53,6 +55,11 @@ public enum CodePurposeEnum {
      */
     private final String sceneTitle;
 
+    @Override
+    public Integer getValue() {
+        return code;
+    }
+
     /**
      * 根据编码获取枚举
      *
@@ -60,14 +67,6 @@ public enum CodePurposeEnum {
      * @return 枚举值，不存在返回null
      */
     public static CodePurposeEnum of(Integer code) {
-        if (code == null) {
-            return null;
-        }
-        for (CodePurposeEnum value : values()) {
-            if (value.getCode().equals(code)) {
-                return value;
-            }
-        }
-        return null;
+        return EnumLookup.getOrNull(CodePurposeEnum.class, code);
     }
 }

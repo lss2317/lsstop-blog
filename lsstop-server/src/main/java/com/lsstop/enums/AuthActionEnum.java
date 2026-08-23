@@ -1,5 +1,7 @@
 package com.lsstop.enums;
 
+import com.lsstop.enums.base.EnumLookup;
+import com.lsstop.enums.base.ValueEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,7 +13,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum AuthActionEnum {
+public enum AuthActionEnum implements ValueEnum<Integer> {
 
     /**
      * 登录
@@ -38,6 +40,11 @@ public enum AuthActionEnum {
      */
     private final String desc;
 
+    @Override
+    public Integer getValue() {
+        return code;
+    }
+
     /**
      * 根据code获取枚举
      *
@@ -45,15 +52,7 @@ public enum AuthActionEnum {
      * @return 操作类型枚举
      */
     public static AuthActionEnum getByCode(Integer code) {
-        if (code == null) {
-            return null;
-        }
-        for (AuthActionEnum action : values()) {
-            if (action.getCode().equals(code)) {
-                return action;
-            }
-        }
-        return null;
+        return EnumLookup.getOrNull(AuthActionEnum.class, code);
     }
 
 }

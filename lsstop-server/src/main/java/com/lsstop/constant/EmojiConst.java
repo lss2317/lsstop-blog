@@ -5,7 +5,7 @@ import java.util.Map;
 /**
  * 表情常量
  *
- * @author lss
+ * @author lishusheng
  * @date 2026/2/15
  */
 public class EmojiConst {
