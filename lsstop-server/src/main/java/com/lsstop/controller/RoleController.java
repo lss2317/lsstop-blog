@@ -155,7 +155,7 @@ public class RoleController {
      */
     @PutMapping("/admin/role/menu-permission")
     @AccessLimit(seconds = 60, maxCount = 30)
-    @OperationLog(module = OperationModuleEnum.ROLE, type = OperationTypeEnum.UPDATE, description = "修改角色菜单权限")
+    @OperationLog(module = OperationModuleEnum.ROLE, type = OperationTypeEnum.AUTHORIZATION, description = "修改角色菜单权限")
     public Result<Void> updateRoleMenuPermission(@RequestBody @Validated UpdateRoleMenuDTO dto) {
         roleService.updateRoleMenuPermission(dto);
         return Result.success();
@@ -194,7 +194,7 @@ public class RoleController {
      */
     @PutMapping("/admin/role/api-permission")
     @AccessLimit(seconds = 60, maxCount = 30)
-    @OperationLog(module = OperationModuleEnum.ROLE, type = OperationTypeEnum.UPDATE, description = "修改角色接口权限")
+    @OperationLog(module = OperationModuleEnum.ROLE, type = OperationTypeEnum.AUTHORIZATION, description = "修改角色接口权限")
     public Result<Void> updateRoleApiPermission(@RequestBody @Validated UpdateRoleApiPermissionDTO dto) {
         roleService.updateRoleApiPermission(dto);
         return Result.success();

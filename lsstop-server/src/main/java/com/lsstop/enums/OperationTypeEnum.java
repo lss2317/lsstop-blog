@@ -19,9 +19,11 @@ public enum OperationTypeEnum {
     PUBLISH("发布"),
     REVOKE("撤回"),
     UPLOAD("上传"),
+    EXPORT("导出"),
     RESTORE("恢复"),
     CLEAR("清空"),
-    REFRESH_CACHE("刷新缓存");
+    AUTHORIZATION("权限变更"),
+    RESET("重置");
 
     /**
      * 描述

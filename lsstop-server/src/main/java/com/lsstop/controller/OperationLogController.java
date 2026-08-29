@@ -93,6 +93,7 @@ public class OperationLogController {
      */
     @GetMapping("/admin/operation-log/export")
     @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.OPERATION_LOG, type = OperationTypeEnum.EXPORT, description = "导出操作日志")
     public void exportOperationLog(@RequestParam(required = false) String module,
                                    @RequestParam(required = false) String operationType,
                                    @RequestParam(required = false) String userId,

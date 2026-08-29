@@ -338,7 +338,7 @@ public class UserController {
      */
     @PutMapping("/admin/user/menu-permission")
     @AccessLimit(seconds = 60, maxCount = 30)
-    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "修改用户菜单权限")
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.AUTHORIZATION, description = "修改用户菜单权限")
     public Result<Void> updateUserMenuPermission(@RequestBody @Validated UpdateUserMenuDTO dto) {
         userService.updateUserMenuPermission(dto);
         return Result.success();
@@ -365,7 +365,7 @@ public class UserController {
      */
     @PutMapping("/admin/user/api-permission")
     @AccessLimit(seconds = 60, maxCount = 30)
-    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "修改用户接口权限")
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.AUTHORIZATION, description = "修改用户接口权限")
     public Result<Void> updateUserApiPermission(@RequestBody @Validated UpdateUserApiPermissionDTO dto) {
         userService.updateUserApiPermission(dto);
         return Result.success();
@@ -393,7 +393,7 @@ public class UserController {
      */
     @PutMapping("/admin/user/reset-password")
     @AccessLimit(seconds = 60, maxCount = 10)
-    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.UPDATE, description = "重置用户密码")
+    @OperationLog(module = OperationModuleEnum.USER, type = OperationTypeEnum.RESET, description = "重置用户密码")
     public Result<Void> resetPassword(@RequestBody @Validated AdminResetPasswordDTO dto) {
         authService.adminResetPassword(dto);
         return Result.success();

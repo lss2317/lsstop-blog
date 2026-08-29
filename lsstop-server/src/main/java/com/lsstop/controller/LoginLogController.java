@@ -102,6 +102,7 @@ public class LoginLogController {
      */
     @GetMapping("/admin/login-log/export")
     @AccessLimit(seconds = 60, maxCount = 10)
+    @OperationLog(module = OperationModuleEnum.LOGIN_LOG, type = OperationTypeEnum.EXPORT, description = "导出认证日志")
     public void exportLoginLog(@RequestParam(required = false) String userId,
                                @RequestParam(required = false) Integer actionType,
                                @RequestParam(required = false) Integer state,
