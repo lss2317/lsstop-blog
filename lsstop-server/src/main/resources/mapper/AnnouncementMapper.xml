@@ -2,21 +2,113 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lsstop.mapper.AnnouncementMapper">
 
-    <resultMap id="announcementVoResult" type="com.lsstop.domain.vo.AnnouncementVO">
+    <resultMap id="announcementAdminVoResult" type="com.lsstop.domain.vo.AnnouncementAdminVO">
         <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result property="title" column="title" jdbcType="VARCHAR" javaType="java.lang.String"/>
-        <result property="content" column="content" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="content" column="content" jdbcType="LONGVARCHAR" javaType="java.lang.String"/>
         <result property="type" column="type" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="priority" column="priority" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="isEnabled" column="is_enabled" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="startTime" column="start_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="endTime" column="end_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
     </resultMap>
 
-    <select id="listAnnouncement" resultMap="announcementVoResult">
-        select id, title, content, type, create_time
+    <resultMap id="announcementEntityResult" type="com.lsstop.domain.entity.AnnouncementEntity">
+        <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="title" column="title" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="content" column="content" jdbcType="LONGVARCHAR" javaType="java.lang.String"/>
+        <result property="type" column="type" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="priority" column="priority" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="isEnabled" column="is_enabled" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="startTime" column="start_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="endTime" column="end_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="deletedAt" column="deleted_at" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <!-- 分页查询后台公告列表 -->
+    <select id="selectAdminAnnouncementList" resultMap="announcementAdminVoResult">
+        select id, title, content, type, priority, is_enabled, start_time, end_time, create_time, update_time
+        from blog_announcement
+        where deleted_at = 0
+        <if test="keyword != null and keyword != ''">
+            and title like concat('%', #{keyword}, '%')
+        </if>
+        <if test="type != null">
+            and type = #{type}
+        </if>
+        <if test="isEnabled != null">
+            and is_enabled = #{isEnabled}
+        </if>
+        order by priority desc, update_time desc, id desc
+        limit #{offset}, #{size}
+    </select>
+
+    <!-- 统计后台公告总数 -->
+    <select id="countAdminAnnouncementTotal" resultType="java.lang.Integer">
+        select count(*)
+        from blog_announcement
+        where deleted_at = 0
+        <if test="keyword != null and keyword != ''">
+            and title like concat('%', #{keyword}, '%')
+        </if>
+        <if test="type != null">
+            and type = #{type}
+        </if>
+        <if test="isEnabled != null">
+            and is_enabled = #{isEnabled}
+        </if>
+    </select>
+
+    <!-- 根据ID查询后台公告 -->
+    <select id="selectAdminAnnouncementById" resultMap="announcementAdminVoResult">
+        select id, title, content, type, priority, is_enabled, start_time, end_time, create_time, update_time
+        from blog_announcement
+        where deleted_at = 0
+          and id = #{id}
+    </select>
+
+    <!-- 新增公告 -->
+    <insert id="insertAnnouncement" parameterType="com.lsstop.domain.dto.AddAnnouncementDTO">
+        insert into blog_announcement
+            (title, content, type, priority, is_enabled, start_time, end_time, deleted_at, create_time, update_time)
+        values
+            (#{title}, #{content}, #{type}, #{priority}, #{isEnabled}, #{startTime}, #{endTime}, 0, NOW(), NOW())
+    </insert>
+
+    <!-- 编辑公告 -->
+    <update id="updateAnnouncement" parameterType="com.lsstop.domain.dto.UpdateAnnouncementDTO">
+        update blog_announcement
+        set title = #{title},
+            content = #{content},
+            type = #{type},
+            priority = #{priority},
+            is_enabled = #{isEnabled},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            update_time = NOW()
+        where deleted_at = 0
+          and id = #{id}
+    </update>
+
+    <!-- 软删除公告 -->
+    <update id="deleteById">
+        update blog_announcement
+        set deleted_at = #{deletedAt}, update_time = NOW()
+        where deleted_at = 0
+          and id = #{id}
+    </update>
+
+    <!-- 查询所有启用公告；具体生效时间由服务层在读取缓存后实时判断 -->
+    <select id="listEnabledAnnouncements" resultMap="announcementEntityResult">
+        select id, title, content, type, priority, is_enabled, start_time, end_time,
+               deleted_at, create_time, update_time
         from blog_announcement
         where is_enabled = 1
           and deleted_at = 0
-          and (start_time is null or start_time &lt;= now())
-          and (end_time is null or end_time &gt;= now())
         order by priority desc, create_time desc
     </select>
 

@@ -19,6 +19,11 @@ public class RedisConst {
     public static final String WEBSITE_CONFIG = PREFIX + "website:config";
 
     /**
+     * 前台公告候选列表缓存（包含所有启用公告，生效时间在读取时实时判断）
+     */
+    public static final String ANNOUNCEMENT_LIST = PREFIX + "announcement:list";
+
+    /**
      * 独立访客
      */
     public static final String UNIQUE_VISITOR = PREFIX + "visitor:uv:";

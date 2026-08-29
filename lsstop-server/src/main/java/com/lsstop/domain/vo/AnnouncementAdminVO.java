@@ -1,24 +1,17 @@
-package com.lsstop.domain.entity;
+package com.lsstop.domain.vo;
 
-import com.lsstop.domain.BaseData;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 /**
- * 公告实体
+ * 后台公告VO
  *
  * @author lishusheng
- * @date 2026/01/14
+ * @date 2026/08/29
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class AnnouncementEntity implements BaseData {
+public class AnnouncementAdminVO {
 
     /**
      * 公告ID
@@ -36,7 +29,7 @@ public class AnnouncementEntity implements BaseData {
     private String content;
 
     /**
-     * 类型：1-弹窗公告 2-首页展示 3-全部展示
+     * 类型：1-弹窗公告 2-首页展示 3-两者都有
      */
     private Integer type;
 
@@ -61,11 +54,6 @@ public class AnnouncementEntity implements BaseData {
     private LocalDateTime endTime;
 
     /**
-     * 删除时间戳，0表示未删除
-     */
-    private Long deletedAt;
-
-    /**
      * 创建时间
      */
     private LocalDateTime createTime;
@@ -74,5 +62,4 @@ public class AnnouncementEntity implements BaseData {
      * 更新时间
      */
     private LocalDateTime updateTime;
-
 }
