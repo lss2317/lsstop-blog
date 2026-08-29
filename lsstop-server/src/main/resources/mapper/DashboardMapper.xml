@@ -27,7 +27,8 @@
         from blog_comment
         where deleted_at = 0
           and review = 0
-          and date(create_time) = #{date}
+          and create_time &gt;= #{date}
+          and create_time &lt; date_add(#{date}, interval 1 day)
     </select>
 
     <resultMap id="dailyStatItemResult" type="com.lsstop.domain.vo.ConsoleDataVO$DailyStatItem">
@@ -40,8 +41,19 @@
         from blog_comment
         where deleted_at = 0
           and review = 0
-          and date(create_time) &gt;= #{startDate}
-          and date(create_time) &lt;= #{endDate}
+          and create_time &gt;= #{startTime}
+          and create_time &lt; #{endTime}
+        group by date(create_time)
+        order by date(create_time)
+    </select>
+
+    <select id="getDailyMessageStats" resultMap="dailyStatItemResult">
+        select date(create_time) as date, count(*) as count
+        from blog_message
+        where deleted_at = 0
+          and review = 0
+          and create_time &gt;= #{startTime}
+          and create_time &lt; #{endTime}
         group by date(create_time)
         order by date(create_time)
     </select>
@@ -154,7 +166,8 @@
         from blog_message
         where deleted_at = 0
           and review = 0
-          and date(create_time) = #{date}
+          and create_time &gt;= #{date}
+          and create_time &lt; date_add(#{date}, interval 1 day)
     </select>
 
     <select id="getLikeCountByDate" resultType="java.lang.Integer">
@@ -168,6 +181,19 @@
         select ifnull(unique_visitor_count, 0)
         from blog_unique_view
         where view_date = #{date}
+    </select>
+
+    <resultMap id="analysisDailyStatItemResult" type="com.lsstop.domain.vo.AnalysisDataVO$DailyStatItem">
+        <result property="date" column="date"/>
+        <result property="count" column="count"/>
+    </resultMap>
+
+    <select id="getDailyUniqueVisitorStats" resultMap="analysisDailyStatItemResult">
+        select view_date as date, ifnull(unique_visitor_count, 0) as count
+        from blog_unique_view
+        where view_date &gt;= #{startDate}
+          and view_date &lt; #{endDate}
+        order by view_date
     </select>
 
     <resultMap id="tagRadarItemResult" type="com.lsstop.domain.vo.AnalysisDataVO$TagRadarItem">

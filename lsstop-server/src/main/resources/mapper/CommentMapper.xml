@@ -154,6 +154,15 @@
           and deleted_at = 0
     </select>
 
+    <!-- 按审核状态统计父评论下的子评论，用于删除时精确维护公开/待审核统计 -->
+    <select id="countChildrenByReview" resultType="java.lang.Integer">
+        select count(*)
+        from blog_comment
+        where parent_id = #{parentId}
+          and review = #{review}
+          and deleted_at = 0
+    </select>
+
     <!-- 软删除评论 -->
     <update id="deleteById">
         update blog_comment

@@ -15,9 +15,13 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
 
 /**
  * 仪表盘服务实现
@@ -45,12 +49,14 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public ConsoleDataVO getConsoleData() {
         LocalDate today = LocalDate.now();
+        ConsoleDataVO.CommentStatVO commentStat = getCachedCommentStat(today);
+        int todayMessageCount = getCachedTodayMessageCount(today);
 
         return ConsoleDataVO.builder()
-                .statCards(buildStatCards(today))
-                .commentStat(buildCommentStat(today))
+                .statCards(buildStatCards(today, commentStat.getTodayCount(), todayMessageCount))
+                .commentStat(commentStat)
                 .visitOverview(buildVisitOverview(today))
-                .recentComments(dashboardMapper.getRecentComments(DashboardConst.RECENT_COMMENT_LIMIT))
+                .recentComments(getCachedRecentComments())
                 .pendingReview(buildPendingReview())
                 .contentOverview(buildContentOverview())
                 .build();
@@ -65,15 +71,54 @@ public class DashboardServiceImpl implements DashboardService {
                 .topArticles(getCachedTopArticles())
                 .categoryDistribution(getCachedCategoryDistribution())
                 .commentSource(getCachedCommentSource())
-                .interactionTrend(buildInteractionTrend(today))
+                .interactionTrend(getCachedInteractionTrend(today))
                 .tagRadar(getCachedTagRadar())
                 .build();
     }
 
     /**
+     * 获取近7天评论统计（按当天日期隔离，评论变化时主动失效）
+     */
+    private ConsoleDataVO.CommentStatVO getCachedCommentStat(LocalDate today) {
+        String cacheKey = RedisConst.DASHBOARD_COMMENT_STAT
+                + today.format(DateTimeFormatter.BASIC_ISO_DATE);
+        return redisUtils.getOrLoad(cacheKey, ConsoleDataVO.CommentStatVO.class,
+                () -> buildCommentStat(today), RedisConst.EXPIRE_FIVE_MINUTES);
+    }
+
+    /**
+     * 获取今日留言数（按当天日期隔离，留言变化时主动失效）
+     */
+    private int getCachedTodayMessageCount(LocalDate today) {
+        String cacheKey = RedisConst.DASHBOARD_TODAY_MESSAGE_COUNT
+                + today.format(DateTimeFormatter.BASIC_ISO_DATE);
+        Integer count = redisUtils.getOrLoad(cacheKey, Integer.class,
+                () -> loadDailyCounts(today, 1, dashboardMapper::getDailyMessageStats).get(0),
+                RedisConst.EXPIRE_FIVE_MINUTES);
+        return count != null ? count : 0;
+    }
+
+    /**
+     * 获取最近评论（空列表同样缓存，避免无数据时重复查库）
+     */
+    private List<ConsoleDataVO.RecentCommentItem> getCachedRecentComments() {
+        List<ConsoleDataVO.RecentCommentItem> cached = redisUtils.getList(
+                RedisConst.DASHBOARD_RECENT_COMMENTS, ConsoleDataVO.RecentCommentItem.class);
+        if (cached != null) {
+            return cached;
+        }
+        List<ConsoleDataVO.RecentCommentItem> result =
+                dashboardMapper.getRecentComments(DashboardConst.RECENT_COMMENT_LIMIT);
+        redisUtils.set(RedisConst.DASHBOARD_RECENT_COMMENTS, result, RedisConst.EXPIRE_ONE_MINUTE);
+        return result;
+    }
+
+    /**
      * 构建统计卡片数据
      */
-    private List<ConsoleDataVO.StatCardItem> buildStatCards(LocalDate today) {
+    private List<ConsoleDataVO.StatCardItem> buildStatCards(LocalDate today,
+                                                            Integer todayCommentCount,
+                                                            Integer todayMessageCount) {
         List<ConsoleDataVO.StatCardItem> cards = new ArrayList<>();
         String todayStr = today.format(DateTimeFormatter.BASIC_ISO_DATE);
 
@@ -91,14 +136,12 @@ public class DashboardServiceImpl implements DashboardService {
         // 总评论数（缓存5分钟兜底，新增/删除时主动清除）
         Integer totalComments = redisUtils.getOrLoad(RedisConst.TOTAL_COMMENT_COUNT, Integer.class,
                 dashboardMapper::getTotalCommentCount, RedisConst.EXPIRE_FIVE_MINUTES);
-        Integer todayComments = redisUtils.get(RedisConst.TODAY_COMMENT_COUNT + todayStr, Integer.class);
-        cards.add(buildStatCard(DashboardConst.STAT_KEY_TOTAL_COMMENTS, totalComments, todayComments != null ? todayComments : 0));
+        cards.add(buildStatCard(DashboardConst.STAT_KEY_TOTAL_COMMENTS, totalComments, todayCommentCount));
 
         // 总留言数（缓存5分钟兜底，新增时主动清除）
         Integer totalMessages = redisUtils.getOrLoad(RedisConst.TOTAL_MESSAGE_COUNT, Integer.class,
                 dashboardMapper::getTotalMessageCount, RedisConst.EXPIRE_FIVE_MINUTES);
-        Integer todayMessages = redisUtils.get(RedisConst.TODAY_MESSAGE_COUNT + todayStr, Integer.class);
-        cards.add(buildStatCard(DashboardConst.STAT_KEY_TOTAL_MESSAGES, totalMessages, todayMessages != null ? todayMessages : 0));
+        cards.add(buildStatCard(DashboardConst.STAT_KEY_TOTAL_MESSAGES, totalMessages, todayMessageCount));
 
         return cards;
     }
@@ -110,8 +153,8 @@ public class DashboardServiceImpl implements DashboardService {
         LocalDate lastWeekEnd = today.minusDays(DashboardConst.DAYS_7);
 
         // 批量获取近七天评论数
-        List<Integer> thisWeekCounts = batchGetDailyCounts(today, DashboardConst.DAYS_7,
-                RedisConst.TODAY_COMMENT_COUNT, RedisConst.DAILY_COMMENT_COUNT);
+        List<Integer> thisWeekCounts = loadDailyCounts(today, DashboardConst.DAYS_7,
+                dashboardMapper::getDailyCommentStats);
 
         // 组装每日统计
         List<ConsoleDataVO.DailyStatItem> dailyStats = new ArrayList<>(DashboardConst.DAYS_7);
@@ -127,9 +170,9 @@ public class DashboardServiceImpl implements DashboardService {
         int todayCount = thisWeekCounts.get(thisWeekCounts.size() - 1);
         int dailyAvg = totalCount / DashboardConst.DAYS_7;
 
-        // 周同比：批量获取上周数据（全部为历史日期）
-        List<Integer> lastWeekCounts = batchGetDailyCounts(lastWeekEnd, DashboardConst.DAYS_7,
-                RedisConst.TODAY_COMMENT_COUNT, RedisConst.DAILY_COMMENT_COUNT);
+        // 较上周变化：批量获取上周数据（全部为历史日期）
+        List<Integer> lastWeekCounts = loadDailyCounts(lastWeekEnd, DashboardConst.DAYS_7,
+                dashboardMapper::getDailyCommentStats);
         int lastWeekCount = lastWeekCounts.stream().mapToInt(Integer::intValue).sum();
 
         return ConsoleDataVO.CommentStatVO.builder()
@@ -294,12 +337,25 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     /**
-     * 构建近30天独立访客趋势（历史日期走Redis批量+DB兜底，今日走UV Set）
+     * 构建近30天独立访客趋势（历史日期缓存一天，今日走UV Set实时值）
      */
     private AnalysisDataVO.UniqueVisitorTrendVO buildUniqueVisitorTrend(LocalDate today) {
         LocalDate startDate = today.minusDays(DashboardConst.DAYS_30 - 1);
+        LocalDate yesterday = today.minusDays(1);
+        String cacheKey = RedisConst.DASHBOARD_UV_HISTORY
+                + today.format(DateTimeFormatter.BASIC_ISO_DATE);
+        List<AnalysisDataVO.DailyStatItem> historyStats =
+                redisUtils.getList(cacheKey, AnalysisDataVO.DailyStatItem.class);
+        if (historyStats == null) {
+            historyStats = dashboardMapper.getDailyUniqueVisitorStats(startDate, today);
+            redisUtils.set(cacheKey, historyStats, RedisConst.EXPIRE_ONE_DAY);
+        }
+        Map<LocalDate, Integer> historyCountMap = new HashMap<>();
+        for (AnalysisDataVO.DailyStatItem item : historyStats) {
+            historyCountMap.put(LocalDate.parse(item.getDate(), DATE_FMT), item.getCount());
+        }
 
-        // 批量获取历史日期的独立访客数（Redis缓存 + DB兜底）
+        // 历史日期批量查库，今日从UV Set实时读取
         List<AnalysisDataVO.DailyStatItem> dailyStats = new ArrayList<>(DashboardConst.DAYS_30);
         for (int i = 0; i < DashboardConst.DAYS_30; i++) {
             LocalDate date = startDate.plusDays(i);
@@ -308,17 +364,13 @@ public class DashboardServiceImpl implements DashboardService {
                 // 今日独立访客数从UV Set取
                 Long uvSize = redisUtils.sSize(RedisConst.TODAY_UV_SET + today.format(DateTimeFormatter.BASIC_ISO_DATE));
                 count = uvSize != null ? uvSize.intValue() : 0;
+            } else if (date.equals(yesterday) && !historyCountMap.containsKey(date)) {
+                // 凌晨同步前数据库尚无昨日记录，临时读取昨日UV Set
+                Long uvSize = redisUtils.sSize(RedisConst.TODAY_UV_SET
+                        + yesterday.format(DateTimeFormatter.BASIC_ISO_DATE));
+                count = uvSize != null ? uvSize.intValue() : 0;
             } else {
-                // 历史日期：先查Redis缓存，未命中查库并缓存
-                String key = RedisConst.DAILY_UV_COUNT + date.format(DateTimeFormatter.BASIC_ISO_DATE);
-                Integer cached = redisUtils.get(key, Integer.class);
-                if (cached != null) {
-                    count = cached;
-                } else {
-                    Integer dbCount = dashboardMapper.getUniqueVisitorCountByDate(date);
-                    count = dbCount != null ? dbCount : 0;
-                    redisUtils.set(key, count, RedisConst.EXPIRE_ONE_WEEK);
-                }
+                count = historyCountMap.getOrDefault(date, 0);
             }
             dailyStats.add(AnalysisDataVO.DailyStatItem.builder()
                     .date(date.format(DATE_FMT))
@@ -329,14 +381,25 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     /**
-     * 构建近7天互动趋势（评论、留言、点赞，全部走Redis批量+DB兜底）
+     * 获取近7天互动趋势（按当天日期隔离，数据持久化后主动失效）
+     */
+    private AnalysisDataVO.InteractionTrendVO getCachedInteractionTrend(LocalDate today) {
+        String cacheKey = RedisConst.DASHBOARD_INTERACTION_TREND
+                + today.format(DateTimeFormatter.BASIC_ISO_DATE);
+        return redisUtils.getOrLoad(cacheKey, AnalysisDataVO.InteractionTrendVO.class,
+                () -> buildInteractionTrend(today), RedisConst.EXPIRE_FIVE_MINUTES);
+    }
+
+    /**
+     * 构建近7天互动趋势（评论、留言、点赞）
      */
     private AnalysisDataVO.InteractionTrendVO buildInteractionTrend(LocalDate today) {
-        // 批量获取近7天评论/留言/点赞数（Redis缓存 + DB兜底）
-        List<Integer> commentCounts = batchGetDailyCounts(today, DashboardConst.DAYS_7,
-                RedisConst.TODAY_COMMENT_COUNT, RedisConst.DAILY_COMMENT_COUNT);
-        List<Integer> messageCounts = batchGetDailyCounts(today, DashboardConst.DAYS_7,
-                RedisConst.TODAY_MESSAGE_COUNT, RedisConst.DAILY_MESSAGE_COUNT);
+        // 缓存未命中时，每种互动数据各执行一次范围聚合查询
+        List<Integer> commentCounts = loadDailyCounts(today, DashboardConst.DAYS_7,
+                dashboardMapper::getDailyCommentStats);
+        List<Integer> messageCounts = loadDailyCounts(today, DashboardConst.DAYS_7,
+                dashboardMapper::getDailyMessageStats);
+        // 点赞沿用既有统计链路：今日读取Redis实时计数，历史日期读取缓存并由数据库兜底
         List<Integer> likeCounts = batchGetDailyCounts(today, DashboardConst.DAYS_7,
                 RedisConst.TODAY_LIKE_COUNT, RedisConst.DAILY_LIKE_COUNT);
 
@@ -351,6 +414,28 @@ public class DashboardServiceImpl implements DashboardService {
                     .build());
         }
         return AnalysisDataVO.InteractionTrendVO.builder().dailyData(dailyData).build();
+    }
+
+    /**
+     * 按日期范围批量查询每日计数，并补齐没有数据的日期
+     */
+    private List<Integer> loadDailyCounts(
+            LocalDate endDate,
+            int days,
+            BiFunction<LocalDateTime, LocalDateTime, List<ConsoleDataVO.DailyStatItem>> loader) {
+        LocalDate startDate = endDate.minusDays(days - 1L);
+        List<ConsoleDataVO.DailyStatItem> stats = loader.apply(
+                startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
+        Map<LocalDate, Integer> countMap = new HashMap<>();
+        for (ConsoleDataVO.DailyStatItem item : stats) {
+            countMap.put(LocalDate.parse(item.getDate(), DATE_FMT), item.getCount());
+        }
+
+        List<Integer> counts = new ArrayList<>(days);
+        for (int i = 0; i < days; i++) {
+            counts.add(countMap.getOrDefault(startDate.plusDays(i), 0));
+        }
+        return counts;
     }
 
     /**

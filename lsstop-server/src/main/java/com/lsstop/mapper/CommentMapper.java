@@ -90,6 +90,15 @@ public interface CommentMapper {
     CommentEntity selectById(@Param("id") Integer id);
 
     /**
+     * 按审核状态统计父评论下未删除的子评论数。
+     *
+     * @param parentId 父评论ID
+     * @param review   审核状态
+     * @return 子评论数量
+     */
+    int countChildrenByReview(@Param("parentId") Integer parentId, @Param("review") Integer review);
+
+    /**
      * 软删除评论
      *
      * @param id        评论ID

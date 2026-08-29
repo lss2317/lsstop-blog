@@ -38,7 +38,8 @@ public class UniqueViewTask {
     public void syncYesterdayViewCount() {
         log.info("开始同步昨日访问量到数据库...");
         try {
-            LocalDate yesterday = LocalDate.now().minusDays(1);
+            LocalDate syncDate = LocalDate.now();
+            LocalDate yesterday = syncDate.minusDays(1);
             String yesterdayStr = yesterday.format(DateTimeFormatter.BASIC_ISO_DATE);
             String countKey = RedisConst.TODAY_VIEW_COUNT + yesterdayStr;
             String uvSetKey = RedisConst.TODAY_UV_SET + yesterdayStr;
@@ -75,6 +76,9 @@ public class UniqueViewTask {
             redisUtils.delete(uvSetKey);
             // 刷新历史总访问量缓存
             redisUtils.delete(RedisConst.HISTORY_VIEW_COUNT);
+            // 今日的30天UV历史区间已包含昨日，必须清除可能在同步前生成的缓存
+            redisUtils.delete(RedisConst.DASHBOARD_UV_HISTORY
+                    + syncDate.format(DateTimeFormatter.BASIC_ISO_DATE));
         } catch (Exception e) {
             log.error("同步昨日访问量失败", e);
         }

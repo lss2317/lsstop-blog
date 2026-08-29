@@ -114,7 +114,7 @@ public class ConsoleDataVO {
          */
         private Integer dailyAvg;
         /**
-         * 周同比（如"+15%"）
+         * 较上周变化（如"+15%"）
          */
         private String weekOverWeek;
     }

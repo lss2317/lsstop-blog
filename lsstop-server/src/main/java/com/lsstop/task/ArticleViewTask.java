@@ -108,6 +108,7 @@ public class ArticleViewTask {
 
             if (!viewCounts.isEmpty()) {
                 articleMapper.batchUpdateViewCounts(viewCounts);
+                redisUtils.delete(RedisConst.DASHBOARD_TOP_ARTICLES);
                 log.info("文章访问量同步完成，共{}条", viewCounts.size());
             }
         } catch (Exception e) {

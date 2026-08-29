@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -81,8 +82,10 @@ public class CommentServiceImpl implements CommentService {
 
         commentMapper.insertComment(comment);
 
-        // 更新Redis计数
-        updateRedisCount(comment);
+        // 只有审核通过的评论才进入公开计数和仪表盘统计
+        if (CommonConst.REVIEW_NORMAL.equals(comment.getReview())) {
+            updateRedisCount(comment);
+        }
         // 清除评论者的用户主页缓存（公开和自己查看）
         redisUtils.delete(RedisConst.USER_HOME_PUBLIC + comment.getUserId());
         redisUtils.delete(RedisConst.USER_HOME_ME + comment.getUserId());
@@ -126,15 +129,22 @@ public class CommentServiceImpl implements CommentService {
         if (CommentTypeEnum.TALK.getType().equals(comment.getTargetType())) {
             redisUtils.increment(RedisConst.TALK_COMMENT_COUNT + comment.getTargetId());
         }
-        // 更新今日评论计数
-        String todayKey = RedisConst.TODAY_COMMENT_COUNT + LocalDate.now().format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE);
-        Long val = redisUtils.increment(todayKey);
-        if (val != null && val == 1L) {
-            redisUtils.expire(todayKey, RedisConst.EXPIRE_ONE_DAY * 2);
-        }
-        // 清除评论总数与评论来源分布缓存
+        // 清除评论总数与受影响的仪表盘模块缓存
         redisUtils.delete(RedisConst.TOTAL_COMMENT_COUNT);
-        redisUtils.delete(RedisConst.DASHBOARD_COMMENT_SOURCE);
+        clearDashboardCommentCache();
+    }
+
+    /**
+     * 清除评论变化影响的仪表盘缓存
+     */
+    private void clearDashboardCommentCache() {
+        String today = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        redisUtils.delete(List.of(
+                RedisConst.DASHBOARD_COMMENT_STAT + today,
+                RedisConst.DASHBOARD_RECENT_COMMENTS,
+                RedisConst.DASHBOARD_COMMENT_SOURCE,
+                RedisConst.DASHBOARD_INTERACTION_TREND + today
+        ));
     }
 
     /**
@@ -247,24 +257,34 @@ public class CommentServiceImpl implements CommentService {
 
         long deletedAt = System.currentTimeMillis();
 
+        int normalChildCount = 0;
+        int pendingChildCount = 0;
+        if (comment.getParentId() == null) {
+            normalChildCount = commentMapper.countChildrenByReview(commentId, CommonConst.REVIEW_NORMAL);
+            pendingChildCount = commentMapper.countChildrenByReview(commentId, CommonConst.REVIEW_PENDING);
+        }
+
         // 删除评论
         commentMapper.deleteById(commentId, deletedAt);
 
         // 如果是顶级评论，级联删除所有子评论
         if (comment.getParentId() == null) {
-            int deletedChildCount = commentMapper.deleteByParentId(commentId, deletedAt);
+            commentMapper.deleteByParentId(commentId, deletedAt);
             // 删除该评论的回复数缓存
             redisUtils.delete(RedisConst.COMMENT_REPLY_COUNT + commentId);
-            // 如果是说说类型，更新说说评论数（顾级评论 + 子评论）
-            if (CommentTypeEnum.TALK.getType().equals(comment.getTargetType())) {
-                redisUtils.decrement(RedisConst.TALK_COMMENT_COUNT + comment.getTargetId(), 1 + deletedChildCount);
+            // 说说公开评论数只扣除已审核通过的父评论和子评论
+            int normalDeletedCount = normalChildCount
+                    + (CommonConst.REVIEW_NORMAL.equals(comment.getReview()) ? 1 : 0);
+            if (normalDeletedCount > 0 && CommentTypeEnum.TALK.getType().equals(comment.getTargetType())) {
+                redisUtils.decrement(RedisConst.TALK_COMMENT_COUNT + comment.getTargetId(), normalDeletedCount);
             }
         } else {
-            // 子评论：更新父评论的回复数
-            redisUtils.decrement(RedisConst.COMMENT_REPLY_COUNT + comment.getParentId());
-            // 如果是说说类型，更新说说评论数
-            if (CommentTypeEnum.TALK.getType().equals(comment.getTargetType())) {
-                redisUtils.decrement(RedisConst.TALK_COMMENT_COUNT + comment.getTargetId());
+            // 待审核子评论从未进入公开计数，删除时不能递减公开计数
+            if (CommonConst.REVIEW_NORMAL.equals(comment.getReview())) {
+                redisUtils.decrement(RedisConst.COMMENT_REPLY_COUNT + comment.getParentId());
+                if (CommentTypeEnum.TALK.getType().equals(comment.getTargetType())) {
+                    redisUtils.decrement(RedisConst.TALK_COMMENT_COUNT + comment.getTargetId());
+                }
             }
         }
 
@@ -273,11 +293,13 @@ public class CommentServiceImpl implements CommentService {
         // 清除评论者的用户主页缓存（公开和自己查看）
         redisUtils.delete(RedisConst.USER_HOME_PUBLIC + comment.getUserId());
         redisUtils.delete(RedisConst.USER_HOME_ME + comment.getUserId());
-        // 清除评论总数与评论来源分布缓存
-        redisUtils.delete(RedisConst.TOTAL_COMMENT_COUNT);
-        redisUtils.delete(RedisConst.DASHBOARD_COMMENT_SOURCE);
-        // 如果删除的是待审核评论，清除待审核数缓存
-        if (CommonConst.REVIEW_PENDING.equals(comment.getReview())) {
+        boolean removedNormalComment = CommonConst.REVIEW_NORMAL.equals(comment.getReview()) || normalChildCount > 0;
+        if (removedNormalComment) {
+            redisUtils.delete(RedisConst.TOTAL_COMMENT_COUNT);
+            clearDashboardCommentCache();
+        }
+        // 顶级评论级联删除的待审核子评论也会影响待审核数量
+        if (CommonConst.REVIEW_PENDING.equals(comment.getReview()) || pendingChildCount > 0) {
             redisUtils.delete(RedisConst.PENDING_REVIEW_COMMENT_COUNT);
         }
     }

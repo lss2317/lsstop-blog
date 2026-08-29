@@ -301,6 +301,31 @@ public class RedisConst {
     public static final String DASHBOARD_TAG_RADAR = PREFIX + "dashboard:tagRadar";
 
     /**
+     * 仪表盘-近7天评论统计缓存（按查询日期隔离）
+     */
+    public static final String DASHBOARD_COMMENT_STAT = PREFIX + "dashboard:commentStat:";
+
+    /**
+     * 仪表盘-今日留言数缓存（按查询日期隔离）
+     */
+    public static final String DASHBOARD_TODAY_MESSAGE_COUNT = PREFIX + "dashboard:todayMessageCount:";
+
+    /**
+     * 仪表盘-最近评论缓存
+     */
+    public static final String DASHBOARD_RECENT_COMMENTS = PREFIX + "dashboard:recentComments";
+
+    /**
+     * 仪表盘-近7天互动趋势缓存（按查询日期隔离）
+     */
+    public static final String DASHBOARD_INTERACTION_TREND = PREFIX + "dashboard:interactionTrend:";
+
+    /**
+     * 仪表盘-近30天独立访客历史缓存（按查询日期隔离，不包含今日实时值）
+     */
+    public static final String DASHBOARD_UV_HISTORY = PREFIX + "dashboard:uvHistory:";
+
+    /**
      * 过期时间：1分钟（秒）
      */
     public static final long EXPIRE_ONE_MINUTE = 60;

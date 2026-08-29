@@ -94,7 +94,8 @@ public class LikeServiceImpl implements LikeService {
         String userLikeKey = getUserLikeKey(type, userId);
         String pendingSyncKey = getPendingSyncKey(type);
         String pendingField = userId + ":" + targetId;
-        String todayKey = RedisConst.TODAY_LIKE_COUNT + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String today = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String todayKey = RedisConst.TODAY_LIKE_COUNT + today;
 
         // 原子执行：整段点赞/取消逻辑在 Redis 单线程内一次完成，杜绝并发竞态
         Long result = stringRedisTemplate.execute(
@@ -104,6 +105,8 @@ public class LikeServiceImpl implements LikeService {
                 pendingField,
                 String.valueOf(RedisConst.EXPIRE_ONE_DAY * 2)
         );
+        // 点赞趋势缓存包含今日Redis实时计数，状态变化后立即失效
+        redisUtils.delete(RedisConst.DASHBOARD_INTERACTION_TREND + today);
         return result != null && result == 1L;
     }
 

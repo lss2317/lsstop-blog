@@ -5,6 +5,7 @@ import com.lsstop.domain.vo.ConsoleDataVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -38,7 +39,14 @@ public interface DashboardMapper {
     /**
      * 查询每日评论统计
      */
-    List<ConsoleDataVO.DailyStatItem> getDailyCommentStats(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    List<ConsoleDataVO.DailyStatItem> getDailyCommentStats(@Param("startTime") LocalDateTime startTime,
+                                                          @Param("endTime") LocalDateTime endTime);
+
+    /**
+     * 查询每日留言统计
+     */
+    List<ConsoleDataVO.DailyStatItem> getDailyMessageStats(@Param("startTime") LocalDateTime startTime,
+                                                          @Param("endTime") LocalDateTime endTime);
 
     /**
      * 查询最近评论
@@ -99,6 +107,12 @@ public interface DashboardMapper {
      * 查询指定日期的独立访客数
      */
     Integer getUniqueVisitorCountByDate(@Param("date") LocalDate date);
+
+    /**
+     * 查询每日独立访客统计
+     */
+    List<AnalysisDataVO.DailyStatItem> getDailyUniqueVisitorStats(@Param("startDate") LocalDate startDate,
+                                                                 @Param("endDate") LocalDate endDate);
 
     /**
      * 查询标签热度（按文章数降序）
