@@ -5,6 +5,7 @@ import com.lsstop.annotation.OperationLog;
 import com.lsstop.constant.CommonConst;
 import com.lsstop.constant.OperationLogConst;
 import com.lsstop.constant.RabbitMQConst;
+import com.lsstop.constant.RequestTraceConst;
 import com.lsstop.domain.entity.OperationLogEntity;
 import com.lsstop.utils.IpUtils;
 import com.lsstop.utils.StringUtils;
@@ -107,8 +108,13 @@ public class OperationLogAspect {
             description = operationLog.type().getDesc() + operationLog.module().getDesc();
         }
 
+        String requestId = request == null ? null : (String) request.getAttribute(RequestTraceConst.REQUEST_ID);
+        String logNumber = requestId == null || requestId.isBlank()
+                ? UUID.randomUUID().toString().replace("-", "")
+                : requestId;
+
         OperationLogEntity logEntity = OperationLogEntity.builder()
-                .logNumber(UUID.randomUUID().toString().replace("-", ""))
+                .logNumber(logNumber)
                 .userId(userId)
                 .module(operationLog.module().getDesc())
                 .operationType(operationLog.type().getDesc())

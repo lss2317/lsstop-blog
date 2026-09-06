@@ -107,9 +107,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
      */
     @Override
     public List<AnnouncementVO> listAnnouncement() {
-        List<AnnouncementEntity> announcementList = redisUtils.getList(
-                RedisConst.ANNOUNCEMENT_LIST, AnnouncementEntity.class
-        );
+        List<AnnouncementEntity> announcementList = redisUtils.getList(RedisConst.ANNOUNCEMENT_LIST, AnnouncementEntity.class);
         if (announcementList == null) {
             announcementList = announcementMapper.listEnabledAnnouncements();
             redisUtils.set(RedisConst.ANNOUNCEMENT_LIST, announcementList, RedisConst.EXPIRE_ONE_HOUR);
@@ -142,9 +140,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
      */
     private void validateEffectiveTime(LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime != null && endTime != null && endTime.isBefore(startTime)) {
-            throw new BusinessException(
-                    StatusEnum.PARAM_ERROR.getCode(), AnnouncementConst.INVALID_EFFECTIVE_TIME
-            );
+            throw new BusinessException(StatusEnum.PARAM_ERROR.getCode(), AnnouncementConst.INVALID_EFFECTIVE_TIME);
         }
     }
 
