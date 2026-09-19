@@ -4,7 +4,11 @@ import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.entity.LikeRecordEntity;
 import com.lsstop.domain.vo.LikeCountVO;
 import com.lsstop.enums.LikeTypeEnum;
+import com.lsstop.enums.NotificationEventTypeEnum;
+import com.lsstop.enums.NotificationLevelEnum;
+import com.lsstop.enums.NotificationSourceTypeEnum;
 import com.lsstop.mapper.LikeMapper;
+import com.lsstop.service.NotificationService;
 import com.lsstop.utils.RedisUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
@@ -35,6 +39,9 @@ public class LikeStatsTask {
 
     @Resource
     private RedisUtils redisUtils;
+
+    @Resource
+    private NotificationService notificationService;
 
     /**
      * 项目启动时初始化点赞数据到Redis
@@ -162,6 +169,18 @@ public class LikeStatsTask {
                 totalCount += syncLikesByType(likeType);
             } catch (Exception e) {
                 log.error("同步{}点赞记录失败", likeType.getDesc(), e);
+                notificationService.recordFailure(
+                        NotificationEventTypeEnum.TASK_FAILURE,
+                        NotificationSourceTypeEnum.TASK,
+                        NotificationLevelEnum.ERROR,
+                        "定时任务执行失败：同步" + likeType.getDesc() + "点赞记录",
+                        "LikeStatsTask#syncLikeRecordsToDb:" + likeType.name(),
+                        e,
+                        Map.of(
+                                "taskName", "LikeStatsTask#syncLikeRecordsToDb",
+                                "likeType", likeType.name()
+                        )
+                );
             }
         }
 

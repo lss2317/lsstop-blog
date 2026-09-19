@@ -7,6 +7,10 @@ import com.lsstop.constant.OperationLogConst;
 import com.lsstop.constant.RabbitMQConst;
 import com.lsstop.constant.RequestTraceConst;
 import com.lsstop.domain.entity.OperationLogEntity;
+import com.lsstop.enums.NotificationEventTypeEnum;
+import com.lsstop.enums.NotificationLevelEnum;
+import com.lsstop.enums.NotificationSourceTypeEnum;
+import com.lsstop.service.NotificationService;
 import com.lsstop.utils.IpUtils;
 import com.lsstop.utils.StringUtils;
 import com.lsstop.utils.UserAgentUtils;
@@ -27,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -43,6 +48,7 @@ import java.util.UUID;
 public class OperationLogAspect {
 
     private final RabbitTemplate rabbitTemplate;
+    private final NotificationService notificationService;
 
     @Around("@annotation(operationLog)")
     public Object around(ProceedingJoinPoint joinPoint, OperationLog operationLog) throws Throwable {
@@ -68,6 +74,17 @@ public class OperationLogAspect {
                 recordLog(joinPoint, operationLog, request, costTime, state, errorMsg, result);
             } catch (Exception e) {
                 log.error("操作日志记录失败", e);
+                String requestId = request == null ? null
+                        : (String) request.getAttribute(RequestTraceConst.REQUEST_ID);
+                notificationService.recordFailure(
+                        NotificationEventTypeEnum.DEPENDENCY_FAILURE,
+                        NotificationSourceTypeEnum.SYSTEM,
+                        NotificationLevelEnum.ERROR,
+                        "操作日志发送失败",
+                        requestId,
+                        e,
+                        Map.of("component", "OperationLogAspect")
+                );
             }
         }
 

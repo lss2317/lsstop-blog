@@ -18,6 +18,11 @@ public final class RequestTraceConst {
      */
     public static final String REQUEST_ID_HEADER = "X-Request-Id";
 
+    /**
+     * 请求异常已经写入通知表的标记，避免过滤器与全局异常处理器重复记录
+     */
+    public static final String NOTIFICATION_RECORDED = "notificationRecorded";
+
     private RequestTraceConst() {
     }
 }

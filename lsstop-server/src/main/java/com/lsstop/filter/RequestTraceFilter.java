@@ -1,12 +1,15 @@
 package com.lsstop.filter;
 
+import com.lsstop.constant.NotificationConst;
 import com.lsstop.constant.RequestTraceConst;
+import com.lsstop.service.NotificationService;
 import com.lsstop.utils.IpUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -17,7 +20,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -30,17 +32,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@RequiredArgsConstructor
 public class RequestTraceFilter extends OncePerRequestFilter {
 
-    private static final long SLOW_REQUEST_THRESHOLD_MS = 1000L;
-    private static final int MAX_PARAM_VALUE_LENGTH = 200;
-    private static final int MAX_PARAMS_LENGTH = 2000;
-    private static final String MASKED_VALUE = "******";
-    private static final Set<String> SENSITIVE_FIELDS = Set.of(
-            "password", "oldPassword", "newPassword", "confirmPassword",
-            "token", "accessToken", "refreshToken", "authorization",
-            "cookie", "code", "credential", "secret"
-    );
+    private final NotificationService notificationService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -54,10 +49,26 @@ public class RequestTraceFilter extends OncePerRequestFilter {
 
         try {
             filterChain.doFilter(request, response);
+        } catch (ServletException | IOException | RuntimeException e) {
+            int errorStatus = Math.max(response.getStatus(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            if (notificationService.recordHttpException(request, errorStatus, e)) {
+                request.setAttribute(RequestTraceConst.NOTIFICATION_RECORDED, Boolean.TRUE);
+            }
+            throw e;
         } finally {
             try {
                 if (shouldWriteAccessLog(request)) {
-                    writeAccessLog(request, response, System.currentTimeMillis() - startTime);
+                    long costTime = System.currentTimeMillis() - startTime;
+                    writeAccessLog(request, response, costTime);
+                    if (costTime >= NotificationConst.SLOW_REQUEST_THRESHOLD_MS) {
+                        notificationService.recordSlowRequest(request, response, costTime);
+                    }
+                    if (response.getStatus() >= HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+                            && !Boolean.TRUE.equals(request.getAttribute(RequestTraceConst.NOTIFICATION_RECORDED))) {
+                        if (notificationService.recordHttpStatusError(request, response, costTime)) {
+                            request.setAttribute(RequestTraceConst.NOTIFICATION_RECORDED, Boolean.TRUE);
+                        }
+                    }
                 }
             } finally {
                 MDC.remove(RequestTraceConst.REQUEST_ID);
@@ -81,7 +92,7 @@ public class RequestTraceFilter extends OncePerRequestFilter {
 
         if (status >= HttpServletResponse.SC_INTERNAL_SERVER_ERROR) {
             log.error(message, args);
-        } else if (costTime >= SLOW_REQUEST_THRESHOLD_MS) {
+        } else if (costTime >= NotificationConst.SLOW_REQUEST_THRESHOLD_MS) {
             log.warn(message, args);
         } else {
             log.info(message, args);
@@ -100,17 +111,16 @@ public class RequestTraceFilter extends OncePerRequestFilter {
         String result = parameterMap.entrySet().stream()
                 .map(entry -> entry.getKey() + "=" + getSafeValue(entry.getKey(), entry.getValue()))
                 .collect(Collectors.joining(", ", "{", "}"));
-        return truncate(result, MAX_PARAMS_LENGTH);
+        return truncate(result, NotificationConst.MAX_PARAMS_LENGTH);
     }
 
     private String getSafeValue(String fieldName, String[] values) {
-        boolean sensitive = SENSITIVE_FIELDS.stream()
-                .anyMatch(field -> field.equalsIgnoreCase(fieldName));
+        boolean sensitive = NotificationConst.SENSITIVE_FIELDS.contains(fieldName.toLowerCase(Locale.ROOT));
         if (sensitive) {
-            return MASKED_VALUE;
+            return NotificationConst.MASKED_VALUE;
         }
         String value = values == null ? "" : Arrays.toString(values);
-        return truncate(value, MAX_PARAM_VALUE_LENGTH);
+        return truncate(value, NotificationConst.MAX_PARAM_VALUE_LENGTH);
     }
 
     private String truncate(String value, int maxLength) {

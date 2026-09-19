@@ -2,7 +2,11 @@ package com.lsstop.task;
 
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.vo.ArticleViewCountVO;
+import com.lsstop.enums.NotificationEventTypeEnum;
+import com.lsstop.enums.NotificationLevelEnum;
+import com.lsstop.enums.NotificationSourceTypeEnum;
 import com.lsstop.mapper.ArticleMapper;
+import com.lsstop.service.NotificationService;
 import com.lsstop.utils.RedisUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
@@ -13,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,6 +37,9 @@ public class ArticleViewTask {
 
     @Resource
     private RedisUtils redisUtils;
+
+    @Resource
+    private NotificationService notificationService;
 
     /**
      * 项目启动时初始化文章访问量到Redis
@@ -113,6 +121,15 @@ public class ArticleViewTask {
             }
         } catch (Exception e) {
             log.error("同步文章访问量失败", e);
+            notificationService.recordFailure(
+                    NotificationEventTypeEnum.TASK_FAILURE,
+                    NotificationSourceTypeEnum.TASK,
+                    NotificationLevelEnum.ERROR,
+                    "定时任务执行失败：同步文章访问量",
+                    "ArticleViewTask#syncArticleViewCountsToDb",
+                    e,
+                    Map.of("taskName", "ArticleViewTask#syncArticleViewCountsToDb")
+            );
         }
     }
 }

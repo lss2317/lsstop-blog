@@ -2,6 +2,10 @@ package com.lsstop.utils;
 
 import com.lsstop.config.JwtConfig;
 import com.lsstop.constant.AuthConst;
+import com.lsstop.enums.NotificationEventTypeEnum;
+import com.lsstop.enums.NotificationLevelEnum;
+import com.lsstop.enums.NotificationSourceTypeEnum;
+import com.lsstop.service.NotificationService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -30,6 +35,7 @@ import java.util.UUID;
 public class JwtUtils {
 
     private final JwtConfig jwtConfig;
+    private final NotificationService notificationService;
 
     /**
      * 签发者
@@ -241,6 +247,15 @@ public class JwtUtils {
             log.warn("Token无效: {}", e.getMessage());
         } catch (Exception e) {
             log.error("Token验证异常: {}", e.getMessage());
+            notificationService.recordFailure(
+                    NotificationEventTypeEnum.SYSTEM_EXCEPTION,
+                    NotificationSourceTypeEnum.SYSTEM,
+                    NotificationLevelEnum.ERROR,
+                    "Token验证发生未知异常",
+                    null,
+                    e,
+                    Map.of("component", "JwtUtils")
+            );
         }
         return false;
     }

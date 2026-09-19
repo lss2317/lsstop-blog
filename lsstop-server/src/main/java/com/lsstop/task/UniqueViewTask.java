@@ -2,7 +2,11 @@ package com.lsstop.task;
 
 import com.lsstop.constant.RedisConst;
 import com.lsstop.domain.entity.UniqueViewEntity;
+import com.lsstop.enums.NotificationEventTypeEnum;
+import com.lsstop.enums.NotificationLevelEnum;
+import com.lsstop.enums.NotificationSourceTypeEnum;
 import com.lsstop.mapper.UniqueViewMapper;
+import com.lsstop.service.NotificationService;
 import com.lsstop.utils.RedisUtils;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
@@ -12,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 /**
  * 网站访问量统计任务
@@ -30,6 +35,9 @@ public class UniqueViewTask {
 
     @Resource
     private RedisUtils redisUtils;
+
+    @Resource
+    private NotificationService notificationService;
 
     /**
      * 每天凌晨1点同步前一天的访问量到数据库
@@ -81,6 +89,15 @@ public class UniqueViewTask {
                     + syncDate.format(DateTimeFormatter.BASIC_ISO_DATE));
         } catch (Exception e) {
             log.error("同步昨日访问量失败", e);
+            notificationService.recordFailure(
+                    NotificationEventTypeEnum.TASK_FAILURE,
+                    NotificationSourceTypeEnum.TASK,
+                    NotificationLevelEnum.ERROR,
+                    "定时任务执行失败：同步昨日访问量",
+                    "UniqueViewTask#syncYesterdayViewCount",
+                    e,
+                    Map.of("taskName", "UniqueViewTask#syncYesterdayViewCount")
+            );
         }
     }
 }

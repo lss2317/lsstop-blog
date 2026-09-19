@@ -2,7 +2,11 @@ package com.lsstop.consumer;
 
 import com.lsstop.constant.RabbitMQConst;
 import com.lsstop.domain.entity.LoginLogEntity;
+import com.lsstop.enums.NotificationEventTypeEnum;
+import com.lsstop.enums.NotificationLevelEnum;
+import com.lsstop.enums.NotificationSourceTypeEnum;
 import com.lsstop.service.LoginLogService;
+import com.lsstop.service.NotificationService;
 import com.rabbitmq.client.Channel;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +18,7 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
+import java.util.Map;
 
 /**
  * 登录日志消费者
@@ -31,6 +35,9 @@ public class LoginLogConsumer {
 
     @Resource
     private RabbitTemplate rabbitTemplate;
+
+    @Resource
+    private NotificationService notificationService;
 
     /**
      * 消费登录日志消息
@@ -75,9 +82,30 @@ public class LoginLogConsumer {
             } else {
                 // 达到最大重试次数
                 log.error("登录日志消费失败，已达最大重试次数: {}", e.getMessage());
+                notificationService.recordFailure(
+                        NotificationEventTypeEnum.MQ_FAILURE,
+                        NotificationSourceTypeEnum.MQ_CONSUMER,
+                        NotificationLevelEnum.ERROR,
+                        "登录日志消费失败，已达最大重试次数",
+                        loginLog.getLogNumber(),
+                        e,
+                        Map.of(
+                                "queue", RabbitMQConst.LOGIN_LOG_QUEUE,
+                                "retryCount", retryCount
+                        )
+                );
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             log.error("消息处理失败: {}", ex.getMessage());
+            notificationService.recordFailure(
+                    NotificationEventTypeEnum.MQ_FAILURE,
+                    NotificationSourceTypeEnum.MQ_CONSUMER,
+                    NotificationLevelEnum.ERROR,
+                    "登录日志消息确认处理失败",
+                    loginLog.getLogNumber(),
+                    ex,
+                    Map.of("queue", RabbitMQConst.LOGIN_LOG_QUEUE)
+            );
         }
     }
 

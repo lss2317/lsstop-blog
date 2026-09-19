@@ -2,6 +2,10 @@ package com.lsstop.consumer;
 
 import com.lsstop.constant.RabbitMQConst;
 import com.lsstop.domain.entity.OperationLogEntity;
+import com.lsstop.enums.NotificationEventTypeEnum;
+import com.lsstop.enums.NotificationLevelEnum;
+import com.lsstop.enums.NotificationSourceTypeEnum;
+import com.lsstop.service.NotificationService;
 import com.lsstop.service.OperationLogService;
 import com.rabbitmq.client.Channel;
 import jakarta.annotation.Resource;
@@ -14,7 +18,7 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
+import java.util.Map;
 
 /**
  * 操作日志消费者
@@ -31,6 +35,9 @@ public class OperationLogConsumer {
 
     @Resource
     private RabbitTemplate rabbitTemplate;
+
+    @Resource
+    private NotificationService notificationService;
 
     /**
      * 消费操作日志消息
@@ -75,9 +82,30 @@ public class OperationLogConsumer {
             } else {
                 // 达到最大重试次数
                 log.error("操作日志消费失败，已达最大重试次数: {}", e.getMessage(), e);
+                notificationService.recordFailure(
+                        NotificationEventTypeEnum.MQ_FAILURE,
+                        NotificationSourceTypeEnum.MQ_CONSUMER,
+                        NotificationLevelEnum.ERROR,
+                        "操作日志消费失败，已达最大重试次数",
+                        operationLog.getLogNumber(),
+                        e,
+                        Map.of(
+                                "queue", RabbitMQConst.OPERATION_LOG_QUEUE,
+                                "retryCount", retryCount
+                        )
+                );
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             log.error("消息处理失败: {}", ex.getMessage(), ex);
+            notificationService.recordFailure(
+                    NotificationEventTypeEnum.MQ_FAILURE,
+                    NotificationSourceTypeEnum.MQ_CONSUMER,
+                    NotificationLevelEnum.ERROR,
+                    "操作日志消息确认处理失败",
+                    operationLog.getLogNumber(),
+                    ex,
+                    Map.of("queue", RabbitMQConst.OPERATION_LOG_QUEUE)
+            );
         }
     }
 

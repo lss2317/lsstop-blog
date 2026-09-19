@@ -23,6 +23,7 @@ import com.lsstop.mapper.RoleMapper;
 import com.lsstop.mapper.UserMapper;
 import com.lsstop.service.AuthService;
 import com.lsstop.service.LoginLogService;
+import com.lsstop.service.NotificationService;
 import com.lsstop.service.WebsiteConfigService;
 import com.lsstop.utils.*;
 import jakarta.annotation.Resource;
@@ -75,6 +76,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Resource
     private LoginLogService loginLogService;
+
+    @Resource
+    private NotificationService notificationService;
 
     @Resource
     private JwtConfig jwtConfig;
@@ -258,6 +262,7 @@ public class AuthServiceImpl implements AuthService {
             throw e;
         } catch (Exception e) {
             log.error("QQ登录失败", e);
+            recordOAuthFailure("QQ登录调用失败", "QQ", e);
             loginLogService.sendLoginLog(userId, LoginTypeEnum.QQ.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), AuthActionEnum.LOGIN.getCode(), openId, AuthConst.QQ_LOGIN_FAILED);
             throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.QQ_LOGIN_FAILED);
         }
@@ -327,6 +332,7 @@ public class AuthServiceImpl implements AuthService {
             throw e;
         } catch (Exception e) {
             log.error("微博登录失败", e);
+            recordOAuthFailure("微博登录调用失败", "WEIBO", e);
             loginLogService.sendLoginLog(userId, LoginTypeEnum.WEIBO.getCode(), source.getCode(), LoginResultEnum.FAIL.getCode(), AuthActionEnum.LOGIN.getCode(), uid, AuthConst.WEIBO_LOGIN_FAILED);
             throw new BusinessException(StatusEnum.USERNAME_OR_PASSWORD_ERROR, AuthConst.WEIBO_LOGIN_FAILED);
         }
@@ -806,7 +812,7 @@ public class AuthServiceImpl implements AuthService {
             throw e;
         } catch (Exception e) {
             log.error("QQ绑定失败", e);
-            throw new BusinessException(StatusEnum.FAILURE, AuthConst.QQ_BIND_FAILED);
+            throw new BusinessException(StatusEnum.FAILURE, AuthConst.QQ_BIND_FAILED, e);
         }
     }
 
@@ -870,7 +876,7 @@ public class AuthServiceImpl implements AuthService {
             throw e;
         } catch (Exception e) {
             log.error("微博绑定失败", e);
-            throw new BusinessException(StatusEnum.FAILURE, AuthConst.WEIBO_BIND_FAILED);
+            throw new BusinessException(StatusEnum.FAILURE, AuthConst.WEIBO_BIND_FAILED, e);
         }
     }
 
@@ -898,7 +904,7 @@ public class AuthServiceImpl implements AuthService {
             throw e;
         } catch (Exception e) {
             log.error("QQ解绑失败", e);
-            throw new BusinessException(StatusEnum.FAILURE, AuthConst.QQ_UNBIND_FAILED);
+            throw new BusinessException(StatusEnum.FAILURE, AuthConst.QQ_UNBIND_FAILED, e);
         }
     }
 
@@ -926,8 +932,26 @@ public class AuthServiceImpl implements AuthService {
             throw e;
         } catch (Exception e) {
             log.error("微博解绑失败", e);
-            throw new BusinessException(StatusEnum.FAILURE, AuthConst.WEIBO_UNBIND_FAILED);
+            throw new BusinessException(StatusEnum.FAILURE, AuthConst.WEIBO_UNBIND_FAILED, e);
         }
+    }
+
+    /**
+     * OAuth异常对外仍返回统一登录失败提示，但内部保留真实故障告警
+     */
+    private void recordOAuthFailure(String title, String provider, Exception exception) {
+        notificationService.recordFailure(
+                NotificationEventTypeEnum.DEPENDENCY_FAILURE,
+                NotificationSourceTypeEnum.SYSTEM,
+                NotificationLevelEnum.ERROR,
+                title,
+                null,
+                exception,
+                Map.of(
+                        "component", "OAuth",
+                        "provider", provider
+                )
+        );
     }
 
 }

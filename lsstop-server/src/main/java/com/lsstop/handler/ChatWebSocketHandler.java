@@ -9,7 +9,11 @@ import com.lsstop.domain.entity.ChatMessageEntity;
 import com.lsstop.domain.vo.ChatMessageVO;
 import com.lsstop.domain.vo.UserInfoVO;
 import com.lsstop.exception.BusinessException;
+import com.lsstop.enums.NotificationEventTypeEnum;
+import com.lsstop.enums.NotificationLevelEnum;
+import com.lsstop.enums.NotificationSourceTypeEnum;
 import com.lsstop.service.ChatMessageService;
+import com.lsstop.service.NotificationService;
 import com.lsstop.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +41,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final ChatMessageService chatMessageService;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     /**
      * 在线用户会话池（userId -> 该用户的所有session）
@@ -111,6 +116,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             broadcastMessage(vo);
         } catch (Exception e) {
             log.error("处理聊天消息异常, userId: {}", userId, e);
+            notificationService.recordFailure(
+                    NotificationEventTypeEnum.SYSTEM_EXCEPTION,
+                    NotificationSourceTypeEnum.WEBSOCKET,
+                    NotificationLevelEnum.ERROR,
+                    "WebSocket聊天消息处理异常",
+                    session.getId(),
+                    e,
+                    Map.of("userId", userId)
+            );
         }
     }
 

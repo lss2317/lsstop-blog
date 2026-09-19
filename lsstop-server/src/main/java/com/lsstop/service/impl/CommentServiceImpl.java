@@ -12,12 +12,16 @@ import com.lsstop.domain.vo.CommentVO;
 import com.lsstop.domain.vo.UserRecentCommentVO;
 import com.lsstop.enums.CommentTypeEnum;
 import com.lsstop.enums.IllegalPolicyEnum;
+import com.lsstop.enums.NotificationEventTypeEnum;
+import com.lsstop.enums.NotificationLevelEnum;
+import com.lsstop.enums.NotificationSourceTypeEnum;
 import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
 import com.lsstop.mapper.CommentMapper;
 import com.lsstop.mapper.UserMapper;
 import com.lsstop.service.CommentService;
 import com.lsstop.service.EmailService;
+import com.lsstop.service.NotificationService;
 import com.lsstop.service.WebsiteConfigService;
 import com.lsstop.utils.RedisUtils;
 import com.lsstop.utils.SensitiveWordUtils;
@@ -30,6 +34,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -56,6 +61,9 @@ public class CommentServiceImpl implements CommentService {
 
     @Resource
     private EmailService emailService;
+
+    @Resource
+    private NotificationService notificationService;
 
     /**
      * 新增评论
@@ -109,6 +117,18 @@ public class CommentServiceImpl implements CommentService {
             } catch (Exception e) {
                 // 邮件通知失败不能影响评论主流程
                 log.warn("评论邮件通知发送失败: {}", e.getMessage());
+                notificationService.recordFailure(
+                        NotificationEventTypeEnum.DEPENDENCY_FAILURE,
+                        NotificationSourceTypeEnum.SYSTEM,
+                        NotificationLevelEnum.WARNING,
+                        "评论邮件通知发送失败",
+                        String.valueOf(comment.getId()),
+                        e,
+                        Map.of(
+                                "component", "EmailService",
+                                "commentId", String.valueOf(comment.getId())
+                        )
+                );
             }
         }
 

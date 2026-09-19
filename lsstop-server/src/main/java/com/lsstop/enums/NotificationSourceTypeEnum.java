@@ -18,6 +18,8 @@ public enum NotificationSourceTypeEnum implements ValueEnum<String> {
     HTTP_REQUEST("HTTP_REQUEST", "HTTP请求"),
     LOGIN_LOG("LOGIN_LOG", "登录日志"),
     TASK("TASK", "系统任务"),
+    MQ_CONSUMER("MQ_CONSUMER", "消息消费者"),
+    WEBSOCKET("WEBSOCKET", "WebSocket"),
     SYSTEM("SYSTEM", "系统内部");
 
     /**

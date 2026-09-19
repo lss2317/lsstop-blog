@@ -3,7 +3,11 @@ package com.lsstop.aop;
 import com.lsstop.annotation.AccessLimit;
 import com.lsstop.constant.RedisConst;
 import com.lsstop.enums.StatusEnum;
+import com.lsstop.enums.NotificationEventTypeEnum;
+import com.lsstop.enums.NotificationLevelEnum;
+import com.lsstop.enums.NotificationSourceTypeEnum;
 import com.lsstop.exception.BusinessException;
+import com.lsstop.service.NotificationService;
 import com.lsstop.utils.IpUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +23,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * 接口限流切面
@@ -36,6 +41,7 @@ import java.util.Collections;
 public class AccessLimitAspect {
 
     private final StringRedisTemplate stringRedisTemplate;
+    private final NotificationService notificationService;
 
     /**
      * Lua 脚本：原子性 INCR + EXPIRE
@@ -84,6 +90,18 @@ public class AccessLimitAspect {
             );
         } catch (Exception e) {
             log.error("限流 Redis 执行异常，放行请求 - URI: {}", request.getRequestURI(), e);
+            notificationService.recordFailure(
+                    NotificationEventTypeEnum.DEPENDENCY_FAILURE,
+                    NotificationSourceTypeEnum.SYSTEM,
+                    NotificationLevelEnum.ERROR,
+                    "接口限流Redis执行异常",
+                    null,
+                    e,
+                    Map.of(
+                            "component", "AccessLimitAspect",
+                            "uri", request.getRequestURI()
+                    )
+            );
             return joinPoint.proceed();
         }
 

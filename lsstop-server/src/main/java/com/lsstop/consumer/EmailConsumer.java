@@ -2,7 +2,11 @@ package com.lsstop.consumer;
 
 import com.lsstop.constant.RabbitMQConst;
 import com.lsstop.domain.dto.EmailDTO;
+import com.lsstop.enums.NotificationEventTypeEnum;
+import com.lsstop.enums.NotificationLevelEnum;
+import com.lsstop.enums.NotificationSourceTypeEnum;
 import com.lsstop.service.EmailService;
+import com.lsstop.service.NotificationService;
 import com.rabbitmq.client.Channel;
 import jakarta.annotation.Resource;
 import jakarta.mail.MessagingException;
@@ -19,8 +23,8 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 /**
  * 邮件消费者
@@ -40,6 +44,9 @@ public class EmailConsumer {
 
     @Resource
     private EmailService emailService;
+
+    @Resource
+    private NotificationService notificationService;
 
     @Value("${spring.mail.username}")
     private String from;
@@ -104,9 +111,31 @@ public class EmailConsumer {
                         });
             } else {
                 log.error("邮件发送失败，已达最大重试次数，收件人: {}，错误: {}", emailDTO.getTo(), e.getMessage());
+                notificationService.recordFailure(
+                        NotificationEventTypeEnum.MQ_FAILURE,
+                        NotificationSourceTypeEnum.MQ_CONSUMER,
+                        NotificationLevelEnum.ERROR,
+                        "邮件消息消费失败，已达最大重试次数",
+                        properties.getMessageId(),
+                        e,
+                        Map.of(
+                                "queue", RabbitMQConst.EMAIL_QUEUE,
+                                "retryCount", retryCount,
+                                "emailType", String.valueOf(emailDTO.getType())
+                        )
+                );
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             log.error("消息处理失败: {}", ex.getMessage());
+            notificationService.recordFailure(
+                    NotificationEventTypeEnum.MQ_FAILURE,
+                    NotificationSourceTypeEnum.MQ_CONSUMER,
+                    NotificationLevelEnum.ERROR,
+                    "邮件消息确认处理失败",
+                    properties.getMessageId(),
+                    ex,
+                    Map.of("queue", RabbitMQConst.EMAIL_QUEUE)
+            );
         }
     }
 }

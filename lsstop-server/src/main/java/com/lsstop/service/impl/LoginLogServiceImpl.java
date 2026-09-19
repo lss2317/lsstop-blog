@@ -9,8 +9,12 @@ import com.lsstop.enums.AuthActionEnum;
 import com.lsstop.enums.LoginResultEnum;
 import com.lsstop.enums.LoginSourceEnum;
 import com.lsstop.enums.LoginTypeEnum;
+import com.lsstop.enums.NotificationEventTypeEnum;
+import com.lsstop.enums.NotificationLevelEnum;
+import com.lsstop.enums.NotificationSourceTypeEnum;
 import com.lsstop.mapper.LoginLogMapper;
 import com.lsstop.service.LoginLogService;
+import com.lsstop.service.NotificationService;
 import com.lsstop.utils.IpUtils;
 import com.lsstop.utils.UserAgentUtils;
 import jakarta.annotation.Resource;
@@ -33,6 +37,7 @@ import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -50,6 +55,9 @@ public class LoginLogServiceImpl implements LoginLogService {
 
     @Resource
     private RabbitTemplate rabbitTemplate;
+
+    @Resource
+    private NotificationService notificationService;
 
     /**
      * 插入登录日志
@@ -99,6 +107,18 @@ public class LoginLogServiceImpl implements LoginLogService {
             rabbitTemplate.convertAndSend(RabbitMQConst.BLOG_EXCHANGE, RabbitMQConst.LOGIN_LOG_ROUTING_KEY, loginLog);
         } catch (Exception e) {
             log.error("发送认证日志到MQ失败, loginIdentifier={}, message={}", loginIdentifier, message, e);
+            notificationService.recordFailure(
+                    NotificationEventTypeEnum.DEPENDENCY_FAILURE,
+                    NotificationSourceTypeEnum.LOGIN_LOG,
+                    NotificationLevelEnum.ERROR,
+                    "认证日志发送到MQ失败",
+                    null,
+                    e,
+                    Map.of(
+                            "component", "LoginLogService",
+                            "actionType", String.valueOf(actionType)
+                    )
+            );
         }
     }
 

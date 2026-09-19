@@ -1,10 +1,14 @@
 package com.lsstop.handler;
 
 import com.lsstop.common.Result;
+import com.lsstop.constant.RequestTraceConst;
 import com.lsstop.enums.StatusEnum;
 import com.lsstop.exception.BusinessException;
+import com.lsstop.service.NotificationService;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +35,10 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionControllerHandler {
+
+    private final NotificationService notificationService;
 
     /**
      * 处理所有未捕获的异常
@@ -41,8 +48,9 @@ public class GlobalExceptionControllerHandler {
      */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Result<Void> handleException(Exception e) {
+    public Result<Void> handleException(Exception e, HttpServletRequest request) {
         log.error("系统异常: ", e);
+        recordHttpException(request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e);
         return Result.failure("系统异常，请稍后重试");
     }
 
@@ -54,8 +62,11 @@ public class GlobalExceptionControllerHandler {
      * @return 统一错误响应
      */
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<Result<Void>> handleBusinessException(BusinessException e) {
+    public ResponseEntity<Result<Void>> handleBusinessException(BusinessException e, HttpServletRequest request) {
         log.warn("业务异常: {}", e.getMessage());
+        if (e.getHttpStatus().is5xxServerError()) {
+            recordHttpException(request, e.getHttpStatus().value(), e);
+        }
         return ResponseEntity.status(e.getHttpStatus())
                 .body(Result.failure(e.getCode(), e.getMessage()));
     }
@@ -81,8 +92,9 @@ public class GlobalExceptionControllerHandler {
      */
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Result<Void> handleRuntimeException(RuntimeException e) {
+    public Result<Void> handleRuntimeException(RuntimeException e, HttpServletRequest request) {
         log.error("运行时异常: ", e);
+        recordHttpException(request, HttpStatus.INTERNAL_SERVER_ERROR.value(), e);
         return Result.failure("系统异常，请稍后重试");
     }
 
@@ -168,5 +180,14 @@ public class GlobalExceptionControllerHandler {
     public Result<Void> handleNoHandlerFoundException(NoHandlerFoundException e) {
         log.warn("资源不存在: {}", e.getRequestURL());
         return Result.failure("资源不存在: " + e.getRequestURL());
+    }
+
+    /**
+     * 记录HTTP异常并设置请求标记，避免请求过滤器再次记录同一个异常
+     */
+    private void recordHttpException(HttpServletRequest request, int status, Throwable throwable) {
+        if (notificationService.recordHttpException(request, status, throwable)) {
+            request.setAttribute(RequestTraceConst.NOTIFICATION_RECORDED, Boolean.TRUE);
+        }
     }
 }

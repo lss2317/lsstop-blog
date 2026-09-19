@@ -61,4 +61,13 @@ public class BusinessException extends RuntimeException {
         this.code = statusEnum.getCode();
         this.httpStatus = statusEnum.getHttpStatus();
     }
+
+    /**
+     * 将底层系统异常包装为对外业务异常，同时保留原始异常用于告警追踪
+     */
+    public BusinessException(StatusEnum statusEnum, String message, Throwable cause) {
+        super(message, cause);
+        this.code = statusEnum.getCode();
+        this.httpStatus = statusEnum.getHttpStatus();
+    }
 }

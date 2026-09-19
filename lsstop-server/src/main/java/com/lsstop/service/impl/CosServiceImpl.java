@@ -62,7 +62,7 @@ public class CosServiceImpl implements CosService {
             return cosConfig.getDomain() + "/" + key;
         } catch (Exception e) {
             log.error("图片上传失败: {}", e.getMessage(), e);
-            throw new BusinessException(StatusEnum.FAILURE, FileConst.FILE_UPLOAD_FAILED);
+            throw new BusinessException(StatusEnum.FAILURE, FileConst.FILE_UPLOAD_FAILED, e);
         }
     }
 
@@ -82,7 +82,7 @@ public class CosServiceImpl implements CosService {
             cosClient.deleteObject(cosConfig.getBucketName(), key);
         } catch (Exception e) {
             log.error("文件删除失败: {}", e.getMessage(), e);
-            throw new BusinessException(StatusEnum.FAILURE, FileConst.FILE_DELETE_FAILED);
+            throw new BusinessException(StatusEnum.FAILURE, FileConst.FILE_DELETE_FAILED, e);
         }
     }
 

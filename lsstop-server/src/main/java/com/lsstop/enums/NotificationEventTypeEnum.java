@@ -19,6 +19,8 @@ public enum NotificationEventTypeEnum implements ValueEnum<String> {
     SLOW_API("SLOW_API", "接口请求过慢"),
     LOGIN_RISK("LOGIN_RISK", "登录风险"),
     TASK_FAILURE("TASK_FAILURE", "任务执行失败"),
+    MQ_FAILURE("MQ_FAILURE", "消息消费失败"),
+    DEPENDENCY_FAILURE("DEPENDENCY_FAILURE", "外部依赖异常"),
     SYSTEM_NOTICE("SYSTEM_NOTICE", "系统通知");
 
     /**

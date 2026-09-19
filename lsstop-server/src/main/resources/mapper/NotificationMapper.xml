@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lsstop.mapper.NotificationMapper">
+
+    <!--
+        blog_notification 上存在 (event_type, dedup_key) 唯一索引。
+        同一事件在聚合窗口内再次发生时，保留首次发生时间并累加次数；
+        已读或已删除的旧告警再次发生后需要重新出现在未读列表中。
+    -->
+    <insert id="upsert" parameterType="com.lsstop.domain.entity.NotificationEntity">
+        insert into blog_notification
+        (notification_no, category, event_type, `level`, title, content,
+         source_type, source_id, extra, dedup_key, occurrence_count,
+         read_time, first_occurred_time, last_occurred_time,
+         deleted_at, create_time, update_time)
+        values
+        (#{notificationNo}, #{category}, #{eventType}, #{level}, #{title}, #{content},
+         #{sourceType}, #{sourceId}, #{extra, jdbcType=VARCHAR}, #{dedupKey}, 1,
+         null, #{firstOccurredTime}, #{lastOccurredTime},
+         0, now(), now())
+        on duplicate key update
+            category = values(category),
+            `level` = greatest(`level`, values(`level`)),
+            title = values(title),
+            content = values(content),
+            source_type = values(source_type),
+            source_id = values(source_id),
+            extra = values(extra),
+            occurrence_count = occurrence_count + 1,
+            read_time = null,
+            last_occurred_time = values(last_occurred_time),
+            deleted_at = 0,
+            update_time = now()
+    </insert>
+
+</mapper>
