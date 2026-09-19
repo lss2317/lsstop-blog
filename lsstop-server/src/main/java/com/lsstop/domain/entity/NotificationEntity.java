@@ -41,7 +41,7 @@ public class NotificationEntity implements BaseData {
     private String eventType;
 
     /**
-     * 通知级别：1普通 2警告 3错误 4严重
+     * 通知级别：1提示 2警告 3错误 4严重
      */
     private Integer level;
 

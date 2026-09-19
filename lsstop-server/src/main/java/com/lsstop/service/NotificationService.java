@@ -1,11 +1,15 @@
 package com.lsstop.service;
 
+import com.lsstop.domain.dto.NotificationQueryDTO;
 import com.lsstop.enums.NotificationEventTypeEnum;
 import com.lsstop.enums.NotificationLevelEnum;
 import com.lsstop.enums.NotificationSourceTypeEnum;
+import com.lsstop.domain.vo.NotificationDetailVO;
+import com.lsstop.domain.vo.NotificationListVO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -72,4 +76,42 @@ public interface NotificationService {
                           String sourceId,
                           Throwable throwable,
                           Map<String, ?> details);
+
+    /**
+     * 分页查询通知摘要列表。
+     *
+     * <p>右上角通知弹层通过传入 {@code readStatus=0} 复用该查询，返回总数即未读数量。</p>
+     *
+     * @param query 分页及筛选条件
+     * @return 通知摘要列表
+     */
+    List<NotificationListVO> listNotifications(NotificationQueryDTO query);
+
+    /**
+     * 统计符合筛选条件的通知数量。
+     *
+     * @param query 筛选条件
+     * @return 通知数量
+     */
+    Integer countNotifications(NotificationQueryDTO query);
+
+    /**
+     * 查询通知详情。
+     *
+     * @param notificationNo 通知编号
+     * @return 通知详情
+     */
+    NotificationDetailVO getNotificationDetail(String notificationNo);
+
+    /**
+     * 将指定通知标记为已读；重复调用保持幂等。
+     *
+     * @param notificationNo 通知编号
+     */
+    void markAsRead(String notificationNo);
+
+    /**
+     * 将全部未读通知标记为已读。
+     */
+    void markAllAsRead();
 }

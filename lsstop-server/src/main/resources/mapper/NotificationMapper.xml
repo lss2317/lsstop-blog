@@ -2,6 +2,40 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lsstop.mapper.NotificationMapper">
 
+    <!-- 通知列表返回字段映射，不包含可能存放较长异常堆栈的扩展数据。 -->
+    <resultMap id="NotificationListVOResultMap" type="com.lsstop.domain.vo.NotificationListVO">
+        <result property="notificationNo" column="notification_no" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="category" column="category" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="eventType" column="event_type" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="level" column="level" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="title" column="title" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="content" column="content" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="sourceType" column="source_type" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="sourceId" column="source_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="occurrenceCount" column="occurrence_count" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="readTime" column="read_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="firstOccurredTime" column="first_occurred_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="lastOccurredTime" column="last_occurred_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <!-- 通知详情返回字段映射，在列表字段基础上增加扩展诊断数据和创建时间。 -->
+    <resultMap id="NotificationDetailVOResultMap" type="com.lsstop.domain.vo.NotificationDetailVO">
+        <result property="notificationNo" column="notification_no" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="category" column="category" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="eventType" column="event_type" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="level" column="level" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="title" column="title" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="content" column="content" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="sourceType" column="source_type" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="sourceId" column="source_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="extra" column="extra" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        <result property="occurrenceCount" column="occurrence_count" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <result property="readTime" column="read_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="firstOccurredTime" column="first_occurred_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="lastOccurredTime" column="last_occurred_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
     <!--
         blog_notification 上存在 (event_type, dedup_key) 唯一索引。
         同一事件在聚合窗口内再次发生时，保留首次发生时间并累加次数；
@@ -32,5 +66,106 @@
             deleted_at = 0,
             update_time = now()
     </insert>
+
+    <!-- 列表和计数查询共用同一个强类型查询 DTO，避免无类型 Map 参数。 -->
+    <sql id="notificationFilter">
+        where deleted_at = 0
+        <if test="category != null">
+            and category = #{category}
+        </if>
+        <if test="eventType != null and eventType != ''">
+            and event_type = #{eventType}
+        </if>
+        <if test="level != null">
+            and `level` = #{level}
+        </if>
+        <if test="readStatus != null and readStatus == 0">
+            and read_time is null
+        </if>
+        <if test="readStatus != null and readStatus == 1">
+            and read_time is not null
+        </if>
+        <if test="sourceType != null and sourceType != ''">
+            and source_type = #{sourceType}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (title like concat('%', #{keyword}, '%')
+                 or content like concat('%', #{keyword}, '%'))
+        </if>
+        <if test="startTime != null">
+            and last_occurred_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            and last_occurred_time &lt;= #{endTime}
+        </if>
+    </sql>
+
+    <!--
+        通知中心和右上角未读弹层共用此查询：弹层固定传 readStatus=0，
+        页面列表则按用户筛选条件查询。列表不返回 extra，避免批量传输异常堆栈。
+    -->
+    <select id="selectList" parameterType="com.lsstop.domain.dto.NotificationQueryDTO"
+            resultMap="NotificationListVOResultMap">
+        select notification_no,
+               category,
+               event_type,
+               `level`,
+               title,
+               content,
+               source_type,
+               source_id,
+               occurrence_count,
+               read_time,
+               first_occurred_time,
+               last_occurred_time
+        from blog_notification
+        <include refid="notificationFilter"/>
+        order by last_occurred_time desc, id desc
+        limit #{offset}, #{size}
+    </select>
+
+    <select id="countTotal" parameterType="com.lsstop.domain.dto.NotificationQueryDTO"
+            resultType="java.lang.Integer">
+        select count(*)
+        from blog_notification
+        <include refid="notificationFilter"/>
+    </select>
+
+    <!-- 详情按需返回已脱敏的扩展数据，避免列表接口携带大段堆栈。 -->
+    <select id="selectDetailByNotificationNo" resultMap="NotificationDetailVOResultMap">
+        select notification_no,
+               category,
+               event_type,
+               `level`,
+               title,
+               content,
+               source_type,
+               source_id,
+               cast(extra as char) as extra,
+               occurrence_count,
+               read_time,
+               first_occurred_time,
+               last_occurred_time,
+               create_time
+        from blog_notification
+        where deleted_at = 0
+          and notification_no = #{notificationNo}
+        limit 1
+    </select>
+
+    <update id="markAsRead">
+        update blog_notification
+        set read_time = now(), update_time = now()
+        where deleted_at = 0
+          and notification_no = #{notificationNo}
+          and read_time is null
+    </update>
+
+    <update id="markAllAsRead">
+        update blog_notification
+        set read_time = now(), update_time = now()
+        where deleted_at = 0
+          and read_time is null
+    </update>
 
 </mapper>

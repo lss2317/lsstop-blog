@@ -15,7 +15,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum NotificationLevelEnum implements ValueEnum<Integer> {
 
-    NORMAL(1, "普通"),
+    NORMAL(1, "提示"),
     WARNING(2, "警告"),
     ERROR(3, "错误"),
     CRITICAL(4, "严重");

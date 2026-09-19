@@ -17,6 +17,51 @@ public final class NotificationConst {
     public static final String TASK_EXECUTOR_BEAN_NAME = "notificationTaskExecutor";
 
     /**
+     * 通知列表单页允许查询的最大记录数
+     */
+    public static final int MAX_PAGE_SIZE = 100;
+
+    /**
+     * 未读状态查询值
+     */
+    public static final int READ_STATUS_UNREAD = 0;
+
+    /**
+     * 已读状态查询值
+     */
+    public static final int READ_STATUS_READ = 1;
+
+    /**
+     * 通知不存在提示
+     */
+    public static final String NOTIFICATION_NOT_FOUND = "通知不存在";
+
+    /**
+     * 通知列表分页参数错误提示
+     */
+    public static final String INVALID_PAGE_PARAM = "分页参数错误";
+
+    /**
+     * 通知阅读状态参数错误提示
+     */
+    public static final String INVALID_READ_STATUS = "通知阅读状态参数错误";
+
+    /**
+     * 通知分类参数错误提示
+     */
+    public static final String INVALID_CATEGORY = "通知分类参数错误";
+
+    /**
+     * 通知级别参数错误提示
+     */
+    public static final String INVALID_LEVEL = "通知级别参数错误";
+
+    /**
+     * 通知查询时间范围错误提示
+     */
+    public static final String INVALID_TIME_RANGE = "开始时间不能晚于结束时间";
+
+    /**
      * 慢请求判定阈值，单位为毫秒
      */
     public static final long SLOW_REQUEST_THRESHOLD_MS = 1000L;

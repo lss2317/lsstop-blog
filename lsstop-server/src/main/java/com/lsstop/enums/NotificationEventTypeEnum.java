@@ -16,11 +16,11 @@ import lombok.Getter;
 public enum NotificationEventTypeEnum implements ValueEnum<String> {
 
     SYSTEM_EXCEPTION("SYSTEM_EXCEPTION", "系统异常"),
-    SLOW_API("SLOW_API", "接口请求过慢"),
-    LOGIN_RISK("LOGIN_RISK", "登录风险"),
-    TASK_FAILURE("TASK_FAILURE", "任务执行失败"),
-    MQ_FAILURE("MQ_FAILURE", "消息消费失败"),
-    DEPENDENCY_FAILURE("DEPENDENCY_FAILURE", "外部依赖异常"),
+    SLOW_API("SLOW_API", "接口响应过慢"),
+    LOGIN_RISK("LOGIN_RISK", "登录安全风险"),
+    TASK_FAILURE("TASK_FAILURE", "定时任务失败"),
+    MQ_FAILURE("MQ_FAILURE", "消息队列异常"),
+    DEPENDENCY_FAILURE("DEPENDENCY_FAILURE", "依赖服务异常"),
     SYSTEM_NOTICE("SYSTEM_NOTICE", "系统通知");
 
     /**

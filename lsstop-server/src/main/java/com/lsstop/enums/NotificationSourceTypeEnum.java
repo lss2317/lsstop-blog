@@ -15,11 +15,11 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum NotificationSourceTypeEnum implements ValueEnum<String> {
 
-    HTTP_REQUEST("HTTP_REQUEST", "HTTP请求"),
-    LOGIN_LOG("LOGIN_LOG", "登录日志"),
-    TASK("TASK", "系统任务"),
-    MQ_CONSUMER("MQ_CONSUMER", "消息消费者"),
-    WEBSOCKET("WEBSOCKET", "WebSocket"),
+    HTTP_REQUEST("HTTP_REQUEST", "接口请求"),
+    LOGIN_LOG("LOGIN_LOG", "认证日志模块"),
+    TASK("TASK", "定时任务"),
+    MQ_CONSUMER("MQ_CONSUMER", "消息队列消费"),
+    WEBSOCKET("WEBSOCKET", "实时通信"),
     SYSTEM("SYSTEM", "系统内部");
 
     /**

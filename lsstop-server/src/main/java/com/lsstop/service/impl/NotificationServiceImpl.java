@@ -3,11 +3,17 @@ package com.lsstop.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.lsstop.constant.NotificationConst;
 import com.lsstop.constant.RequestTraceConst;
+import com.lsstop.domain.dto.NotificationQueryDTO;
 import com.lsstop.domain.entity.NotificationEntity;
+import com.lsstop.domain.vo.NotificationDetailVO;
+import com.lsstop.domain.vo.NotificationListVO;
 import com.lsstop.enums.NotificationCategoryEnum;
 import com.lsstop.enums.NotificationEventTypeEnum;
 import com.lsstop.enums.NotificationLevelEnum;
 import com.lsstop.enums.NotificationSourceTypeEnum;
+import com.lsstop.enums.StatusEnum;
+import com.lsstop.exception.BusinessException;
+import com.lsstop.mapper.NotificationMapper;
 import com.lsstop.service.NotificationService;
 import com.lsstop.utils.IpUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +23,7 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.HandlerMapping;
 
 import java.io.PrintWriter;
@@ -29,6 +36,7 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -38,7 +46,8 @@ import java.util.UUID;
  *
  * <p>业务线程只负责生成完整通知快照并投递到专用线程池，数据库操作由通知线程异步执行。
  * 请求对象中的参数和属性必须在投递前读取，因为异步线程执行时原请求可能已经结束。
- * 整条链路的异常均在本服务内消化，避免告警构建、线程池拒绝或数据库故障覆盖原始业务异常。</p>
+ * 通知记录链路的异常均在本服务内消化，避免告警构建、线程池拒绝或数据库故障覆盖原始业务异常；
+ * 后台查询和阅读状态操作则按普通业务接口规则返回错误。</p>
  *
  * @author lishusheng
  * @date 2026/09/19
@@ -53,17 +62,23 @@ public class NotificationServiceImpl implements NotificationService {
     /** 通知异步入库专用线程池，不与主业务线程池共用 */
     private final TaskExecutor notificationTaskExecutor;
 
+    /** 通知查询及阅读状态数据访问组件 */
+    private final NotificationMapper notificationMapper;
+
     /**
      * 注入通知持久化服务和专用异步执行器。
      *
      * @param persistenceService 通知独立事务持久化服务
      * @param notificationTaskExecutor 通知异步入库专用执行器
+     * @param notificationMapper 通知查询及状态更新数据访问组件
      */
     public NotificationServiceImpl(
             NotificationPersistenceService persistenceService,
-            @Qualifier(NotificationConst.TASK_EXECUTOR_BEAN_NAME) TaskExecutor notificationTaskExecutor) {
+            @Qualifier(NotificationConst.TASK_EXECUTOR_BEAN_NAME) TaskExecutor notificationTaskExecutor,
+            NotificationMapper notificationMapper) {
         this.persistenceService = persistenceService;
         this.notificationTaskExecutor = notificationTaskExecutor;
+        this.notificationMapper = notificationMapper;
     }
 
     @Override
@@ -194,6 +209,53 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (Exception recordError) {
             return handleRecordFailure(recordError);
         }
+    }
+
+    /**
+     * 分页读取通知摘要；列表和顶部未读弹层使用相同筛选逻辑，保证数量与记录口径一致。
+     */
+    @Override
+    public List<NotificationListVO> listNotifications(NotificationQueryDTO query) {
+        return notificationMapper.selectList(query);
+    }
+
+    /**
+     * 统计通知总数；右上角传未读状态时，该结果直接作为通知角标数量。
+     */
+    @Override
+    public Integer countNotifications(NotificationQueryDTO query) {
+        return notificationMapper.countTotal(query);
+    }
+
+    /**
+     * 获取包含已脱敏扩展数据的通知详情。
+     */
+    @Override
+    public NotificationDetailVO getNotificationDetail(String notificationNo) {
+        NotificationDetailVO detail = notificationMapper.selectDetailByNotificationNo(notificationNo);
+        if (detail == null) {
+            throw new BusinessException(StatusEnum.NOT_FOUND, NotificationConst.NOTIFICATION_NOT_FOUND);
+        }
+        return detail;
+    }
+
+    /**
+     * 标记单条通知为已读。先校验通知存在，使不存在和重复标记两种情况具有明确语义。
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markAsRead(String notificationNo) {
+        getNotificationDetail(notificationNo);
+        notificationMapper.markAsRead(notificationNo);
+    }
+
+    /**
+     * 一次性更新当前全部未读通知；新发生的通知不受本次更新影响。
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markAllAsRead() {
+        notificationMapper.markAllAsRead();
     }
 
     /**
