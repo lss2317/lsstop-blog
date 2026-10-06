@@ -67,8 +67,25 @@
             update_time = now()
     </insert>
 
-    <!-- 列表和计数查询共用同一个强类型查询 DTO，避免无类型 Map 参数。 -->
-    <sql id="notificationFilter">
+    <!--
+        通知中心和右上角未读弹层共用此查询：弹层固定传 readStatus=0，
+        页面列表则按用户筛选条件查询。列表不返回 extra，避免批量传输异常堆栈。
+    -->
+    <select id="selectList" parameterType="com.lsstop.domain.dto.NotificationQueryDTO"
+            resultMap="NotificationListVOResultMap">
+        select notification_no,
+               category,
+               event_type,
+               `level`,
+               title,
+               content,
+               source_type,
+               source_id,
+               occurrence_count,
+               read_time,
+               first_occurred_time,
+               last_occurred_time
+        from blog_notification
         where deleted_at = 0
         <if test="category != null">
             and category = #{category}
@@ -98,37 +115,44 @@
         <if test="endTime != null">
             and last_occurred_time &lt;= #{endTime}
         </if>
-    </sql>
-
-    <!--
-        通知中心和右上角未读弹层共用此查询：弹层固定传 readStatus=0，
-        页面列表则按用户筛选条件查询。列表不返回 extra，避免批量传输异常堆栈。
-    -->
-    <select id="selectList" parameterType="com.lsstop.domain.dto.NotificationQueryDTO"
-            resultMap="NotificationListVOResultMap">
-        select notification_no,
-               category,
-               event_type,
-               `level`,
-               title,
-               content,
-               source_type,
-               source_id,
-               occurrence_count,
-               read_time,
-               first_occurred_time,
-               last_occurred_time
-        from blog_notification
-        <include refid="notificationFilter"/>
         order by last_occurred_time desc, id desc
         limit #{offset}, #{size}
     </select>
 
+    <!-- 统计条件与列表查询保持一致，确保分页总数和列表记录口径相同。 -->
     <select id="countTotal" parameterType="com.lsstop.domain.dto.NotificationQueryDTO"
             resultType="java.lang.Integer">
         select count(*)
         from blog_notification
-        <include refid="notificationFilter"/>
+        where deleted_at = 0
+        <if test="category != null">
+            and category = #{category}
+        </if>
+        <if test="eventType != null and eventType != ''">
+            and event_type = #{eventType}
+        </if>
+        <if test="level != null">
+            and `level` = #{level}
+        </if>
+        <if test="readStatus != null and readStatus == 0">
+            and read_time is null
+        </if>
+        <if test="readStatus != null and readStatus == 1">
+            and read_time is not null
+        </if>
+        <if test="sourceType != null and sourceType != ''">
+            and source_type = #{sourceType}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (title like concat('%', #{keyword}, '%')
+                 or content like concat('%', #{keyword}, '%'))
+        </if>
+        <if test="startTime != null">
+            and last_occurred_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            and last_occurred_time &lt;= #{endTime}
+        </if>
     </select>
 
     <!-- 详情按需返回已脱敏的扩展数据，避免列表接口携带大段堆栈。 -->

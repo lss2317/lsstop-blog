@@ -20,3 +20,45 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+
+#AI - 工具本地状态/缓存（个人配置，不进版本库）
+.claude
+.codex
+.cursor
+.cursorrules
+.windsurf
+.windsurfrules
+.continue
+.aider*
+.cline
+.clinerules
+.roo
+.roomodes
+.kilocode
+.augment
+.augment-guidelines
+.gemini
+.qwen
+.trae
+.opencode
+.crush
+.goose
+.amp
+.zed
+.tabnine
+.cody
+.cody.yml
+.sourcegraph
+.plandex
+
+#AI - 国产工具
+.comate
+.lingma
+.codegeex
+.codefuse
+.iflycode
+.workbuddy-ai
+
+#AI - 会话记录 / MCP 配置（可能含 API key 或源码片段）
+.mcp.json
+.specstory
