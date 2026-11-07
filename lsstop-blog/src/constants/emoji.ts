@@ -1,7 +1,8 @@
 import emojiManifestJson from './emoji-manifest.json';
 
 export const EMOJI_BASE_URL = (
-  import.meta.env.VITE_EMOJI_BASE_URL || 'https://1bx248gw72461.vicp.fun/emoji'
+  import.meta.env.VITE_EMOJI_BASE_URL ||
+  'https://blog-1307541812.cos.ap-shanghai.myqcloud.com/blog/emoji'
 ).replace(/\/+$/, '');
 
 export type EmojiAnimationType = 'apng' | 'lottie' | 'static';

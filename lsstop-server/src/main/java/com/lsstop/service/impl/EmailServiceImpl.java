@@ -1,6 +1,8 @@
 package com.lsstop.service.impl;
 
 import com.lsstop.config.BlogConfig;
+import com.lsstop.config.CosConfig;
+import com.lsstop.constant.EmojiConst;
 import com.lsstop.constant.RabbitMQConst;
 import com.lsstop.domain.dto.EmailDTO;
 import com.lsstop.domain.entity.CommentEntity;
@@ -16,7 +18,6 @@ import com.lsstop.utils.EmojiUtils;
 import com.lsstop.utils.StringUtils;
 import jakarta.annotation.Resource;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -54,8 +55,8 @@ public class EmailServiceImpl implements EmailService {
     @Resource
     private BlogConfig blogConfig;
 
-    @Value("${app.emoji.base-url}")
-    private String emojiBaseUrl;
+    @Resource
+    private CosConfig cosConfig;
 
     @Override
     public String generateSubject(EmailDTO emailDTO) {
@@ -202,6 +203,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     private String renderEmoji(String content) {
+        String emojiBaseUrl = cosConfig.getDomain() + "/" + cosConfig.getPathPrefix() + EmojiConst.COS_FOLDER;
         return EmojiUtils.toHtml(content, emojiBaseUrl);
     }
 

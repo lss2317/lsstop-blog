@@ -169,8 +169,3 @@ oauth:
     app-secret: your-weibo-app-secret
     # 回调地址
     redirect-uri: https://your-blog-url.com/oauth/weibo/callback
-
-# 表情文件服务器配置
-app:
-  emoji:
-    base-url: https://1bx248gw72461.vicp.fun/emoji

@@ -12,6 +12,11 @@ import java.util.Map;
  */
 public final class EmojiConst {
 
+    /**
+     * COS 表情资源目录
+     */
+    public static final String COS_FOLDER = "emoji";
+
     public static final Map<String, String> EMOJI_MAP = load();
 
     private EmojiConst() {
