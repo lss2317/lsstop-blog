@@ -16,6 +16,7 @@ import com.lsstop.utils.EmojiUtils;
 import com.lsstop.utils.StringUtils;
 import jakarta.annotation.Resource;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -53,6 +54,9 @@ public class EmailServiceImpl implements EmailService {
     @Resource
     private BlogConfig blogConfig;
 
+    @Value("${app.emoji.base-url}")
+    private String emojiBaseUrl;
+
     @Override
     public String generateSubject(EmailDTO emailDTO) {
         // 优先使用自定义主题
@@ -88,7 +92,7 @@ public class EmailServiceImpl implements EmailService {
                     "topicType", topicType,
                     "topic", topic,
                     "nickname", nickname,
-                    "content", EmojiUtils.toHtml(StringUtils.truncate(comment.getContent(), 100)),
+                    "content", renderEmoji(StringUtils.truncate(comment.getContent(), 100)),
                     "url", url
             ));
         } else {
@@ -99,7 +103,7 @@ public class EmailServiceImpl implements EmailService {
             }
             // replyUserId为空时（回复主评论），查询主评论作者
             String targetUserId = comment.getReplyUserId();
-            String originalContent = EmojiUtils.toHtml(StringUtils.truncate(parentComment.getContent(), 100));
+            String originalContent = renderEmoji(StringUtils.truncate(parentComment.getContent(), 100));
             if (targetUserId == null || targetUserId.isBlank()) {
                 targetUserId = parentComment.getUserId();
             }
@@ -110,7 +114,7 @@ public class EmailServiceImpl implements EmailService {
                         "topic", topic,
                         "nickname", nickname,
                         "originalContent", originalContent,
-                        "replyContent", EmojiUtils.toHtml(StringUtils.truncate(comment.getContent(), 100)),
+                        "replyContent", renderEmoji(StringUtils.truncate(comment.getContent(), 100)),
                         "url", url
                 ));
             }
@@ -195,6 +199,10 @@ public class EmailServiceImpl implements EmailService {
             case TALK -> blogConfig.getUrl() + "/talk/" + comment.getTargetId();
             case FRIEND_LINK -> blogConfig.getUrl() + "/friendLink";
         };
+    }
+
+    private String renderEmoji(String content) {
+        return EmojiUtils.toHtml(content, emojiBaseUrl);
     }
 
     /**

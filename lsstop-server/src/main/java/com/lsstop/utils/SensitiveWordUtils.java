@@ -2,83 +2,57 @@ package com.lsstop.utils;
 
 import com.github.houbb.sensitive.word.core.SensitiveWordHelper;
 import com.lsstop.constant.CommonConst;
+import com.lsstop.constant.EmojiConst;
 import com.lsstop.enums.IllegalPolicyEnum;
 import com.lsstop.exception.BusinessException;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * 敏感词工具类
- *
- * @author lishusheng
- * @date 2026/01/30
+ * 敏感词工具类。仅保护新表情清单中存在的完整 token。
  */
-public class SensitiveWordUtils {
+public final class SensitiveWordUtils {
+
+    private static final Pattern EMOJI_PATTERN = Pattern.compile("\\[[^\\[\\]\\r\\n]{1,32}]");
 
     private SensitiveWordUtils() {
     }
 
-    /**
-     * 敏感词处理结果
-     *
-     * @param hasSensitive 是否包含敏感词
-     * @param content      处理后的文本
-     */
     public record Result(boolean hasSensitive, String content) {
     }
 
-    /**
-     * 检测文本是否包含敏感词
-     *
-     * @param text 待检测文本
-     * @return true-包含敏感词，false-不包含
-     */
     public static boolean contains(String text) {
         if (text == null || text.isEmpty()) {
             return false;
         }
-        return SensitiveWordHelper.contains(text);
+        return SensitiveWordHelper.contains(maskEmojiTokens(text).plainText());
     }
 
-    /**
-     * 获取文本中的所有敏感词
-     *
-     * @param text 待检测文本
-     * @return 敏感词列表
-     */
     public static List<String> findAll(String text) {
         if (text == null || text.isEmpty()) {
             return List.of();
         }
-        return SensitiveWordHelper.findAll(text);
+        return SensitiveWordHelper.findAll(maskEmojiTokens(text).plainText());
     }
 
-    /**
-     * 替换文本中的敏感词为 ***
-     *
-     * @param text 待处理文本
-     * @return 替换后的文本
-     */
     public static String replace(String text) {
         if (text == null || text.isEmpty()) {
             return text;
         }
-        return SensitiveWordHelper.replace(text);
+        MaskedText masked = maskEmojiTokens(text);
+        return masked.restore(SensitiveWordHelper.replace(masked.plainText()));
     }
 
-    /**
-     * 根据策略处理敏感词
-     *
-     * @param text   待处理文本
-     * @param policy 处理策略枚举
-     * @return 处理结果（包含是否命中敏感词及处理后文本）
-     */
     public static Result process(String text, IllegalPolicyEnum policy) {
         if (text == null || text.isEmpty()) {
             return new Result(false, text);
         }
 
-        boolean hasSensitive = contains(text);
+        MaskedText masked = maskEmojiTokens(text);
+        boolean hasSensitive = SensitiveWordHelper.contains(masked.plainText());
         if (!hasSensitive) {
             return new Result(false, text);
         }
@@ -86,23 +60,62 @@ public class SensitiveWordUtils {
         if (IllegalPolicyEnum.BLOCK == policy) {
             throw new BusinessException(CommonConst.SENSITIVE_WORD_DETECTED);
         }
-
         if (IllegalPolicyEnum.REPLACE == policy) {
-            return new Result(true, replace(text));
+            return new Result(true, masked.restore(SensitiveWordHelper.replace(masked.plainText())));
         }
-
-        // 策略为审核时，返回原文本，由调用方设置审核状态
         return new Result(true, text);
     }
 
-    /**
-     * 校验文本，包含敏感词则抛出异常
-     *
-     * @param text 待校验文本
-     */
     public static void validate(String text) {
         if (contains(text)) {
             throw new BusinessException(CommonConst.SENSITIVE_WORD_DETECTED);
+        }
+    }
+
+    private static MaskedText maskEmojiTokens(String text) {
+        Matcher matcher = EMOJI_PATTERN.matcher(text);
+        List<TextPart> parts = new ArrayList<>();
+        StringBuilder plainText = new StringBuilder(text.length());
+        int cursor = 0;
+
+        while (matcher.find()) {
+            String token = matcher.group();
+            if (!EmojiConst.EMOJI_MAP.containsKey(token)) {
+                continue;
+            }
+            appendPlainPart(text.substring(cursor, matcher.start()), parts, plainText);
+            parts.add(new TextPart(true, token));
+            cursor = matcher.end();
+        }
+        appendPlainPart(text.substring(cursor), parts, plainText);
+        return new MaskedText(plainText.toString(), parts);
+    }
+
+    private static void appendPlainPart(String value, List<TextPart> parts, StringBuilder plainText) {
+        if (value.isEmpty()) {
+            return;
+        }
+        parts.add(new TextPart(false, value));
+        plainText.append(value);
+    }
+
+    private record TextPart(boolean emoji, String value) {
+    }
+
+    private record MaskedText(String plainText, List<TextPart> parts) {
+        private String restore(String filteredText) {
+            StringBuilder result = new StringBuilder(filteredText.length() + 32);
+            int offset = 0;
+            for (TextPart part : parts) {
+                if (part.emoji()) {
+                    result.append(part.value());
+                    continue;
+                }
+                int nextOffset = offset + part.value().length();
+                result.append(filteredText, offset, nextOffset);
+                offset = nextOffset;
+            }
+            return result.toString();
         }
     }
 }

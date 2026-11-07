@@ -1,5 +1,22 @@
 /* 表情面板公共样式 */
 
+.comment-emoji {
+  display: inline-block;
+  object-fit: contain;
+}
+
+.comment-emoji-lottie {
+  overflow: hidden;
+  line-height: 0;
+}
+
+.comment-emoji-lottie > img,
+.comment-emoji-lottie > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .lc-emoji-trigger-wrapper {
   position: relative;
 }

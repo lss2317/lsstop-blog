@@ -1,73 +1,95 @@
 <template>
-  <div ref="messageContainer" class="chat-message-list" @scroll="handleScroll">
-    <!-- 加载更多 -->
-    <div
-      v-if="chatStore.hasMore && messages.length > 0"
-      class="chat-load-more"
-      @click="$emit('loadMore')"
-    >
-      <span>加载更多</span>
-    </div>
-
-    <!-- 空状态 -->
-    <div v-if="messages.length === 0" class="chat-empty">
-      <v-icon size="48" color="#d9d9d9">mdi-chat-outline</v-icon>
-      <p>暂无消息，快来聊天吧~</p>
-    </div>
-
-    <!-- 消息列表 -->
-    <template v-for="(msg, index) in messages" :key="msg.id">
-      <!-- 时间分隔 -->
-      <div v-if="showTimeDivider(index)" class="chat-time-divider">
-        <span>{{ formatChatTime(msg.createTime) }}</span>
-      </div>
-
-      <!-- 消息项 -->
-      <div :class="['chat-msg-row', isSelf(msg.userId) ? 'self' : 'other']">
-        <img
-          class="chat-avatar"
-          :src="msg.avatar || chatStore.getAvatar(msg.userId)"
-          alt=""
-          @click="goToUserProfile(msg.userId)"
-        />
-        <div class="chat-msg-body">
-          <div class="chat-msg-header">
-            <span class="chat-nickname">
-              {{ msg.nickname || chatStore.getNickname(msg.userId) }}
-            </span>
-            <span v-if="msg.ipRegion" class="chat-ip-tag">{{ msg.ipRegion }}</span>
-          </div>
-          <!-- 文本内容 -->
-          <div
-            v-if="msg.content"
-            v-fit-bubble
-            :class="['chat-bubble', isSelf(msg.userId) ? 'self' : 'other']"
-            v-html="parseContent(msg.content)"
-          />
-          <!-- 图片列表 -->
-          <div v-if="msg.images && msg.images.length > 0" class="chat-images">
-            <img
-              v-for="(imgUrl, imgIdx) in msg.images"
-              :key="imgIdx"
-              class="chat-msg-image"
-              :src="imgUrl"
-              alt=""
-              loading="lazy"
-              @click="previewImages(msg.images!, imgIdx)"
-            />
-          </div>
+  <div class="chat-message-list-shell">
+    <div ref="messageContainer" class="chat-message-list" @scroll="handleScroll">
+      <div ref="messageContent" class="chat-message-content">
+        <!-- 加载更多 -->
+        <div
+          v-if="chatStore.hasMore && messages.length > 0"
+          class="chat-load-more"
+          @click="$emit('loadMore')"
+        >
+          <span>加载更多</span>
         </div>
+
+        <!-- 空状态 -->
+        <div v-if="messages.length === 0" class="chat-empty">
+          <v-icon size="48" color="#d9d9d9">mdi-chat-outline</v-icon>
+          <p>暂无消息，快来聊天吧~</p>
+        </div>
+
+        <!-- 消息列表 -->
+        <template v-for="(msg, index) in messages" :key="msg.id">
+          <!-- 时间分隔 -->
+          <div v-if="showTimeDivider(index)" class="chat-time-divider">
+            <span>{{ formatChatTime(msg.createTime) }}</span>
+          </div>
+
+          <!-- 消息项 -->
+          <div
+            :data-message-id="String(msg.id)"
+            :class="['chat-msg-row', isSelf(msg.userId) ? 'self' : 'other']"
+          >
+            <img
+              class="chat-avatar"
+              :src="msg.avatar || chatStore.getAvatar(msg.userId)"
+              alt=""
+              @click="goToUserProfile(msg.userId)"
+            />
+            <div class="chat-msg-body">
+              <div class="chat-msg-header">
+                <span class="chat-nickname">
+                  {{ msg.nickname || chatStore.getNickname(msg.userId) }}
+                </span>
+                <span v-if="msg.ipRegion" class="chat-ip-tag">{{ msg.ipRegion }}</span>
+              </div>
+              <!-- 文本内容 -->
+              <div
+                v-if="msg.content"
+                v-fit-bubble
+                :class="[
+                  'chat-bubble',
+                  isSelf(msg.userId) ? 'self' : 'other',
+                  {
+                    'emoji-only':
+                      isStandaloneSuperEmoji(msg.content) &&
+                      (!msg.images || msg.images.length === 0),
+                  },
+                ]"
+                v-html="parseContent(msg.content, Boolean(msg.images?.length))"
+              />
+              <!-- 图片列表 -->
+              <div v-if="msg.images && msg.images.length > 0" class="chat-images">
+                <img
+                  v-for="(imgUrl, imgIdx) in msg.images"
+                  :key="imgIdx"
+                  class="chat-msg-image"
+                  :src="imgUrl"
+                  alt=""
+                  loading="lazy"
+                  @click="previewImages(msg.images!, imgIdx)"
+                />
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
-    </template>
+    </div>
+
+    <Transition name="new-message">
+      <button v-if="hasNewMessage" type="button" class="chat-new-message" @click="showLatest">
+        有新消息
+        <v-icon size="15">mdi-chevron-down</v-icon>
+      </button>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { ChatMessage } from '@/apis/chat/types';
 import useChatStore from '@/stores/modules/chat';
 import useUserInfoStore from '@/stores/modules/userInfo';
-import { parseEmoji } from '@/utils/emoji';
+import { isStandaloneSuperEmoji, parseEmoji } from '@/utils/emoji';
 import { formatChatTime } from '@/utils/date';
 import { useNavigate } from '@/composables/useNavigate';
 import { previewImages } from '@/utils/photoPreview';
@@ -75,27 +97,21 @@ import { previewImages } from '@/utils/photoPreview';
 // 含表情图片的气泡：二分搜索收缩右侧空白，下限为原宽度的 95%
 // 等所有图片加载完成后再计算，避免因图片尺寸未知导致错误换行
 const fitBubbleWidth = (el: HTMLElement) => {
+  if (el.classList.contains('emoji-only')) return;
   const imgs = el.querySelectorAll('img');
   if (!imgs.length) return;
 
   const run = () => {
-    el.style.opacity = '0';
     el.style.width = '';
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         const initialHeight = el.scrollHeight;
-        if (initialHeight <= 0) {
-          el.style.opacity = '';
-          return;
-        }
+        if (initialHeight <= 0) return;
 
         const originalWidth = el.offsetWidth;
         let lo = Math.floor(originalWidth * 0.95);
         let hi = originalWidth;
-        if (hi - lo < 4) {
-          el.style.opacity = '';
-          return;
-        }
+        if (hi - lo < 4) return;
 
         while (hi - lo > 2) {
           const mid = Math.floor((lo + hi) / 2);
@@ -107,25 +123,23 @@ const fitBubbleWidth = (el: HTMLElement) => {
           }
         }
         el.style.width = hi + 1 + 'px';
-        el.style.opacity = '';
       });
     });
   };
 
   // 检查是否所有图片已加载完成
-  const allLoaded = () => Array.from(imgs).every((img) => img.complete && img.naturalWidth > 0);
+  const allSettled = () => Array.from(imgs).every((img) => img.complete);
 
-  if (allLoaded()) {
+  if (allSettled()) {
     run();
   } else {
-    el.style.opacity = '0';
     let loaded = 0;
     const total = imgs.length;
     const onLoad = () => {
       if (++loaded >= total) run();
     };
     imgs.forEach((img) => {
-      if (img.complete && img.naturalWidth > 0) {
+      if (img.complete) {
         onLoad();
       } else {
         img.addEventListener('load', onLoad, { once: true });
@@ -150,6 +164,7 @@ defineEmits<{
 const chatStore = useChatStore();
 const userInfoStore = useUserInfoStore();
 const messageContainer = ref<HTMLElement | null>(null);
+const messageContent = ref<HTMLElement | null>(null);
 const { navigateTo } = useNavigate();
 
 // 点击头像跳转用户主页
@@ -158,22 +173,121 @@ const goToUserProfile = (userId: string) => {
   navigateTo(`/user/${userId}`);
 };
 
-// 是否在底部附近（用于判断是否自动滚底）
-const isNearBottom = ref(true);
+const BOTTOM_THRESHOLD = 60;
+const stickToBottom = ref(true);
+const hasNewMessage = ref(false);
 
-// 加载更多时保持滚动位置
+interface ScrollAnchor {
+  messageId: string;
+  offsetTop: number;
+}
+
+let savedAnchor: ScrollAnchor | null = null;
 let savedScrollHeight = 0;
+let savedScrollTop = 0;
+let anchorRestoreActive = false;
+let isProgrammaticScroll = false;
+let programmaticScrollTimer: ReturnType<typeof setTimeout> | null = null;
+let anchorTrackingTimer: ReturnType<typeof setTimeout> | null = null;
+let anchorMediaCleanups: Array<() => void> = [];
+let contentResizeObserver: ResizeObserver | null = null;
 
+const findMessageElement = (messageId: string) => {
+  const rows = messageContent.value?.querySelectorAll<HTMLElement>('[data-message-id]');
+  return Array.from(rows || []).find((row) => row.dataset.messageId === messageId) || null;
+};
+
+const clearAnchorTracking = () => {
+  if (anchorTrackingTimer) clearTimeout(anchorTrackingTimer);
+  anchorTrackingTimer = null;
+  anchorMediaCleanups.forEach((cleanup) => cleanup());
+  anchorMediaCleanups = [];
+  savedAnchor = null;
+  anchorRestoreActive = false;
+};
+
+const restoreSavedAnchor = () => {
+  const container = messageContainer.value;
+  if (!container) return;
+
+  isProgrammaticScroll = true;
+  const anchorElement = savedAnchor ? findMessageElement(savedAnchor.messageId) : null;
+  if (anchorElement && savedAnchor) {
+    const currentOffset =
+      anchorElement.getBoundingClientRect().top - container.getBoundingClientRect().top;
+    container.scrollTop += currentOffset - savedAnchor.offsetTop;
+  } else {
+    container.scrollTop = savedScrollTop + (container.scrollHeight - savedScrollHeight);
+  }
+
+  requestAnimationFrame(() => {
+    isProgrammaticScroll = false;
+  });
+};
+
+const trackPendingHistoryMedia = () => {
+  const pendingImages = Array.from(
+    messageContent.value?.querySelectorAll<HTMLImageElement>('img') || [],
+  ).filter((img) => !img.complete);
+
+  if (pendingImages.length === 0) {
+    // 给气泡宽度计算留下两个渲染帧，避免测量完成后再次推移锚点
+    anchorTrackingTimer = setTimeout(clearAnchorTracking, 150);
+    return;
+  }
+
+  let remaining = pendingImages.length;
+  pendingImages.forEach((img) => {
+    const handleSettled = () => {
+      restoreSavedAnchor();
+      remaining -= 1;
+      if (remaining === 0) {
+        requestAnimationFrame(clearAnchorTracking);
+      }
+    };
+    img.addEventListener('load', handleSettled, { once: true });
+    img.addEventListener('error', handleSettled, { once: true });
+    anchorMediaCleanups.push(() => {
+      img.removeEventListener('load', handleSettled);
+      img.removeEventListener('error', handleSettled);
+    });
+  });
+
+  // 懒加载图片可能长期不触发，超时后停止锁定锚点，避免影响用户继续滚动
+  anchorTrackingTimer = setTimeout(clearAnchorTracking, 2000);
+};
+
+// 加载更早的历史消息前，记录第一条可见消息作为滚动锚点
 const saveScrollPosition = () => {
-  if (!messageContainer.value) return;
-  savedScrollHeight = messageContainer.value.scrollHeight;
+  const container = messageContainer.value;
+  if (!container) return;
+
+  clearAnchorTracking();
+  const containerTop = container.getBoundingClientRect().top;
+  const rows = Array.from(
+    messageContent.value?.querySelectorAll<HTMLElement>('[data-message-id]') || [],
+  );
+  const firstVisible = rows.find((row) => row.getBoundingClientRect().bottom > containerTop);
+
+  savedAnchor = firstVisible
+    ? {
+        messageId: firstVisible.dataset.messageId || '',
+        offsetTop: firstVisible.getBoundingClientRect().top - containerTop,
+      }
+    : null;
+  savedScrollHeight = container.scrollHeight;
+  savedScrollTop = container.scrollTop;
+  stickToBottom.value = false;
 };
 
 const restoreScrollPosition = () => {
+  anchorRestoreActive = true;
+  isProgrammaticScroll = true;
   nextTick(() => {
-    if (!messageContainer.value) return;
-    const newScrollHeight = messageContainer.value.scrollHeight;
-    messageContainer.value.scrollTop = newScrollHeight - savedScrollHeight;
+    requestAnimationFrame(() => {
+      restoreSavedAnchor();
+      trackPendingHistoryMedia();
+    });
   });
 };
 
@@ -184,9 +298,9 @@ const isSelf = (userId: string) => {
 
 // 解析消息内容（表情 + 换行）
 // parseEmoji 内部已做 escapeHtml，无需重复转义
-const parseContent = (content: string | null) => {
+const parseContent = (content: string | null, hasImages = false) => {
   if (!content) return '';
-  return parseEmoji(content);
+  return parseEmoji(content, { chatMode: !hasImages });
 };
 
 // 时间分隔（间隔超过5分钟显示）
@@ -200,46 +314,83 @@ const showTimeDivider = (index: number) => {
 
 // 滚动到底部
 const scrollToBottom = (smooth = true) => {
+  clearAnchorTracking();
+  stickToBottom.value = true;
+  hasNewMessage.value = false;
   nextTick(() => {
     if (!messageContainer.value) return;
     const container = messageContainer.value;
-    const doScroll = () => {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: smooth ? 'smooth' : 'auto',
-      });
-    };
-    doScroll();
-    // 处理懒加载图片：图片加载后 scrollHeight 会变化，需要再次滚底
-    const imgs = container.querySelectorAll<HTMLImageElement>('img.chat-msg-image');
-    imgs.forEach((img) => {
-      if (!img.complete) {
-        img.addEventListener('load', doScroll, { once: true });
-      }
+    if (programmaticScrollTimer) clearTimeout(programmaticScrollTimer);
+    isProgrammaticScroll = true;
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: smooth ? 'smooth' : 'auto',
     });
+    programmaticScrollTimer = setTimeout(
+      () => {
+        isProgrammaticScroll = false;
+        programmaticScrollTimer = null;
+      },
+      smooth ? 400 : 50,
+    );
   });
 };
 
 // 监听滚动判断是否在底部
 const handleScroll = () => {
-  if (!messageContainer.value) return;
-  const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
-  isNearBottom.value = scrollHeight - scrollTop - clientHeight < 60;
+  const container = messageContainer.value;
+  if (!container) return;
+  const { scrollTop, scrollHeight, clientHeight } = container;
+  const nearBottom = scrollHeight - scrollTop - clientHeight < BOTTOM_THRESHOLD;
+
+  if (nearBottom) {
+    stickToBottom.value = true;
+    hasNewMessage.value = false;
+  } else if (!isProgrammaticScroll) {
+    stickToBottom.value = false;
+    if (anchorRestoreActive) clearAnchorTracking();
+  }
 };
 
-// 消息变化时自动滚底
+const showLatest = () => {
+  scrollToBottom(false);
+};
+
+// 只监听最后一条消息；前置历史消息不会触发自动滚底
 watch(
-  () => props.messages.length,
-  () => {
-    if (isNearBottom.value) {
-      scrollToBottom();
+  () => props.messages[props.messages.length - 1]?.id,
+  (messageId, previousMessageId) => {
+    if (messageId == null || messageId === previousMessageId) return;
+    const latestMessage = props.messages[props.messages.length - 1];
+    if (!latestMessage) return;
+
+    if (previousMessageId == null || stickToBottom.value || isSelf(latestMessage.userId)) {
+      scrollToBottom(false);
+    } else {
+      hasNewMessage.value = true;
     }
   },
 );
 
 // 初始化滚到底部
 onMounted(() => {
+  if (typeof ResizeObserver !== 'undefined' && messageContent.value) {
+    contentResizeObserver = new ResizeObserver(() => {
+      if (anchorRestoreActive && savedAnchor) {
+        restoreSavedAnchor();
+      } else if (stickToBottom.value) {
+        scrollToBottom(false);
+      }
+    });
+    contentResizeObserver.observe(messageContent.value);
+  }
   scrollToBottom(false);
+});
+
+onBeforeUnmount(() => {
+  contentResizeObserver?.disconnect();
+  clearAnchorTracking();
+  if (programmaticScrollTimer) clearTimeout(programmaticScrollTimer);
 });
 
 // 暴露方法
@@ -251,13 +402,54 @@ defineExpose({
 </script>
 
 <style scoped>
-.chat-message-list {
+.chat-message-list-shell {
+  position: relative;
   flex: 1;
+  min-height: 0;
+}
+
+.chat-message-list {
+  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 16px 16px 8px;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+
+.chat-message-content {
+  min-height: 100%;
+}
+
+.chat-new-message {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  color: #fff;
+  background: var(--color-primary, #49b1f5);
+  border: 0;
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgb(0 0 0 / 18%);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.new-message-enter-active,
+.new-message-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.new-message-enter-from,
+.new-message-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 .chat-message-list::-webkit-scrollbar {
@@ -397,11 +589,25 @@ defineExpose({
   color: #fff;
 }
 
+/* QQ 风格：单独发送的超级表情不使用普通文字气泡。 */
+.chat-bubble.emoji-only {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  line-height: 0;
+  overflow: visible;
+}
+
+.chat-bubble.emoji-only :deep(.comment-emoji) {
+  margin: 0;
+  vertical-align: bottom;
+}
+
 /* 气泡内表情 */
-.chat-bubble :deep(img) {
-  width: 18px;
-  height: 18px;
-  vertical-align: middle;
+.chat-bubble :deep(.comment-emoji) {
+  width: 20px;
+  height: 20px;
+  vertical-align: -4px;
   margin: 0 1px;
 }
 
