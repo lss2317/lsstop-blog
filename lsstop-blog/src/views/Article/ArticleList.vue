@@ -57,7 +57,7 @@
         </v-col>
       </v-row>
       <!-- 空状态 -->
-      <v-card v-else class="blog-container">
+      <v-card v-else class="blog-container empty-content-container">
         <div class="empty-state">
           <v-icon size="48" color="grey">mdi-file-document-outline</v-icon>
           <p>暂无文章</p>

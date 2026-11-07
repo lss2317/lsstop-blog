@@ -2,6 +2,8 @@ package com.lsstop.domain.vo;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 分类VO
  *
@@ -25,5 +27,10 @@ public class CategoryVO {
      * 文章数量
      */
     private Integer articleCount;
+
+    /**
+     * 最新文章
+     */
+    private List<CategoryArticleVO> articles;
 
 }

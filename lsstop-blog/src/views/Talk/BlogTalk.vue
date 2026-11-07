@@ -5,7 +5,10 @@
       <h1 class="banner-title">说说</h1>
     </div>
     <!-- 说说内容 -->
-    <v-card class="blog-container">
+    <v-card
+      class="blog-container"
+      :class="{ 'empty-content-container': !loading && talkList.length === 0 }"
+    >
       <!-- 骨架屏 -->
       <div v-if="loading" class="skeleton-list">
         <div v-for="i in 3" :key="i" class="talk-item skeleton-item">

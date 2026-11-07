@@ -5,7 +5,10 @@
       <h1 class="banner-title">相册</h1>
     </div>
     <!-- 相册内容 -->
-    <v-card class="blog-container">
+    <v-card
+      class="blog-container"
+      :class="{ 'empty-content-container': !loading && photoAlbumList.length === 0 }"
+    >
       <!-- 加载骨架屏 -->
       <v-row v-if="loading">
         <v-col :md="6" cols="12" v-for="n in 4" :key="n">

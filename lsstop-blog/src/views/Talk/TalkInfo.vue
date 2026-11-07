@@ -5,7 +5,7 @@
       <h1 class="banner-title">说说详情</h1>
     </div>
     <!-- 说说内容 -->
-    <v-card class="blog-container">
+    <v-card class="blog-container" :class="{ 'empty-content-container': !loading && !talk }">
       <!-- 骨架屏 -->
       <div v-if="loading" class="talk-item skeleton-item">
         <div class="user-info-wrapper">

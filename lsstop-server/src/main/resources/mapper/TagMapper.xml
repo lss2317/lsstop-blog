@@ -6,17 +6,52 @@
         <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result property="tagName" column="tag_name" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="articleCount" column="article_count" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <collection property="articles" ofType="com.lsstop.domain.vo.TagArticleVO">
+            <id property="id" column="article_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+            <result property="articleTitle" column="article_title" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        </collection>
     </resultMap>
 
     <select id="getTagList" resultMap="tagVoResult">
         select t.id,
                t.tag_name,
-               count(at.article_id) as article_count
+               tag_count.article_count,
+               preview.article_id,
+               preview.article_title
         from blog_tag t
-                 left join blog_article_tag at on t.id = at.tag_id and at.deleted_at = 0
+                 inner join (
+                    select bat.tag_id,
+                           count(*) as article_count
+                    from blog_article_tag bat
+                             inner join blog_article a on bat.article_id = a.id
+                    where bat.deleted_at = 0
+                      and a.deleted_at = 0
+                      and a.status = 1
+                    group by bat.tag_id
+                 ) tag_count on t.id = tag_count.tag_id
+                 left join (
+                    select ranked.tag_id,
+                           ranked.article_id,
+                           ranked.article_title,
+                           ranked.row_num
+                    from (
+                        select bat.tag_id,
+                               a.id as article_id,
+                               a.article_title,
+                               row_number() over (
+                                   partition by bat.tag_id
+                                   order by a.create_time desc, a.id desc
+                               ) as row_num
+                        from blog_article_tag bat
+                                 inner join blog_article a on bat.article_id = a.id
+                        where bat.deleted_at = 0
+                          and a.deleted_at = 0
+                          and a.status = 1
+                    ) ranked
+                    where ranked.row_num <![CDATA[<=]]> 3
+                 ) preview on t.id = preview.tag_id
         where t.deleted_at = 0
-        group by t.id, t.tag_name
-        order by article_count desc, t.id
+        order by article_count desc, t.id, preview.row_num
     </select>
 
 </mapper>

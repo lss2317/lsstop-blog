@@ -164,6 +164,13 @@ html.theme-transition *::after {
   border-radius: 8px;
 }
 
+/* 整页暂无数据时，让空状态在内容区域内垂直、水平居中 */
+.blog-container.empty-content-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .v-theme--light .v-card:hover {
   box-shadow: 0 4px 12px 12px rgba(7, 17, 27, 0.15);
 }

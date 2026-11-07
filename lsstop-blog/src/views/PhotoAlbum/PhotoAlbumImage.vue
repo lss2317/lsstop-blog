@@ -5,7 +5,10 @@
       <h1 class="banner-title">{{ albumName }}</h1>
     </div>
     <!-- 相册列表 -->
-    <v-card class="blog-container">
+    <v-card
+      class="blog-container"
+      :class="{ 'empty-content-container': !loading && photoList.length === 0 }"
+    >
       <!-- 加载骨架屏 -->
       <div v-if="loading" class="photo-wrap">
         <v-skeleton-loader v-for="n in 6" :key="n" type="image" class="photo-skeleton" />

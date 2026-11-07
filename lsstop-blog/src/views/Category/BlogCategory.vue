@@ -5,13 +5,24 @@
       <h1 class="banner-title">分类</h1>
     </div>
     <!-- 分类内容 -->
-    <v-card class="blog-container">
+    <main
+      class="blog-container category-page-container"
+      :class="{ 'empty-content-container': !loading && categoryList.length === 0 }"
+    >
       <!-- 加载骨架屏 -->
-      <div v-if="loading" class="category-list">
-        <v-skeleton-loader v-for="n in 6" :key="n" type="list-item" class="skeleton-item" />
+      <div v-if="loading" class="category-content">
+        <div class="category-header-skeleton">
+          <v-skeleton-loader type="text" width="200" />
+        </div>
+        <div class="category-list">
+          <div v-for="n in 4" :key="n" class="category-item skeleton-item">
+            <v-skeleton-loader type="avatar, text" class="category-summary-skeleton" />
+            <v-skeleton-loader type="list-item-three-line" class="category-posts-skeleton" />
+          </div>
+        </div>
       </div>
       <!-- 分类列表 -->
-      <div v-else-if="categoryList.length > 0">
+      <div v-else-if="categoryList.length > 0" class="category-content">
         <!-- 统计头部 -->
         <div class="category-header">
           <v-icon class="stat-icon" size="28">mdi-format-list-bulleted</v-icon>
@@ -21,24 +32,32 @@
         </div>
         <!-- 列表 -->
         <div class="category-list">
-          <div
-            v-for="(item, index) of categoryList"
-            :key="item.id"
-            class="category-item"
-            :style="{ '--delay': index * 0.05 + 's' }"
-            @click="goToCategory(item.id)"
-          >
-            <div class="category-left">
-              <span class="category-dot"></span>
+          <article v-for="item of categoryList" :key="item.id" class="category-item">
+            <button
+              type="button"
+              class="category-summary"
+              :title="item.categoryName"
+              @click="goToCategory(item.id)"
+            >
+              <v-icon class="category-icon" size="26">mdi-checkbox-multiple-blank</v-icon>
               <span class="category-name">{{ item.categoryName }}</span>
+              <span class="category-count">{{ item.articleCount }}</span>
+            </button>
+
+            <div class="category-posts">
+              <button
+                v-for="article in item.articles"
+                :key="article.id"
+                type="button"
+                class="category-post"
+                :title="article.articleTitle"
+                @click="goToArticle(article.id)"
+              >
+                <span class="post-dot"></span>
+                <span class="post-title">{{ article.articleTitle }}</span>
+              </button>
             </div>
-            <div class="category-right">
-              <span class="category-count">{{
-                item.articleCount ? item.articleCount + ' 篇文章' : '暂无文章'
-              }}</span>
-              <v-icon size="18" class="category-arrow">mdi-chevron-right</v-icon>
-            </div>
-          </div>
+          </article>
         </div>
       </div>
       <!-- 空状态 -->
@@ -46,7 +65,7 @@
         <v-icon size="64" color="grey-lighten-1">mdi-folder-off-outline</v-icon>
         <p>暂无分类数据</p>
       </div>
-    </v-card>
+    </main>
   </div>
 </template>
 
@@ -85,135 +104,194 @@ function goToCategory(id: number) {
     window.scrollTo(0, 0);
   });
 }
+
+function goToArticle(id: number) {
+  router.push('/article/' + id).then(() => {
+    window.scrollTo(0, 0);
+  });
+}
 </script>
 
 <style scoped>
-.category-header {
+.category-page-container {
+  max-width: 1220px;
+  padding: 0 20px;
+  background: transparent;
+}
+
+.category-content {
+  width: 100%;
+}
+
+.category-header,
+.category-header-skeleton {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px dashed color-mix(in srgb, var(--color-primary) 50%, transparent);
+  margin-bottom: 22px;
 }
 
 .stat-icon {
+  margin-right: 8px;
   color: var(--color-primary);
-  margin-right: 10px;
 }
 
 .stat-text {
-  font-size: 16px;
   color: var(--color-text-secondary);
+  font-size: 16px;
 }
 
 .stat-text strong {
-  color: var(--color-primary);
-  font-size: 20px;
   margin: 0 4px;
+  color: var(--color-primary);
+  font-size: 18px;
 }
 
 .category-list {
-  padding: 8px 0;
-}
-
-.skeleton-item {
-  margin: 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 0.4rem;
 }
 
 .category-item {
-  --delay: 0s;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  cursor: pointer;
-  border-bottom: 1px dashed var(--color-border, #e5e5e5);
-  transition: background-color 0.2s ease;
-  animation: fadeIn 0.4s ease forwards;
-  animation-delay: var(--delay);
-  opacity: 0;
-}
-
-.category-item:last-child {
-  border-bottom: none;
+  min-width: 0;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid rgba(227, 232, 247, 0.9);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 6px 16px -6px rgba(44, 45, 48, 0.12);
+  backdrop-filter: blur(8px);
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  transition:
+    color 0.3s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .category-item:hover {
-  background-color: var(--color-bg-hover, #f5f5f5);
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 12px -3px color-mix(in srgb, var(--color-primary) 14%, transparent);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.category-left {
+.category-summary {
+  flex: 0 0 auto;
+  width: 132px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  transition: transform 0.3s ease-in-out;
-}
-
-.category-item:hover .category-left {
-  transform: translateX(8px);
-}
-
-.category-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-primary, #1867c0);
-  flex-shrink: 0;
-}
-
-.category-name {
-  font-size: 15px;
+  justify-content: center;
+  gap: 4px;
+  padding: 14px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(247, 247, 249, 0.9);
   color: var(--color-text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: color 0.3s ease-in-out;
+  cursor: pointer;
+  transition:
+    color 0.3s ease,
+    background-color 0.3s ease;
 }
 
-.category-item:hover .category-name {
+.category-summary:hover {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
   color: var(--color-primary);
 }
 
-.category-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  margin-left: 16px;
+.category-summary:focus-visible,
+.category-post:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.category-icon {
+  color: var(--color-primary);
+}
+
+.category-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 1.05em;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 .category-count {
-  font-size: 13px;
-  color: var(--color-text-secondary, #666);
+  color: var(--color-primary);
+  font-size: 0.78em;
+  opacity: 0.85;
 }
 
-.category-arrow {
-  color: var(--color-text-tertiary, #999);
-  opacity: 0;
-  transform: translateX(-4px);
+.category-posts {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: min-content;
+  gap: 2px 12px;
+  align-content: start;
+}
+
+.category-post {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-primary);
+  text-align: left;
+  font-size: 0.92em;
+  line-height: 1.4;
+  cursor: pointer;
   transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+    color 0.3s ease,
+    background-color 0.3s ease;
 }
 
-.category-item:hover .category-arrow {
-  opacity: 1;
-  transform: translateX(0);
+.category-post:hover {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-primary);
+}
+
+.post-dot {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--color-primary);
+  opacity: 0.45;
+}
+
+.post-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skeleton-item {
+  min-height: 164px;
+}
+
+.category-summary-skeleton,
+.category-posts-skeleton {
+  flex: 1 1 auto;
+}
+
+.category-summary-skeleton {
+  flex: 0 0 132px;
 }
 
 .empty-state {
@@ -230,10 +308,13 @@ function goToCategory(id: number) {
   font-size: 15px;
 }
 
-@media (max-width: 759px) {
+@media (max-width: 767px) {
+  .category-page-container {
+    padding: 0 14px;
+  }
+
   .category-header {
-    padding-bottom: 16px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
 
   .stat-text {
@@ -245,35 +326,52 @@ function goToCategory(id: number) {
   }
 
   .category-item {
-    padding: 14px 16px;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
   }
 
-  .category-name {
-    font-size: 14px;
+  .category-summary {
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
   }
 
-  .category-count {
-    font-size: 12px;
+  .category-posts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .category-summary-skeleton {
+    flex-basis: auto;
   }
 }
 </style>
 
 <style>
-/* 夜间模式样式 */
 .v-theme--dark .category-item {
-  border-bottom-color: var(--color-border, #333);
+  background: rgba(27, 28, 32, 0.9);
+  border-color: #3d3d3f;
+  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.31);
 }
 
 .v-theme--dark .category-item:hover {
-  background-color: var(--color-bg-hover, #2a2a2a);
+  border-color: var(--color-primary);
 }
 
-.v-theme--dark .category-name {
-  color: var(--color-text-primary, #e5e5e5);
+.v-theme--dark .category-summary {
+  background: #21232a;
+  color: var(--color-text-primary);
 }
 
-.v-theme--dark .category-count {
-  color: var(--color-text-secondary, #999);
+.v-theme--dark .category-summary:hover,
+.v-theme--dark .category-post:hover {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+}
+
+.v-theme--dark .category-post {
+  color: var(--color-text-primary);
 }
 
 .v-theme--dark .empty-state {

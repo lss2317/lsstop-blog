@@ -6,17 +6,48 @@
         <id property="id" column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
         <result property="categoryName" column="category_name" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <result property="articleCount" column="article_count" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+        <collection property="articles" ofType="com.lsstop.domain.vo.CategoryArticleVO">
+            <id property="id" column="article_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
+            <result property="articleTitle" column="article_title" jdbcType="VARCHAR" javaType="java.lang.String"/>
+        </collection>
     </resultMap>
 
     <select id="getCategoryList" resultMap="categoryVoResult">
         select c.id,
                c.category_name,
-               count(a.id) as article_count
+               category_count.article_count,
+               preview.article_id,
+               preview.article_title
         from blog_category c
-                 left join blog_article a on c.id = a.category_id and a.deleted_at = 0
+                 inner join (
+                    select a.category_id,
+                           count(*) as article_count
+                    from blog_article a
+                    where a.deleted_at = 0
+                      and a.status = 1
+                    group by a.category_id
+                 ) category_count on c.id = category_count.category_id
+                 left join (
+                    select ranked.category_id,
+                           ranked.article_id,
+                           ranked.article_title,
+                           ranked.row_num
+                    from (
+                        select a.category_id,
+                               a.id as article_id,
+                               a.article_title,
+                               row_number() over (
+                                   partition by a.category_id
+                                   order by a.create_time desc, a.id desc
+                               ) as row_num
+                        from blog_article a
+                        where a.deleted_at = 0
+                          and a.status = 1
+                    ) ranked
+                    where ranked.row_num <![CDATA[<=]]> 6
+                 ) preview on c.id = preview.category_id
         where c.deleted_at = 0
-        group by c.id, c.category_name
-        order by article_count desc, c.id
+        order by article_count desc, c.id, preview.row_num
     </select>
 
 </mapper>

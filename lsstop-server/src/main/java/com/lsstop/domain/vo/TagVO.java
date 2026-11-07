@@ -2,6 +2,8 @@ package com.lsstop.domain.vo;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 标签VO
  *
@@ -25,5 +27,10 @@ public class TagVO {
      * 文章数量
      */
     private Integer articleCount;
+
+    /**
+     * 最新文章
+     */
+    private List<TagArticleVO> articles;
 
 }

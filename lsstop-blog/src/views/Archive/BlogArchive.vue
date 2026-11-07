@@ -5,9 +5,12 @@
       <h1 class="banner-title">归档</h1>
     </div>
     <!-- 归档内容 -->
-    <v-card class="blog-container">
+    <v-card
+      class="blog-container"
+      :class="{ 'empty-content-container': !loading && groupedArchives.length === 0 }"
+    >
       <!-- 文章统计 -->
-      <div v-if="!loading" class="archive-header">
+      <div v-if="!loading && groupedArchives.length > 0" class="archive-header">
         <v-icon class="archive-header-icon" size="28">mdi-history</v-icon>
         <span class="archive-header-text"
           >共计 <strong>{{ totalCount }}</strong> 篇文章</span
