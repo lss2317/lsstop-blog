@@ -17,6 +17,11 @@ public class ArticleSearchContentVO {
     private Integer id;
 
     /**
+     * 文章封面
+     */
+    private String articleCover;
+
+    /**
      * 文章标题
      */
     private String articleTitle;

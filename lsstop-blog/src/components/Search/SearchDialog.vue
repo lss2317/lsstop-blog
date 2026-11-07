@@ -115,20 +115,27 @@
               class="result-item"
               @click="goToArticle(item.id, true)"
             >
+              <img
+                class="result-cover"
+                :src="item.articleCover"
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
               <div class="result-info">
                 <div class="result-title" v-html="item.highlightedTitle || item.articleTitle" />
+                <div
+                  v-if="item.highlightedContent"
+                  class="result-content"
+                  v-html="item.highlightedContent"
+                />
                 <div class="result-meta">
                   <span class="result-category">{{ item.categoryName }}</span>
-                  <span
-                    v-if="item.highlightedContent"
-                    class="result-content"
-                    v-html="item.highlightedContent"
-                  />
+                  <span class="result-count">
+                    <v-icon size="14">mdi-eye-outline</v-icon>
+                    {{ item.viewCount }}
+                  </span>
                 </div>
-              </div>
-              <div class="result-count">
-                <v-icon size="14" color="orange">mdi-fire</v-icon>
-                {{ item.viewCount }}
               </div>
             </div>
           </div>
@@ -276,6 +283,12 @@ async function searchByTitle(currentVersion = ++searchVersion) {
     searchResults.value = (res.data || []).map((item) => ({
       ...item,
       highlightedTitle: highlightKeyword(item.articleTitle, keyword),
+      highlightedContent: item.articleContent
+        ? highlightKeyword(
+            extractKeywordContext(stripMarkdown(item.articleContent), keyword, 45),
+            keyword,
+          )
+        : undefined,
     }));
   } catch (error) {
     // 同样检查版本号
@@ -307,7 +320,7 @@ async function handleContentSearch() {
       ...item,
       highlightedContent: item.articleContent
         ? highlightKeyword(
-            extractKeywordContext(stripMarkdown(item.articleContent), keyword),
+            extractKeywordContext(stripMarkdown(item.articleContent), keyword, 45),
             keyword,
           )
         : undefined,
@@ -591,6 +604,22 @@ onBeforeUnmount(() => {
   min-height: 0;
   padding: 0 20px 20px;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary, #49b1f5) transparent;
+}
+
+.search-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.search-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.search-content::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: var(--color-primary, #49b1f5);
 }
 
 .loading-state {
@@ -725,9 +754,9 @@ onBeforeUnmount(() => {
 
 .result-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 8px;
+  gap: 14px;
+  padding: 10px 8px;
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -741,14 +770,27 @@ onBeforeUnmount(() => {
   background-color: #2d2d2d;
 }
 
+.result-cover {
+  width: 120px;
+  height: 76px;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
 .result-info {
+  display: flex;
+  flex-direction: column;
   flex: 1;
+  align-self: stretch;
+  min-width: 0;
   overflow: hidden;
 }
 
 .result-title {
   font-size: 14px;
-  margin-bottom: 6px;
+  font-weight: 500;
+  margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -758,6 +800,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-top: auto;
   font-size: 12px;
   color: #999;
 }
@@ -781,11 +824,19 @@ onBeforeUnmount(() => {
 }
 
 .result-content {
-  flex: 1;
+  display: -webkit-box;
+  margin-bottom: 6px;
+  color: #777;
+  font-size: 12px;
+  line-height: 1.5;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
+  word-break: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.v-theme--dark .result-content {
+  color: #aaa;
 }
 
 .result-count {
@@ -797,7 +848,23 @@ onBeforeUnmount(() => {
 }
 
 .result-count :deep(.v-icon) {
-  margin-right: 2px;
+  color: inherit;
+}
+
+@media (max-width: 600px) {
+  .result-item {
+    gap: 10px;
+  }
+
+  .result-cover {
+    width: 88px;
+    height: 64px;
+  }
+
+  .result-content {
+    margin-bottom: 4px;
+    -webkit-line-clamp: 1;
+  }
 }
 
 /* 关键词高亮 */

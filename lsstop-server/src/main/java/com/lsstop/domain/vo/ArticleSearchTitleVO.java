@@ -17,6 +17,11 @@ public class ArticleSearchTitleVO {
     private Integer id;
 
     /**
+     * 文章封面
+     */
+    private String articleCover;
+
+    /**
      * 文章标题
      */
     private String articleTitle;
@@ -30,5 +35,10 @@ public class ArticleSearchTitleVO {
      * 浏览量
      */
     private Integer viewCount;
+
+    /**
+     * 文章内容摘要
+     */
+    private String articleContent;
 
 }

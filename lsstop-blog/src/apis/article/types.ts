@@ -104,12 +104,14 @@ export interface ArticleHomePage {
 export interface ArticleSearchItem {
   /** 文章ID */
   id: number;
+  /** 文章封面图URL */
+  articleCover: string;
   /** 文章标题 */
   articleTitle: string;
   /** 分类名称 */
   categoryName: string;
   /** 浏览量 */
   viewCount: number;
-  /** 文章内容（内容搜索时返回） */
-  articleContent?: string;
+  /** 文章内容摘要 */
+  articleContent: string;
 }
