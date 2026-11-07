@@ -115,6 +115,14 @@ const handlePanelClick = (e: MouseEvent) => {
   }
 }
 
+@media (min-width: 1440px) {
+  .chat-container {
+    width: clamp(420px, 23vw, 460px);
+    height: calc(88vh - 84px);
+    max-height: 640px;
+  }
+}
+
 @media (max-width: 759px) {
   .chat-container {
     top: 0;

@@ -678,6 +678,10 @@ defineExpose({
   background: hsl(204, 88%, 45%);
 }
 
+.v-theme--dark .chat-bubble.emoji-only {
+  background: transparent;
+}
+
 .v-theme--dark .chat-nickname {
   color: rgba(255, 255, 255, 0.7);
 }
