@@ -46,6 +46,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/front/comment/deleteComment",
                         "/front/message/addMessage",
                         "/front/chat/sendMessage",
+                        "/front/chat/image",
                         "/front/user/**")
                 .excludePathPatterns("/front/user/profile/*",
                         "/front/user/recentComments/*");

@@ -60,11 +60,17 @@ const md = new MarkdownIt({
   highlight: highlightCode,
 });
 
+const basicMd = new MarkdownIt({
+  html: true,
+  linkify: true,
+  typographer: true,
+});
+
 /**
- * Markdown 转 HTML（带代码高亮和行号）
+ * Markdown 转 HTML（默认启用代码高亮和行号）
  */
-export const markdownToHtml = (content: string): string => {
-  return md.render(content);
+export const markdownToHtml = (content: string, options?: { highlightCode?: boolean }): string => {
+  return (options?.highlightCode === false ? basicMd : md).render(content);
 };
 
 /**

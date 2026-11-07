@@ -1,66 +1,77 @@
 <template>
-  <v-dialog v-model="dialogVisible" max-width="700" scroll-strategy="none" persistent>
-    <v-card class="announcement-popup">
-      <v-btn icon variant="text" size="small" class="close-icon" @click="close">
-        <v-icon size="20">mdi-close</v-icon>
-      </v-btn>
-      <v-card-title class="popup-title">
-        <span class="popup-title-icon">
-          <v-icon size="16">mdi-bullhorn-outline</v-icon>
-        </span>
-        <span class="popup-title-text">{{ currentAnnouncement?.title }}</span>
-      </v-card-title>
-      <v-card-text class="popup-content">
+  <v-dialog
+    v-if="currentAnnouncement"
+    :key="currentAnnouncement.id"
+    v-model="dialogVisible"
+    :aria-labelledby="titleId"
+    :opacity="1"
+    class="announcement-overlay"
+    :max-width="dialogMaxWidth"
+    max-height="70dvh"
+    transition="announcement-dialog-transition"
+    persistent
+    no-click-animation
+    @keydown.esc.stop.prevent="dismiss()"
+    @after-leave="onAfterLeave"
+  >
+    <section class="announcement-popup">
+      <header class="announcement-popup__header">
+        <h2 :id="titleId" class="announcement-popup__title">
+          <v-icon size="16" aria-hidden="true">mdi-bell</v-icon>
+          <span>网站公告</span>
+        </h2>
+        <button
+          type="button"
+          class="announcement-popup__close"
+          aria-label="关闭公告"
+          @click="dismiss()"
+        >
+          <v-icon size="18" aria-hidden="true">mdi-close</v-icon>
+        </button>
+      </header>
+
+      <div class="announcement-popup__body">
         <div class="markdown-body" v-html="announcementHtml" />
-      </v-card-text>
-      <v-card-actions class="popup-actions">
-        <v-checkbox
-          v-model="todayNoShow"
-          label="今日不再显示"
-          density="compact"
-          hide-details
-          class="today-checkbox"
-        />
-        <v-spacer />
-        <div class="popup-nav" v-if="popupList.length > 1">
-          <v-btn variant="text" size="small" @click="prev">
-            <v-icon size="18">mdi-chevron-left</v-icon>
-            上一条
-          </v-btn>
-          <span class="popup-nav-index">{{ currentIndex + 1 }}/{{ popupList.length }}</span>
-          <v-btn variant="text" size="small" @click="next">
-            下一条
-            <v-icon size="18">mdi-chevron-right</v-icon>
-          </v-btn>
-        </div>
-        <v-btn variant="text" class="close-btn" @click="close">关闭</v-btn>
-      </v-card-actions>
-    </v-card>
+      </div>
+
+      <footer class="announcement-popup__actions">
+        <button
+          type="button"
+          class="announcement-popup__remember"
+          title="今日不再显示此公告"
+          @click="dismiss(true)"
+        >
+          我记住啦~
+        </button>
+        <button type="button" @click="dismiss()">确认</button>
+      </footer>
+    </section>
   </v-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { computed, ref, shallowRef, useId, watch } from 'vue';
+import type { AnnouncementVo } from '@/apis/announcement';
 import useAnnouncementStore from '@/stores/modules/announcement';
-import { markdownToHtml } from '@/utils/markdown';
+import { markdownToHtml, stripMarkdown } from '@/utils/markdown';
 
 const STORAGE_KEY = 'announcement_popup_hidden_date';
 
 const announcementStore = useAnnouncementStore();
+const titleId = useId();
 const popupList = computed(() => announcementStore.popupList);
-
+const displayedIds = new Set<number>();
+const currentAnnouncement = shallowRef<AnnouncementVo | null>(null);
 const dialogVisible = ref(false);
-const currentIndex = ref(0);
-const todayNoShow = ref(false);
+const announcementHtml = computed(() =>
+  markdownToHtml(currentAnnouncement.value?.content ?? '', { highlightCode: false }),
+);
+const dialogMaxWidth = computed(() => {
+  const content = currentAnnouncement.value?.content ?? '';
+  const needsReadingWidth =
+    stripMarkdown(content).length >= 220 || /<table\b/i.test(announcementHtml.value);
 
-const currentAnnouncement = computed(() => {
-  if (popupList.value.length === 0) return null;
-  return popupList.value[currentIndex.value] || null;
-});
-
-const announcementHtml = computed(() => {
-  if (!currentAnnouncement.value?.content) return '';
-  return markdownToHtml(currentAnnouncement.value.content);
+  return needsReadingWidth ? 'clamp(600px, 68vw, 780px)' : '600px';
 });
 
 function getTodayString() {
@@ -68,256 +79,230 @@ function getTodayString() {
   return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
 }
 
-function shouldShow() {
-  const hiddenDate = localStorage.getItem(STORAGE_KEY);
+function showNext() {
+  if (currentAnnouncement.value) return;
+
   const today = getTodayString();
-  return hiddenDate !== today;
+  // 保留旧版本已设置的当日全局免打扰，到次日自然失效。
+  if (localStorage.getItem(STORAGE_KEY) === today) return;
+
+  const next = popupList.value.find(
+    ({ id }) => !displayedIds.has(id) && localStorage.getItem(`${STORAGE_KEY}:${id}`) !== today,
+  );
+  if (!next) return;
+
+  currentAnnouncement.value = next;
+  dialogVisible.value = true;
 }
 
-function prev() {
-  if (popupList.value.length <= 1) return;
-  currentIndex.value = currentIndex.value > 0 ? currentIndex.value - 1 : popupList.value.length - 1;
-}
+function dismiss(remember = false) {
+  if (!dialogVisible.value || !currentAnnouncement.value) return;
 
-function next() {
-  if (popupList.value.length <= 1) return;
-  currentIndex.value = currentIndex.value < popupList.value.length - 1 ? currentIndex.value + 1 : 0;
-}
-
-function close() {
-  if (todayNoShow.value) {
-    localStorage.setItem(STORAGE_KEY, getTodayString());
-  }
+  const { id } = currentAnnouncement.value;
+  displayedIds.add(id);
+  if (remember) localStorage.setItem(`${STORAGE_KEY}:${id}`, getTodayString());
   dialogVisible.value = false;
 }
 
-// 监听公告列表，有弹窗公告时自动显示
-watch(
-  () => popupList.value,
-  (list) => {
-    if (list.length > 0 && shouldShow()) {
-      currentIndex.value = 0;
-      todayNoShow.value = false;
-      dialogVisible.value = true;
-    }
-  },
-  { immediate: true },
-);
+function onAfterLeave() {
+  currentAnnouncement.value = null;
+  showNext();
+}
+
+watch(popupList, showNext, { immediate: true });
 </script>
 
 <style scoped>
 .announcement-popup {
-  border-radius: 16px !important;
+  --notice-surface: #fff;
+  --notice-ink: #171717;
+  --notice-muted: #757575;
+  --notice-border: #f2f2f2;
+  --notice-accent: var(--color-primary, #49b1f5);
+  --notice-accent-hover: var(--color-primary-hover, #3da6e8);
+  --notice-accent-tint: rgb(73 177 245 / 16%);
+  --notice-padding: 20px;
+
+  display: flex;
+  flex-direction: column;
+  min-height: min(180px, 70dvh);
+  max-height: inherit;
   overflow: hidden;
-  position: relative;
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    0 8px 24px rgba(0, 0, 0, 0.08),
-    0 20px 60px rgba(0, 0, 0, 0.12) !important;
+  color: var(--notice-ink);
+  background: linear-gradient(rgb(73 177 245 / 5%), transparent), var(--notice-surface);
+  border: 1px solid var(--notice-border);
+  border-radius: 15px;
 }
 
-.popup-title {
-  font-size: 1.15rem;
-  font-weight: 600;
-  padding: 20px 24px 16px;
-  padding-right: 48px;
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.popup-title-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(73, 177, 245, 0.12), rgba(73, 177, 245, 0.06));
-  color: var(--color-primary, #49b1f5);
-  margin-right: 12px;
-  flex-shrink: 0;
-}
-
-.popup-title::after {
-  content: '';
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(0, 0, 0, 0.08) 20%,
-    rgba(0, 0, 0, 0.08) 80%,
-    transparent
-  );
-}
-
-.popup-title-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: rgba(0, 0, 0, 0.85);
-  flex: 1;
-  min-width: 0;
-}
-
-.popup-content {
-  padding: 20px 24px 24px;
-  font-size: 0.95rem;
-  line-height: 1.65;
-  color: rgba(0, 0, 0, 0.7);
-  height: 400px;
-  overflow-y: auto;
-}
-
-.popup-actions {
-  padding: 16px 24px;
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.popup-actions::before {
-  content: '';
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  top: 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(0, 0, 0, 0.08) 20%,
-    rgba(0, 0, 0, 0.08) 80%,
-    transparent
-  );
-}
-
-.today-checkbox {
-  flex-shrink: 0;
-}
-
-.today-checkbox :deep(.v-label) {
-  font-size: 0.85rem;
-  color: rgba(0, 0, 0, 0.55);
-  opacity: 1;
-}
-
-.today-checkbox :deep(.v-selection-control__input > .v-icon) {
-  color: rgba(0, 0, 0, 0.4);
-}
-
-.today-checkbox :deep(.v-selection-control--dirty .v-selection-control__input > .v-icon) {
-  color: var(--color-primary, #49b1f5);
-}
-
-.popup-nav {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-right: 12px;
-}
-
-.popup-nav-index {
-  font-size: 0.8rem;
-  color: rgba(0, 0, 0, 0.5);
-  min-width: 36px;
-  text-align: center;
-}
-
-/* 暗色主题 */
 .v-theme--dark .announcement-popup {
-  background-color: #2d2d2d !important;
+  --notice-surface: #171717;
+  --notice-ink: #f2f2f2;
+  --notice-muted: #bcbcbc;
+  --notice-border: #333;
 }
 
-.v-theme--dark .popup-title-icon {
-  background: linear-gradient(135deg, rgba(73, 177, 245, 0.18), rgba(73, 177, 245, 0.08));
-  color: var(--color-primary);
+.announcement-popup__header,
+.announcement-popup__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  padding-inline: var(--notice-padding);
 }
 
-.v-theme--dark .popup-title::after {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1) 20%,
-    rgba(255, 255, 255, 0.1) 80%,
-    transparent
-  );
+.announcement-popup__header {
+  justify-content: space-between;
+  padding-block: 14px;
 }
 
-.v-theme--dark .popup-title-text {
-  color: rgba(255, 255, 255, 0.9);
+.announcement-popup__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  color: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
-.v-theme--dark .popup-content {
-  color: rgba(255, 255, 255, 0.7);
+.announcement-popup__title .v-icon {
+  flex: none;
 }
 
-.v-theme--dark .popup-actions::before {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1) 20%,
-    rgba(255, 255, 255, 0.1) 80%,
-    transparent
-  );
+.announcement-popup__close,
+.announcement-popup__actions button {
+  border: 0;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
 }
 
-.v-theme--dark .today-checkbox :deep(.v-label) {
-  color: rgba(255, 255, 255, 0.55);
+.announcement-popup__close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: var(--notice-muted);
+  background: transparent;
+  border-radius: 50%;
 }
 
-.v-theme--dark .today-checkbox :deep(.v-selection-control__input > .v-icon) {
-  color: rgba(255, 255, 255, 0.4);
+.announcement-popup__close:hover {
+  color: var(--notice-accent);
+  background: var(--notice-accent-tint);
 }
 
-.v-theme--dark
-  .today-checkbox
-  :deep(.v-selection-control--dirty .v-selection-control__input > .v-icon) {
-  color: var(--color-primary, #49b1f5);
+.announcement-popup__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-inline: var(--notice-padding);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(73 177 245 / 35%) transparent;
 }
 
-.v-theme--dark .popup-nav-index {
-  color: rgba(255, 255, 255, 0.5);
+.announcement-popup__body .markdown-body {
+  --color-accent-fg: var(--notice-accent);
+
+  color: var(--notice-ink);
+  font-size: 15px;
+  line-height: 1.5;
 }
 
-.close-icon {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  color: rgba(0, 0, 0, 0.55);
-  z-index: 1;
+.announcement-popup__body :deep(p) {
+  font-size: inherit;
 }
 
-.close-icon:hover {
-  color: rgba(0, 0, 0, 0.75);
+.announcement-popup__body :deep(:is(h1, h2, h3, h4)) {
+  margin-block: 16px 8px;
+  padding-bottom: 0;
+  font-size: 1em;
+  border-bottom: 0;
 }
 
-.v-theme--dark .close-icon {
-  color: rgba(255, 255, 255, 0.55);
+.announcement-popup__body :deep(.markdown-body > :first-child) {
+  margin-top: 0;
 }
 
-.v-theme--dark .close-icon:hover {
-  color: rgba(255, 255, 255, 0.75);
+.announcement-popup__actions {
+  justify-content: flex-end;
+  padding-block: 17px 20px;
 }
 
-.close-btn {
-  color: rgba(0, 0, 0, 0.6);
-  transition: color 150ms ease;
+.announcement-popup__actions button {
+  min-height: 32px;
+  padding: 5px 12px;
+  color: var(--notice-accent);
+  background: var(--notice-accent-tint);
+  border-radius: 6px;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
-.close-btn:hover {
-  color: rgba(0, 0, 0, 0.9);
+.announcement-popup__actions .announcement-popup__remember {
+  background: transparent;
 }
 
-.v-theme--dark .close-btn {
-  color: rgba(255, 255, 255, 0.6);
+.announcement-popup__actions button:hover {
+  color: var(--notice-surface);
+  background: var(--notice-accent-hover);
 }
 
-.v-theme--dark .close-btn:hover {
-  color: rgba(255, 255, 255, 0.9);
+.announcement-popup button:focus-visible {
+  outline: 2px solid var(--notice-accent);
+  outline-offset: 2px;
+}
+
+:global(.announcement-overlay.v-overlay > .v-overlay__scrim) {
+  background: rgb(0 0 0 / 50%) !important;
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+
+:global(.announcement-dialog-transition-enter-active),
+:global(.announcement-dialog-transition-leave-active) {
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
+}
+
+:global(.announcement-dialog-transition-enter-from),
+:global(.announcement-dialog-transition-leave-to) {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+@media (max-width: 480px) {
+  :global(.announcement-overlay > .v-overlay__content) {
+    width: calc(100% - 28px);
+    margin: 14px;
+  }
+
+  .announcement-popup {
+    --notice-padding: 16px;
+  }
+}
+
+@media (pointer: coarse) {
+  .announcement-popup__close,
+  .announcement-popup__actions button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(.announcement-dialog-transition-enter-active),
+  :global(.announcement-dialog-transition-leave-active),
+  :global(.announcement-overlay > .v-overlay__scrim) {
+    transition: none !important;
+  }
 }
 </style>
