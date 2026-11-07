@@ -1,4 +1,22 @@
+@font-face {
+  font-family: 'HarmonyOS Sans SC';
+  src: url('../fonts/HarmonyOS_SansSC_Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HarmonyOS Sans SC';
+  src: url('../fonts/HarmonyOS_SansSC_Bold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
 :root {
+  --font-family-base: 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
   /* 主题色 */
   --color-primary: #49b1f5;
   --color-primary-hover: #3da6e8;
@@ -73,14 +91,12 @@ ul {
   padding: 0 !important;
 }
 * {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'DFPKingGothicGB-Regular', sans-serif;
+  font-family: var(--font-family-base);
   text-size-adjust: none;
 }
 
 .v-application {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'DFPKingGothicGB-Regular', sans-serif;
+  font-family: var(--font-family-base);
 }
 
 /* 主题切换过渡 */

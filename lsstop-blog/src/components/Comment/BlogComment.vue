@@ -995,8 +995,7 @@ onUnmounted(() => {
 
 <style scoped>
 .lc-comment-container {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-family-base);
   background: #fff;
 }
 

@@ -39,7 +39,7 @@
           >
             <div class="announcement-title">{{ item.title }}</div>
             <div class="announcement-content">{{ stripMarkdown(item.content) }}</div>
-            <div class="announcement-action" @click="handleClick">
+            <div class="announcement-action" @click="handleClick(item)">
               查看详情
               <v-icon size="14" class="action-arrow">mdi-chevron-right</v-icon>
             </div>
@@ -52,7 +52,7 @@
           >
             <div class="announcement-title">{{ item.title }}</div>
             <div class="announcement-content">{{ stripMarkdown(item.content) }}</div>
-            <div class="announcement-action" @click="handleClick">
+            <div class="announcement-action" @click="handleClick(item)">
               查看详情
               <v-icon size="14" class="action-arrow">mdi-chevron-right</v-icon>
             </div>
@@ -66,46 +66,21 @@
     </div>
   </div>
 
-  <!-- 公告详情弹框 -->
-  <v-dialog v-model="dialogVisible" max-width="700" scroll-strategy="none">
-    <v-card class="announcement-dialog">
-      <v-btn icon variant="text" size="small" class="close-icon" @click="dialogVisible = false">
-        <v-icon size="20">mdi-close</v-icon>
-      </v-btn>
-      <v-card-title class="dialog-title">
-        <span class="dialog-title-icon">
-          <v-icon size="16">mdi-bullhorn-outline</v-icon>
-        </span>
-        <span class="dialog-title-text">{{ currentAnnouncement?.title }}</span>
-      </v-card-title>
-      <v-card-text class="dialog-content">
-        <div class="markdown-body" v-html="announcementHtml" />
-      </v-card-text>
-      <v-card-actions class="dialog-actions">
-        <span class="dialog-time">{{ dateFormat.datetime(currentAnnouncement?.createTime) }}</span>
-        <v-spacer />
-        <div class="dialog-nav" v-if="list.length > 1">
-          <v-btn variant="text" size="small" @click="prevAnnouncement">
-            <v-icon size="18">mdi-chevron-left</v-icon>
-            上一条
-          </v-btn>
-          <span class="dialog-nav-index">{{ dialogIndex + 1 }}/{{ list.length }}</span>
-          <v-btn variant="text" size="small" @click="nextAnnouncement">
-            下一条
-            <v-icon size="18">mdi-chevron-right</v-icon>
-          </v-btn>
-        </div>
-        <v-btn variant="text" @click="dialogVisible = false">关闭</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <AnnouncementDialog
+    v-if="currentAnnouncement"
+    :key="currentAnnouncement.id"
+    v-model="dialogVisible"
+    :announcement="currentAnnouncement"
+    @close="closeDialog"
+    @after-leave="currentAnnouncement = null"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import type { AnnouncementVo } from '@/apis/announcement';
-import { dateFormat } from '@/utils/date';
-import { markdownToHtml, stripMarkdown } from '@/utils/markdown';
+import { stripMarkdown } from '@/utils/markdown';
+import AnnouncementDialog from './AnnouncementDialog.vue';
 
 interface Props {
   list: AnnouncementVo[];
@@ -122,18 +97,12 @@ const currentIndex = ref(0);
 const isResetting = ref(false);
 const dialogVisible = ref(false);
 const currentAnnouncement = ref<AnnouncementVo | null>(null);
-const dialogIndex = ref(0);
 
 let timer: ReturnType<typeof setInterval> | null = null;
 
 const displayIndex = computed(() => {
   const index = currentIndex.value % props.list.length;
   return index + 1;
-});
-
-const announcementHtml = computed(() => {
-  if (!currentAnnouncement.value?.content) return '';
-  return markdownToHtml(currentAnnouncement.value.content);
 });
 
 const transform = computed(() => `translateX(-${currentIndex.value * itemWidth.value}px)`);
@@ -166,26 +135,13 @@ function stopScroll() {
   }
 }
 
-function handleClick() {
-  if (props.list.length === 0) return;
-  const index = currentIndex.value >= props.list.length ? 0 : currentIndex.value;
-  const announcement = props.list[index];
-  if (!announcement) return;
-  dialogIndex.value = index;
+function handleClick(announcement: AnnouncementVo) {
   currentAnnouncement.value = announcement;
   dialogVisible.value = true;
 }
 
-function prevAnnouncement() {
-  if (props.list.length <= 1) return;
-  dialogIndex.value = dialogIndex.value > 0 ? dialogIndex.value - 1 : props.list.length - 1;
-  currentAnnouncement.value = props.list[dialogIndex.value] || null;
-}
-
-function nextAnnouncement() {
-  if (props.list.length <= 1) return;
-  dialogIndex.value = dialogIndex.value < props.list.length - 1 ? dialogIndex.value + 1 : 0;
-  currentAnnouncement.value = props.list[dialogIndex.value] || null;
+function closeDialog() {
+  dialogVisible.value = false;
 }
 
 function goToIndex(index: number) {
@@ -387,116 +343,6 @@ onUnmounted(() => {
   color: var(--color-primary);
 }
 
-/* 弹框样式 */
-.announcement-dialog {
-  border-radius: 16px !important;
-  overflow: hidden;
-  position: relative;
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    0 8px 24px rgba(0, 0, 0, 0.08),
-    0 20px 60px rgba(0, 0, 0, 0.12) !important;
-}
-
-.dialog-title {
-  font-size: 1.15rem;
-  font-weight: 600;
-  padding: 24px 24px 16px;
-  padding-right: 48px;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  position: relative;
-}
-
-.dialog-title-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(73, 177, 245, 0.12), rgba(73, 177, 245, 0.06));
-  color: var(--color-primary, #49b1f5);
-  margin-right: 12px;
-  flex-shrink: 0;
-}
-
-.dialog-title::after {
-  content: '';
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(0, 0, 0, 0.08) 20%,
-    rgba(0, 0, 0, 0.08) 80%,
-    transparent
-  );
-}
-
-.dialog-title-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: rgba(0, 0, 0, 0.85);
-}
-
-.dialog-content {
-  padding: 20px 24px 24px;
-  font-size: 0.95rem;
-  line-height: 1.65;
-  white-space: pre-wrap;
-  color: rgba(0, 0, 0, 0.7);
-  height: 400px;
-  overflow-y: auto;
-}
-
-.dialog-actions {
-  padding: 16px 24px;
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.dialog-actions::before {
-  content: '';
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  top: 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(0, 0, 0, 0.08) 20%,
-    rgba(0, 0, 0, 0.08) 80%,
-    transparent
-  );
-}
-
-.dialog-nav {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-right: 8px;
-}
-
-.dialog-nav-index {
-  font-size: 0.8rem;
-  color: rgba(0, 0, 0, 0.5);
-  min-width: 36px;
-  text-align: center;
-}
-
-.dialog-time {
-  font-size: 0.8rem;
-  color: rgba(0, 0, 0, 0.45);
-}
-
 /* 暗色主题 */
 .v-theme--dark .announcement-label {
   color: rgba(255, 255, 255, 0.85);
@@ -537,70 +383,5 @@ onUnmounted(() => {
 
 .v-theme--dark .announcement-empty {
   color: rgba(255, 255, 255, 0.35);
-}
-
-.v-theme--dark .announcement-dialog {
-  background-color: #2d2d2d !important;
-}
-
-.v-theme--dark .dialog-title-icon {
-  background: linear-gradient(135deg, rgba(73, 177, 245, 0.18), rgba(73, 177, 245, 0.08));
-  color: var(--color-primary);
-}
-
-.v-theme--dark .dialog-title::after {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1) 20%,
-    rgba(255, 255, 255, 0.1) 80%,
-    transparent
-  );
-}
-
-.v-theme--dark .dialog-title-text {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.v-theme--dark .dialog-content {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.v-theme--dark .dialog-actions::before {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1) 20%,
-    rgba(255, 255, 255, 0.1) 80%,
-    transparent
-  );
-}
-
-.v-theme--dark .dialog-time {
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.v-theme--dark .dialog-nav-index {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.close-icon {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  color: rgba(0, 0, 0, 0.55);
-  z-index: 1;
-}
-
-.close-icon:hover {
-  color: rgba(0, 0, 0, 0.75);
-}
-
-.v-theme--dark .close-icon {
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.v-theme--dark .close-icon:hover {
-  color: rgba(255, 255, 255, 0.75);
 }
 </style>

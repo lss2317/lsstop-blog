@@ -102,8 +102,7 @@
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
   margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'DFPKingGothicGB-Regular', sans-serif;
+  font-family: var(--font-family-base);
   word-break: break-word;
   line-height: 2;
 }
