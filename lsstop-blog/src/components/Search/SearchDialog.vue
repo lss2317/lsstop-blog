@@ -32,22 +32,30 @@
             @compositionstart="isComposing = true"
             @compositionend="handleCompositionEnd"
           />
-          <div class="search-mode-toggle">
-            <div class="mode-slider" :class="{ 'slide-right': searchMode === 'content' }" />
+          <div class="search-mode-toggle" role="group" aria-label="搜索范围">
             <span
+              class="mode-slider"
+              :class="{ 'slide-right': searchMode === 'content' }"
+              aria-hidden="true"
+            />
+            <button
+              type="button"
               class="mode-btn"
               :class="{ active: searchMode === 'title' }"
+              :aria-pressed="searchMode === 'title'"
               @click="searchMode = 'title'"
             >
               标题
-            </span>
-            <span
+            </button>
+            <button
+              type="button"
               class="mode-btn"
               :class="{ active: searchMode === 'content' }"
+              :aria-pressed="searchMode === 'content'"
               @click="searchMode = 'content'"
             >
-              内容
-            </span>
+              全文
+            </button>
           </div>
         </div>
       </div>
@@ -71,7 +79,6 @@
               class="history-item"
               @click="historySearch(item)"
             >
-              <i class="iconfont iconlishi history-icon" />
               <span class="history-text">{{ item }}</span>
               <v-icon class="history-delete" size="18" @click.stop="removeHistory(item)">
                 mdi-close
@@ -85,8 +92,10 @@
 
         <!-- 搜索结果 -->
         <template v-else>
-          <LoadingSpinner v-if="loading" />
-          <div v-else-if="searchResults.length === 0" class="empty-container">
+          <div v-if="loading" class="loading-state">
+            <LoadingSpinner v-if="loadingVisible" />
+          </div>
+          <div v-else-if="searchResults.length === 0" class="empty-container result-empty">
             <span class="empty-text">
               {{
                 searchMode === 'title'
@@ -130,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onBeforeUnmount, ref, watch } from 'vue';
 import {
   searchArticleByTitle,
   searchArticleByContent,
@@ -154,6 +163,7 @@ const dialogVisible = defineModel<boolean>({ default: false });
 const searchValue = ref('');
 const searchMode = ref<'title' | 'content'>('title');
 const loading = ref(false);
+const loadingVisible = ref(false);
 const showHistory = ref(true);
 const inputRef = ref<HTMLInputElement | null>(null);
 const hasSearched = ref(false); // 内容搜索是否已执行
@@ -163,6 +173,64 @@ const isComposing = ref(false); // 中文输入法组合状态
 const isFromHistory = ref(false); // 是否来自历史记录点击
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let searchVersion = 0; // 请求版本号，用于处理竞态
+
+const LOADING_SHOW_DELAY = 150;
+const LOADING_MIN_VISIBLE = 300;
+let loadingShowTimer: ReturnType<typeof setTimeout> | null = null;
+let loadingHideTimer: ReturnType<typeof setTimeout> | null = null;
+let loadingVisibleAt = 0;
+
+function startLoading() {
+  loading.value = true;
+
+  if (loadingHideTimer) {
+    clearTimeout(loadingHideTimer);
+    loadingHideTimer = null;
+  }
+  if (loadingVisible.value || loadingShowTimer) return;
+
+  loadingShowTimer = setTimeout(() => {
+    loadingShowTimer = null;
+    if (!loading.value) return;
+    loadingVisible.value = true;
+    loadingVisibleAt = performance.now();
+  }, LOADING_SHOW_DELAY);
+}
+
+function stopLoading() {
+  if (loadingShowTimer) {
+    clearTimeout(loadingShowTimer);
+    loadingShowTimer = null;
+  }
+
+  if (!loadingVisible.value) {
+    loading.value = false;
+    return;
+  }
+
+  const elapsed = performance.now() - loadingVisibleAt;
+  const remaining = Math.max(0, LOADING_MIN_VISIBLE - elapsed);
+  const hide = () => {
+    loadingHideTimer = null;
+    loadingVisible.value = false;
+    loading.value = false;
+  };
+
+  if (remaining > 0) {
+    loadingHideTimer = setTimeout(hide, remaining);
+  } else {
+    hide();
+  }
+}
+
+function resetLoading() {
+  if (loadingShowTimer) clearTimeout(loadingShowTimer);
+  if (loadingHideTimer) clearTimeout(loadingHideTimer);
+  loadingShowTimer = null;
+  loadingHideTimer = null;
+  loadingVisible.value = false;
+  loading.value = false;
+}
 
 // 搜索历史（响应式本地存储）
 const historyList = useLocalStorage<string[]>('searchHistory', []);
@@ -181,21 +249,22 @@ function debouncedSearchByTitle() {
     clearTimeout(debounceTimer);
   }
 
+  // 输入变化时立即使之前的请求失效
+  const currentVersion = ++searchVersion;
   debounceTimer = setTimeout(() => {
-    searchByTitle();
+    searchByTitle(currentVersion);
   }, 300);
 }
 
-async function searchByTitle() {
+async function searchByTitle(currentVersion = ++searchVersion) {
   const keyword = searchValue.value.trim();
   if (!keyword) {
     searchResults.value = [];
+    resetLoading();
     return;
   }
 
-  // 递增版本号，用于处理竞态
-  const currentVersion = ++searchVersion;
-
+  startLoading();
   try {
     const res = await searchArticleByTitle(keyword);
 
@@ -214,17 +283,22 @@ async function searchByTitle() {
       searchResults.value = [];
       snackbar.error(getErrorMessage(error));
     }
+  } finally {
+    // 过期请求不能关闭当前请求的加载状态
+    if (currentVersion === searchVersion) {
+      stopLoading();
+    }
   }
 }
 
 // 内容搜索（回车触发）
 async function handleContentSearch() {
-  if (searchMode.value !== 'content' || !searchValue.value.trim()) return;
+  if (searchMode.value !== 'content' || !searchValue.value.trim() || loading.value) return;
 
   // 添加到搜索历史
   addToHistory(searchValue.value);
 
-  loading.value = true;
+  startLoading();
   hasSearched.value = true;
   try {
     const keyword = searchValue.value.trim();
@@ -241,7 +315,7 @@ async function handleContentSearch() {
   } catch (error) {
     snackbar.error(getErrorMessage(error));
   } finally {
-    loading.value = false;
+    stopLoading();
   }
 }
 
@@ -325,12 +399,16 @@ watch(searchValue, (val) => {
     if (debounceTimer) {
       clearTimeout(debounceTimer);
     }
+    ++searchVersion;
+    resetLoading();
     searchResults.value = [];
   }
 });
 
 // 监听搜索模式变化
 watch(searchMode, () => {
+  ++searchVersion;
+  resetLoading();
   searchResults.value = [];
   searchValue.value = '';
   showHistory.value = true;
@@ -339,6 +417,8 @@ watch(searchMode, () => {
 
 // 监听弹窗状态
 watch(dialogVisible, (val) => {
+  ++searchVersion;
+  resetLoading();
   if (val) {
     searchValue.value = '';
     searchResults.value = [];
@@ -351,6 +431,11 @@ watch(dialogVisible, (val) => {
       debounceTimer = null;
     }
   }
+});
+
+onBeforeUnmount(() => {
+  if (debounceTimer) clearTimeout(debounceTimer);
+  resetLoading();
 });
 </script>
 
@@ -399,16 +484,20 @@ watch(dialogVisible, (val) => {
 
 .search-icon {
   font-size: 18px;
-  color: #4caf50;
+  color: var(--color-primary, #49b1f5);
   margin-right: 8px;
 }
 
 .search-input {
   flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
   border: none;
   outline: none;
   background: transparent;
   font-size: 14px;
+  line-height: 44px;
   color: inherit;
 }
 
@@ -421,41 +510,59 @@ watch(dialogVisible, (val) => {
   position: relative;
   display: flex;
   align-items: center;
-  background: #e8e8e8;
-  border-radius: 16px;
-  padding: 2px;
+  flex: none;
+  gap: 2px;
+  margin-left: 12px;
+  padding: 3px;
+  background: #e9edf1;
+  border-radius: 8px;
 }
 
 .v-theme--dark .search-mode-toggle {
-  background: #3d3d3d;
+  background: #373737;
 }
 
-/* 滑动背景块 */
 .mode-slider {
   position: absolute;
-  top: 2px;
-  left: 2px;
-  width: calc(50% - 2px);
-  height: calc(100% - 4px);
-  background: linear-gradient(135deg, #49b1f5, #79c9f9);
-  border-radius: 14px;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(73, 177, 245, 0.3);
+  top: 3px;
+  left: 3px;
+  width: calc((100% - 8px) / 2);
+  height: 28px;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 10%);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .mode-slider.slide-right {
-  transform: translateX(100%);
+  transform: translateX(calc(100% + 2px));
+}
+
+.v-theme--dark .mode-slider {
+  background: #505050;
+  box-shadow: none;
 }
 
 .mode-btn {
   position: relative;
   z-index: 1;
-  padding: 4px 12px;
-  font-size: 12px;
-  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 28px;
+  padding: 0 10px;
+  color: #737373;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
   cursor: pointer;
-  color: #666;
-  transition: color 0.3s ease;
+  font-size: 13px;
+  line-height: 1;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
   user-select: none;
 }
 
@@ -464,14 +571,34 @@ watch(dialogVisible, (val) => {
 }
 
 .mode-btn.active {
-  color: #fff;
+  color: var(--color-primary, #49b1f5);
+}
+
+.v-theme--dark .mode-btn.active {
+  color: #79c9f9;
+}
+
+.mode-btn:focus-visible {
+  outline: 2px solid var(--color-primary, #49b1f5);
+  outline-offset: 1px;
 }
 
 /* 内容区域 */
 .search-content {
-  padding: 0 20px 20px;
+  display: flex;
+  flex-direction: column;
   flex: 1;
+  min-height: 0;
+  padding: 0 20px 20px;
   overflow-y: auto;
+}
+
+.loading-state {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
 }
 
 .section-header {
@@ -577,6 +704,12 @@ watch(dialogVisible, (val) => {
   justify-content: center;
   align-items: center;
   padding: 40px 0;
+}
+
+.result-empty {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
 }
 
 .empty-text {

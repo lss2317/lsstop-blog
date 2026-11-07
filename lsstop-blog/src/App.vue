@@ -1,5 +1,10 @@
 <template>
   <v-app id="app">
+    <Transition name="initial-loading">
+      <div v-if="initialLoading" class="initial-loading-screen">
+        <LoadingSpinner />
+      </div>
+    </Transition>
     <!-- 导航栏 -->
     <TopNavBar v-if="!isHideLayout"></TopNavBar>
     <!-- 侧边导航栏 -->
@@ -24,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { onBeforeUnmount, onMounted, computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import TopNavBar from '@/components/layout/TopNavBar.vue';
 import SideNavBar from '@/components/layout/SideNavBar.vue';
@@ -41,10 +46,12 @@ import useUserInfoStore from '@/stores/modules/userInfo';
 import useAnnouncementStore from '@/stores/modules/announcement';
 import { tokenManager } from '@/utils/token';
 import { useScrollRestore } from '@/composables/useScrollRestore';
+import LoadingSpinner from '@/components/Loading/LoadingSpinner.vue';
 
 const route = useRoute();
 const isHideLayout = computed(() => !!route.meta.hideLayout);
 const hideFooter = computed(() => !!route.meta.hideFooter);
+const initialLoading = ref(true);
 
 const websiteConfigStore = useWebsiteConfigStore();
 const pageInfoStore = usePageInfoStore();
@@ -55,15 +62,75 @@ const announcementStore = useAnnouncementStore();
 // 页面刷新时保持滚动位置
 useScrollRestore();
 
+const INITIAL_LOADING_MIN_DURATION = 350;
+const INITIAL_LOADING_MAX_DURATION = 8000;
+let initialLoadingFallbackTimer: number | null = null;
+
 onMounted(async () => {
-  void websiteConfigStore.fetchWebsiteConfig();
+  const startTime = performance.now();
+  initialLoadingFallbackTimer = window.setTimeout(() => {
+    initialLoading.value = false;
+    initialLoadingFallbackTimer = null;
+  }, INITIAL_LOADING_MAX_DURATION);
+
+  const coreTasks: Promise<unknown>[] = [
+    websiteConfigStore.fetchWebsiteConfig(),
+    pageInfoStore.fetchPageList(),
+    announcementStore.fetchAnnouncementList(),
+  ];
+
   void websiteConfigStore.fetchViewCount();
-  void pageInfoStore.fetchPageList();
-  void announcementStore.fetchAnnouncementList();
   // 有token时先获取用户信息，再获取点赞数据
   if (tokenManager.hasToken()) {
-    await userInfoStore.fetchUserInfo();
-    void likeStore.fetchUserLike();
+    coreTasks.push(
+      userInfoStore.fetchUserInfo().then(() => {
+        void likeStore.fetchUserLike();
+      }),
+    );
+  }
+
+  await Promise.allSettled(coreTasks);
+
+  const elapsed = performance.now() - startTime;
+  const remaining = Math.max(0, INITIAL_LOADING_MIN_DURATION - elapsed);
+  if (remaining > 0) {
+    await new Promise<void>((resolve) => window.setTimeout(resolve, remaining));
+  }
+
+  initialLoading.value = false;
+  if (initialLoadingFallbackTimer) {
+    clearTimeout(initialLoadingFallbackTimer);
+    initialLoadingFallbackTimer = null;
+  }
+});
+
+onBeforeUnmount(() => {
+  if (initialLoadingFallbackTimer) {
+    clearTimeout(initialLoadingFallbackTimer);
   }
 });
 </script>
+
+<style scoped>
+.initial-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-white);
+}
+
+.initial-loading-screen :deep(.loading-spinner) {
+  padding: 0;
+}
+
+.initial-loading-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.initial-loading-leave-to {
+  opacity: 0;
+}
+</style>

@@ -1,6 +1,6 @@
 <template>
   <div class="oauth-callback">
-    <v-progress-circular indeterminate color="primary" size="48" />
+    <LoadingSpinner />
     <p class="mt-4">{{ message }}</p>
   </div>
 </template>
@@ -17,6 +17,7 @@ import useLikeStore from '@/stores/modules/like';
 import { tokenManager } from '@/utils/token';
 import { useSnackbarStore } from '@/stores/modules/snackbar';
 import { getErrorMessage } from '@/utils/error';
+import LoadingSpinner from '@/components/Loading/LoadingSpinner.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -151,11 +152,15 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--color-bg-light);
+}
+
+.oauth-callback :deep(.loading-spinner) {
+  padding: 0;
 }
 
 .oauth-callback p {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 </style>

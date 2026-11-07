@@ -5,6 +5,7 @@ import App from './App.vue';
 import router from './router';
 import vuetify from './plugins/vuetify.ts';
 
+import '@mdi/font/css/materialdesignicons.css';
 import 'animate.css';
 import './assets/css/index.css';
 import './assets/css/markdown.css';
